@@ -77,7 +77,7 @@ const Auth = () => {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-card">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Welcome to CryptoVault</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Welcome to kimaex</CardTitle>
           <CardDescription className="text-center">Sign in or create an account to get started</CardDescription>
         </CardHeader>
         <CardContent>
