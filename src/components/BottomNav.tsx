@@ -7,6 +7,7 @@ export const BottomNav = () => {
 
   const navItems = [
     { id: "wallet", icon: Wallet, label: "Wallet", path: "/" },
+    { id: "swap", icon: Repeat, label: "Swap", path: "/swap" },
     { id: "nft", icon: Image, label: "NFTs", path: "/nft" },
     { id: "dapps", icon: Globe, label: "DApps", path: "/dapps" },
     { id: "activity", icon: Clock, label: "Activity", path: "/history" },
