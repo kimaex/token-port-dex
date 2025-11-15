@@ -36,13 +36,13 @@ const Fiat = () => {
       <div className="max-w-md mx-auto p-4 space-y-4">
         <div className="flex items-center gap-3 mb-6">
           <CreditCard className="w-8 h-8 text-primary" />
-          <h1 className="text-2xl font-bold">Fiat Gateway</h1>
+          <h1 className="text-2xl font-bold">Deposit & Withdrawal</h1>
         </div>
 
         <Card className="shadow-card">
           <CardHeader>
-            <CardTitle>Manage Your Fiat</CardTitle>
-            <CardDescription>Deposit or withdraw traditional currency</CardDescription>
+            <CardTitle>Fiat Transactions</CardTitle>
+            <CardDescription>Deposit funds or withdraw to your bank account</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="deposit" className="w-full">
