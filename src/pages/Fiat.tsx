@@ -11,24 +11,37 @@ import { toast } from "sonner";
 const Fiat = () => {
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState("USD");
-  const [paymentMethod, setPaymentMethod] = useState("");
+  
+  // Deposit fields
+  const [depositAccountNumber, setDepositAccountNumber] = useState("");
+  const [depositFullName, setDepositFullName] = useState("");
+  
+  // Withdrawal fields
+  const [withdrawBankName, setWithdrawBankName] = useState("");
+  const [withdrawAccountNumber, setWithdrawAccountNumber] = useState("");
+  const [withdrawPersonName, setWithdrawPersonName] = useState("");
 
   const handleDeposit = () => {
-    if (!amount || !paymentMethod) {
+    if (!amount || !depositAccountNumber || !depositFullName) {
       toast.error("Please fill in all fields");
       return;
     }
     toast.success(`Deposit of ${currency} ${amount} initiated`);
     setAmount("");
+    setDepositAccountNumber("");
+    setDepositFullName("");
   };
 
   const handleWithdraw = () => {
-    if (!amount || !paymentMethod) {
+    if (!amount || !withdrawBankName || !withdrawAccountNumber || !withdrawPersonName) {
       toast.error("Please fill in all fields");
       return;
     }
     toast.success(`Withdrawal of ${currency} ${amount} initiated`);
     setAmount("");
+    setWithdrawBankName("");
+    setWithdrawAccountNumber("");
+    setWithdrawPersonName("");
   };
 
   return (
@@ -81,17 +94,22 @@ const Fiat = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Payment Method</Label>
-                  <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select payment method" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="card">Credit/Debit Card</SelectItem>
-                      <SelectItem value="bank">Bank Transfer</SelectItem>
-                      <SelectItem value="paypal">PayPal</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label>Account Number</Label>
+                  <Input
+                    type="text"
+                    placeholder="Enter account number"
+                    value={depositAccountNumber}
+                    onChange={(e) => setDepositAccountNumber(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Full Name</Label>
+                  <Input
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={depositFullName}
+                    onChange={(e) => setDepositFullName(e.target.value)}
+                  />
                 </div>
                 <Button onClick={handleDeposit} className="w-full" size="lg">
                   Deposit {amount && `${currency} ${amount}`}
@@ -122,16 +140,31 @@ const Fiat = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Withdrawal Method</Label>
-                  <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select withdrawal method" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="bank">Bank Account</SelectItem>
-                      <SelectItem value="paypal">PayPal</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label>Bank Name</Label>
+                  <Input
+                    type="text"
+                    placeholder="Enter bank name"
+                    value={withdrawBankName}
+                    onChange={(e) => setWithdrawBankName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Account Number</Label>
+                  <Input
+                    type="text"
+                    placeholder="Enter account number"
+                    value={withdrawAccountNumber}
+                    onChange={(e) => setWithdrawAccountNumber(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Account Holder Name</Label>
+                  <Input
+                    type="text"
+                    placeholder="Enter account holder name"
+                    value={withdrawPersonName}
+                    onChange={(e) => setWithdrawPersonName(e.target.value)}
+                  />
                 </div>
                 <Button onClick={handleWithdraw} className="w-full" size="lg">
                   Withdraw {amount && `${currency} ${amount}`}
