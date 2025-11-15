@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Fiat from "./pages/Fiat";
+import Swap from "./pages/Swap";
 import NFTMarket from "./pages/NFTMarket";
 import DApps from "./pages/DApps";
 import History from "./pages/History";
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/fiat" element={<Fiat />} />
+          <Route path="/swap" element={<Swap />} />
           <Route path="/nft" element={<NFTMarket />} />
           <Route path="/dapps" element={<DApps />} />
           <Route path="/history" element={<History />} />
