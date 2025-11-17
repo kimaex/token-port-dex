@@ -30,6 +30,14 @@ const Index = () => {
         <WalletHeader />
         <ActionButtons />
         <AssetList />
+        <div className="px-6 py-4">
+          <button 
+            onClick={() => window.location.href = '/swap'} 
+            className="w-full py-3 bg-gradient-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90 transition-opacity"
+          >
+            Manage Crypto
+          </button>
+        </div>
         <BottomNav />
       </div>
     </div>
