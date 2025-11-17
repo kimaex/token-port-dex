@@ -1,4 +1,4 @@
-import { CreditCard, Plane, Receipt } from "lucide-react";
+import { CreditCard, Plane, Receipt, TrendingUp, Landmark, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
@@ -27,6 +27,27 @@ export default function More() {
       label: "Utilities Bills",
       description: "Pay bills using your balance",
       path: "/utilities-bills",
+    },
+    {
+      id: "stake",
+      icon: TrendingUp,
+      label: "Stake and Earn Crypto",
+      description: "Stake your crypto and earn rewards",
+      path: "/stake-earn",
+    },
+    {
+      id: "bonds",
+      icon: Landmark,
+      label: "Buy Government Bond",
+      description: "Invest in government bonds",
+      path: "/government-bonds",
+    },
+    {
+      id: "spin",
+      icon: Sparkles,
+      label: "Spin and Win USDT",
+      description: "Try your luck and win USDT",
+      path: "/spin-win",
     },
   ];
 

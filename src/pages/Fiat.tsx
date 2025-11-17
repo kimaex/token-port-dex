@@ -10,7 +10,7 @@ import { toast } from "sonner";
 
 const Fiat = () => {
   const [amount, setAmount] = useState("");
-  const [currency, setCurrency] = useState("USD");
+  const [currency, setCurrency] = useState("USDT");
   
   // Deposit fields
   const [depositAccountNumber, setDepositAccountNumber] = useState("");
@@ -71,16 +71,17 @@ const Fiat = () => {
               </TabsList>
               <TabsContent value="deposit" className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <Label>Currency</Label>
+                  <Label>Cryptocurrency</Label>
                   <Select value={currency} onValueChange={setCurrency}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="USD">USD - US Dollar</SelectItem>
-                      <SelectItem value="EUR">EUR - Euro</SelectItem>
-                      <SelectItem value="GBP">GBP - British Pound</SelectItem>
-                      <SelectItem value="JPY">JPY - Japanese Yen</SelectItem>
+                      <SelectItem value="USDT">USDT - Tether</SelectItem>
+                      <SelectItem value="USDC">USDC - USD Coin</SelectItem>
+                      <SelectItem value="CNGN">CNGN - Nigerian Naira Stablecoin</SelectItem>
+                      <SelectItem value="BUSD">BUSD - Binance USD</SelectItem>
+                      <SelectItem value="DAI">DAI - Dai Stablecoin</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -117,16 +118,17 @@ const Fiat = () => {
               </TabsContent>
               <TabsContent value="withdraw" className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <Label>Currency</Label>
+                  <Label>Cryptocurrency</Label>
                   <Select value={currency} onValueChange={setCurrency}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="USD">USD - US Dollar</SelectItem>
-                      <SelectItem value="EUR">EUR - Euro</SelectItem>
-                      <SelectItem value="GBP">GBP - British Pound</SelectItem>
-                      <SelectItem value="JPY">JPY - Japanese Yen</SelectItem>
+                      <SelectItem value="USDT">USDT - Tether</SelectItem>
+                      <SelectItem value="USDC">USDC - USD Coin</SelectItem>
+                      <SelectItem value="CNGN">CNGN - Nigerian Naira Stablecoin</SelectItem>
+                      <SelectItem value="BUSD">BUSD - Binance USD</SelectItem>
+                      <SelectItem value="DAI">DAI - Dai Stablecoin</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

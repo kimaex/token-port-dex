@@ -1,4 +1,4 @@
-import { Wallet, Repeat, Clock, Image, MoreHorizontal } from "lucide-react";
+import { Wallet, Repeat, Clock, Image, MoreHorizontal, Settings } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 export const BottomNav = () => {
@@ -9,8 +9,8 @@ export const BottomNav = () => {
     { id: "wallet", icon: Wallet, label: "Wallet", path: "/" },
     { id: "swap", icon: Repeat, label: "Swap", path: "/swap" },
     { id: "nft", icon: Image, label: "NFTs", path: "/nft" },
-    { id: "activity", icon: Clock, label: "Activity", path: "/history" },
     { id: "more", icon: MoreHorizontal, label: "More", path: "/more" },
+    { id: "settings", icon: Settings, label: "Settings", path: "/settings" },
   ];
 
   return (

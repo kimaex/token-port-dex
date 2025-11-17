@@ -14,6 +14,10 @@ import More from "./pages/More";
 import ATMCard from "./pages/ATMCard";
 import FlightTickets from "./pages/FlightTickets";
 import UtilitiesBills from "./pages/UtilitiesBills";
+import Settings from "./pages/Settings";
+import StakeEarn from "./pages/StakeEarn";
+import GovernmentBonds from "./pages/GovernmentBonds";
+import SpinWin from "./pages/SpinWin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +40,10 @@ const App = () => (
           <Route path="/atm-card" element={<ATMCard />} />
           <Route path="/flight-tickets" element={<FlightTickets />} />
           <Route path="/utilities-bills" element={<UtilitiesBills />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/stake-earn" element={<StakeEarn />} />
+          <Route path="/government-bonds" element={<GovernmentBonds />} />
+          <Route path="/spin-win" element={<SpinWin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
