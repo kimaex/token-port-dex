@@ -10,7 +10,7 @@ import Swap from "./pages/Swap";
 import NFTMarket from "./pages/NFTMarket";
 import DApps from "./pages/DApps";
 import History from "./pages/History";
-import More from "./pages/More";
+import FutureTrading from "./pages/FutureTrading";
 import ATMCard from "./pages/ATMCard";
 import FlightTickets from "./pages/FlightTickets";
 import UtilitiesBills from "./pages/UtilitiesBills";
@@ -36,7 +36,7 @@ const App = () => (
           <Route path="/nft" element={<NFTMarket />} />
           <Route path="/dapps" element={<DApps />} />
           <Route path="/history" element={<History />} />
-          <Route path="/more" element={<More />} />
+          <Route path="/futures" element={<FutureTrading />} />
           <Route path="/atm-card" element={<ATMCard />} />
           <Route path="/flight-tickets" element={<FlightTickets />} />
           <Route path="/utilities-bills" element={<UtilitiesBills />} />
