@@ -1,4 +1,6 @@
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { useState } from "react";
+import { TrendingUp, TrendingDown, Send, Download, ArrowLeftRight, LineChart, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Asset {
   id: string;
@@ -50,6 +52,16 @@ const assets: Asset[] = [
 ];
 
 export const AssetList = () => {
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+
+  const handleAction = (action: string) => {
+    if (selectedAsset) {
+      console.log(`${action} action for ${selectedAsset.name}`);
+      // Here you would navigate to the respective page or open a modal
+    }
+    setSelectedAsset(null);
+  };
+
   return (
     <div className="px-6 pb-24">
       <div className="flex items-center justify-between mb-4">
@@ -60,6 +72,7 @@ export const AssetList = () => {
         {assets.map((asset) => (
           <div
             key={asset.id}
+            onClick={() => setSelectedAsset(asset)}
             className="bg-card border border-border rounded-2xl p-4 hover:border-primary/50 transition-all cursor-pointer group"
           >
             <div className="flex items-center justify-between">
@@ -91,6 +104,91 @@ export const AssetList = () => {
           </div>
         ))}
       </div>
+
+      {/* Asset Action Modal */}
+      {selectedAsset && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-end justify-center">
+          <div className="bg-card border border-border rounded-t-3xl w-full max-w-md p-6 animate-in slide-in-from-bottom duration-300">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-full bg-gradient-primary flex items-center justify-center text-xl font-bold shadow-glow">
+                  {selectedAsset.icon}
+                </div>
+                <div>
+                  <p className="font-semibold text-lg">{selectedAsset.name}</p>
+                  <p className="text-sm text-muted-foreground">{selectedAsset.balance} {selectedAsset.symbol}</p>
+                </div>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setSelectedAsset(null)}
+                className="rounded-full"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Price Info */}
+            <div className="bg-muted/50 rounded-xl p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Current Value</span>
+                <span className="font-bold text-xl">{selectedAsset.value}</span>
+              </div>
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-muted-foreground">24h Change</span>
+                <span className={`font-semibold ${selectedAsset.change >= 0 ? "text-success" : "text-destructive"}`}>
+                  {selectedAsset.change >= 0 ? "+" : ""}{selectedAsset.change}%
+                </span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="grid grid-cols-4 gap-3">
+              <button
+                onClick={() => handleAction("Send")}
+                className="flex flex-col items-center gap-2 p-4 bg-muted/50 hover:bg-muted rounded-xl transition-colors"
+              >
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Send className="h-5 w-5 text-primary" />
+                </div>
+                <span className="text-sm font-medium">Send</span>
+              </button>
+
+              <button
+                onClick={() => handleAction("Receive")}
+                className="flex flex-col items-center gap-2 p-4 bg-muted/50 hover:bg-muted rounded-xl transition-colors"
+              >
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Download className="h-5 w-5 text-primary" />
+                </div>
+                <span className="text-sm font-medium">Receive</span>
+              </button>
+
+              <button
+                onClick={() => handleAction("Swap")}
+                className="flex flex-col items-center gap-2 p-4 bg-muted/50 hover:bg-muted rounded-xl transition-colors"
+              >
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <ArrowLeftRight className="h-5 w-5 text-primary" />
+                </div>
+                <span className="text-sm font-medium">Swap</span>
+              </button>
+
+              <button
+                onClick={() => handleAction("Chart")}
+                className="flex flex-col items-center gap-2 p-4 bg-muted/50 hover:bg-muted rounded-xl transition-colors"
+              >
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <LineChart className="h-5 w-5 text-primary" />
+                </div>
+                <span className="text-sm font-medium">Chart</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
