@@ -1,4 +1,4 @@
-import { Moon, Wallet, SlidersHorizontal, Shield, MessageCircle, Users, FileCheck } from "lucide-react";
+import { Moon, Wallet, SlidersHorizontal, Shield, MessageCircle, Users, DollarSign, Key } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
 import { Switch } from "@/components/ui/switch";
@@ -24,6 +24,13 @@ export default function Settings() {
       hasSwitch: false,
     },
     {
+      id: "currency",
+      icon: DollarSign,
+      label: "Currency",
+      description: "Choose your display currency",
+      hasSwitch: false,
+    },
+    {
       id: "preference",
       icon: SlidersHorizontal,
       label: "Preference",
@@ -35,6 +42,13 @@ export default function Settings() {
       icon: Shield,
       label: "Security",
       description: "Security settings and 2FA",
+      hasSwitch: false,
+    },
+    {
+      id: "show-seed-phrase",
+      icon: Key,
+      label: "Show Seed Phrase",
+      description: "View your recovery seed phrase",
       hasSwitch: false,
     },
     {
@@ -51,19 +65,16 @@ export default function Settings() {
       description: "Invite friends and earn rewards",
       hasSwitch: false,
     },
-    {
-      id: "kyc",
-      icon: FileCheck,
-      label: "KYC",
-      description: "Complete your KYC verification",
-      hasSwitch: false,
-    },
   ];
 
   const handleSettingClick = (id: string) => {
     if (id === "dark-mode") {
       setDarkMode(!darkMode);
       toast.success(`Dark mode ${!darkMode ? "enabled" : "disabled"}`);
+    } else if (id === "show-seed-phrase") {
+      toast.info("Please verify your PIN to view seed phrase");
+    } else if (id === "currency") {
+      toast.info("Currency selection coming soon");
     } else {
       toast.info(`Opening ${id} settings...`);
     }
