@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Image, Search, TrendingUp } from "lucide-react";
+import { Image, Search, TrendingUp, Send, Download } from "lucide-react";
 
 const NFTMarket = () => {
   const nfts = [
@@ -20,6 +20,18 @@ const NFTMarket = () => {
         <div className="flex items-center gap-3 mb-6">
           <Image className="w-8 h-8 text-primary" />
           <h1 className="text-2xl font-bold">NFT Marketplace</h1>
+        </div>
+
+        {/* Send & Receive Actions */}
+        <div className="flex gap-3">
+          <Button className="flex-1 gap-2" variant="outline">
+            <Send className="w-4 h-4" />
+            Send NFT
+          </Button>
+          <Button className="flex-1 gap-2" variant="outline">
+            <Download className="w-4 h-4" />
+            Receive NFT
+          </Button>
         </div>
 
         <div className="relative">
