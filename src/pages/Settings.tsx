@@ -1,4 +1,4 @@
-import { Moon, Wallet, SlidersHorizontal, Shield, MessageCircle, Users, DollarSign, Key, ChevronRight, Check } from "lucide-react";
+import { Moon, Wallet, SlidersHorizontal, Shield, MessageCircle, Users, DollarSign, Key, ChevronRight, Check, Copy, Share2, Gift, X, ExternalLink } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
 import { Switch } from "@/components/ui/switch";
@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 
 const africanCurrencies = [
   { code: "NGN", symbol: "₦", name: "Nigerian Naira", country: "Nigeria" },
@@ -57,10 +58,29 @@ const africanCurrencies = [
   { code: "ZWL", symbol: "Z$", name: "Zimbabwean Dollar", country: "Zimbabwe" },
 ];
 
+// Mock connected dApps data
+const connectedDApps = [
+  { id: 1, name: "Uniswap", icon: "🦄", url: "uniswap.org", connectedAt: "2 days ago" },
+  { id: 2, name: "OpenSea", icon: "🌊", url: "opensea.io", connectedAt: "1 week ago" },
+  { id: 3, name: "Aave", icon: "👻", url: "aave.com", connectedAt: "2 weeks ago" },
+];
+
+// Mock referral data
+const referralData = {
+  code: "KIMAEX2024",
+  totalReferrals: 12,
+  pendingRewards: 45.50,
+  totalEarnings: 234.75,
+  referralLink: "https://kimaex.app/ref/KIMAEX2024",
+};
+
 export default function Settings() {
   const [darkMode, setDarkMode] = useState(false);
   const [showCurrencyModal, setShowCurrencyModal] = useState(false);
+  const [showConnectedWallets, setShowConnectedWallets] = useState(false);
+  const [showReferralModal, setShowReferralModal] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState(africanCurrencies[0]);
+  const [connectedApps, setConnectedApps] = useState(connectedDApps);
 
   const settingsSections = [
     {
@@ -73,8 +93,8 @@ export default function Settings() {
     {
       id: "connect-wallet",
       icon: Wallet,
-      label: "Connect Wallet",
-      description: "Connect your crypto wallet",
+      label: "Connected dApps",
+      description: `${connectedApps.length} apps connected`,
       hasSwitch: false,
     },
     {
@@ -129,6 +149,10 @@ export default function Settings() {
       toast.info("Please verify your PIN to view seed phrase");
     } else if (id === "currency") {
       setShowCurrencyModal(true);
+    } else if (id === "connect-wallet") {
+      setShowConnectedWallets(true);
+    } else if (id === "referral") {
+      setShowReferralModal(true);
     } else {
       toast.info(`Opening ${id} settings...`);
     }
@@ -138,6 +162,37 @@ export default function Settings() {
     setSelectedCurrency(currency);
     setShowCurrencyModal(false);
     toast.success(`Currency changed to ${currency.code} (${currency.symbol})`);
+  };
+
+  const handleDisconnectApp = (appId: number) => {
+    setConnectedApps(connectedApps.filter(app => app.id !== appId));
+    toast.success("dApp disconnected successfully");
+  };
+
+  const copyReferralCode = () => {
+    navigator.clipboard.writeText(referralData.code);
+    toast.success("Referral code copied!");
+  };
+
+  const copyReferralLink = () => {
+    navigator.clipboard.writeText(referralData.referralLink);
+    toast.success("Referral link copied!");
+  };
+
+  const shareReferral = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Join Kimaex",
+          text: `Use my referral code ${referralData.code} to sign up on Kimaex and earn rewards!`,
+          url: referralData.referralLink,
+        });
+      } catch (error) {
+        copyReferralLink();
+      }
+    } else {
+      copyReferralLink();
+    }
   };
 
   return (
@@ -228,6 +283,163 @@ export default function Settings() {
               ))}
             </div>
           </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      {/* Connected dApps Modal */}
+      <Dialog open={showConnectedWallets} onOpenChange={setShowConnectedWallets}>
+        <DialogContent className="max-w-md bg-background border-border">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-foreground">
+              Connected dApps
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {connectedApps.length === 0 ? (
+              <div className="text-center py-8">
+                <Wallet className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                <p className="text-muted-foreground">No dApps connected</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Connect to dApps to see them here
+                </p>
+              </div>
+            ) : (
+              <ScrollArea className="h-[350px] pr-4">
+                <div className="space-y-3">
+                  {connectedApps.map((app) => (
+                    <div
+                      key={app.id}
+                      className="p-4 rounded-xl bg-card border border-border flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center text-2xl">
+                          {app.icon}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-foreground">{app.name}</p>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <ExternalLink className="h-3 w-3" />
+                            <span>{app.url}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Connected {app.connectedAt}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => handleDisconnectApp(app.id)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Referral Modal - Ravenbank Style */}
+      <Dialog open={showReferralModal} onOpenChange={setShowReferralModal}>
+        <DialogContent className="max-w-md bg-background border-border p-0 overflow-hidden">
+          {/* Header with gradient */}
+          <div className="bg-gradient-primary p-6 text-center">
+            <div className="h-16 w-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
+              <Gift className="h-8 w-8 text-primary-foreground" />
+            </div>
+            <h2 className="text-2xl font-bold text-primary-foreground">
+              Invite Friends & Earn
+            </h2>
+            <p className="text-primary-foreground/80 mt-2 text-sm">
+              Earn USDC for every friend that signs up and trades
+            </p>
+          </div>
+
+          <div className="p-6 space-y-6">
+            {/* Referral Code */}
+            <div className="space-y-2">
+              <label className="text-sm text-muted-foreground">Your Referral Code</label>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 p-4 rounded-xl bg-muted border-2 border-dashed border-primary/30 text-center">
+                  <span className="text-xl font-bold text-primary tracking-wider">
+                    {referralData.code}
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-14 w-14 border-border"
+                  onClick={copyReferralCode}
+                >
+                  <Copy className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="p-4 rounded-xl bg-card border border-border text-center">
+                <p className="text-2xl font-bold text-foreground">{referralData.totalReferrals}</p>
+                <p className="text-xs text-muted-foreground mt-1">Referrals</p>
+              </div>
+              <div className="p-4 rounded-xl bg-card border border-border text-center">
+                <p className="text-2xl font-bold text-primary">${referralData.pendingRewards.toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground mt-1">Pending</p>
+              </div>
+              <div className="p-4 rounded-xl bg-card border border-border text-center">
+                <p className="text-2xl font-bold text-green-500">${referralData.totalEarnings.toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground mt-1">Earned</p>
+              </div>
+            </div>
+
+            {/* How it works */}
+            <div className="space-y-3">
+              <h3 className="font-semibold text-foreground">How it works</h3>
+              <div className="space-y-2">
+                <div className="flex items-start gap-3">
+                  <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs font-bold text-primary">1</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Share your referral code with friends</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs font-bold text-primary">2</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">They sign up and complete first trade</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs font-bold text-primary">3</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">You both earn $5 USDC bonus!</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Share Buttons */}
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                className="h-12 border-border"
+                onClick={copyReferralLink}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copy Link
+              </Button>
+              <Button
+                className="h-12 bg-gradient-primary hover:opacity-90"
+                onClick={shareReferral}
+              >
+                <Share2 className="h-4 w-4 mr-2" />
+                Share
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
