@@ -41,6 +41,8 @@ export default function Swap() {
   const [swapStep, setSwapStep] = useState<SwapStep>("input");
   const [orderType, setOrderType] = useState<OrderType>("market");
   const [limitPrice, setLimitPrice] = useState("");
+  const [stopLoss, setStopLoss] = useState("");
+  const [takeProfit, setTakeProfit] = useState("");
 
   const toAmount = useMemo(() => {
     if (!fromAmount || isNaN(parseFloat(fromAmount))) return "";
@@ -107,7 +109,10 @@ export default function Swap() {
 
   const handleConfirmSwap = () => {
     if (orderType === "limit") {
-      toast.success(`Limit order placed: ${fromAmount} ${fromToken.symbol} → ${limitToAmount} ${toToken.symbol} at ${limitPrice} ${toToken.symbol}/${fromToken.symbol}`);
+      let message = `Limit order placed: ${fromAmount} ${fromToken.symbol} → ${limitToAmount} ${toToken.symbol} at ${limitPrice} ${toToken.symbol}/${fromToken.symbol}`;
+      if (stopLoss) message += ` | SL: ${stopLoss}`;
+      if (takeProfit) message += ` | TP: ${takeProfit}`;
+      toast.success(message);
     } else {
       toast.success(`Swapping ${fromAmount} ${fromToken.symbol} for ${toAmount} ${toToken.symbol}`);
     }
@@ -115,6 +120,8 @@ export default function Swap() {
     setFromAmount("");
     setOrderType("market");
     setLimitPrice("");
+    setStopLoss("");
+    setTakeProfit("");
   };
 
   const handleCancelConfirm = () => {
@@ -265,18 +272,61 @@ export default function Swap() {
 
         {/* Limit Price Input */}
         {orderType === "limit" && (
-          <div className="space-y-3">
-            <label className="text-sm font-medium">Limit Price ({toToken.symbol} per {fromToken.symbol})</label>
-            <div className="bg-secondary/30 rounded-xl p-3">
-              <Input
-                type="number"
-                placeholder={`Current: ${exchangeRate}`}
-                value={limitPrice}
-                onChange={(e) => setLimitPrice(e.target.value)}
-                className="text-lg font-semibold bg-transparent border-none p-0 h-auto focus-visible:ring-0"
-              />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Limit Price ({toToken.symbol} per {fromToken.symbol})</label>
+              <div className="bg-secondary/30 rounded-xl p-3">
+                <Input
+                  type="number"
+                  placeholder={`Current: ${exchangeRate}`}
+                  value={limitPrice}
+                  onChange={(e) => setLimitPrice(e.target.value)}
+                  className="text-lg font-semibold bg-transparent border-none p-0 h-auto focus-visible:ring-0"
+                />
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">
+
+            {/* Stop Loss */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-red-500">Stop Loss</label>
+                <Info className="h-3 w-3 text-muted-foreground" />
+              </div>
+              <div className="bg-secondary/30 rounded-xl p-3">
+                <Input
+                  type="number"
+                  placeholder="Enter stop loss price (optional)"
+                  value={stopLoss}
+                  onChange={(e) => setStopLoss(e.target.value)}
+                  className="text-base font-medium bg-transparent border-none p-0 h-auto focus-visible:ring-0"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Auto-sell if price drops to {stopLoss || "..."} {toToken.symbol}/{fromToken.symbol}
+              </p>
+            </div>
+
+            {/* Take Profit */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-green-500">Take Profit</label>
+                <Info className="h-3 w-3 text-muted-foreground" />
+              </div>
+              <div className="bg-secondary/30 rounded-xl p-3">
+                <Input
+                  type="number"
+                  placeholder="Enter take profit price (optional)"
+                  value={takeProfit}
+                  onChange={(e) => setTakeProfit(e.target.value)}
+                  className="text-base font-medium bg-transparent border-none p-0 h-auto focus-visible:ring-0"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Auto-sell if price rises to {takeProfit || "..."} {toToken.symbol}/{fromToken.symbol}
+              </p>
+            </div>
+
+            <p className="text-xs text-muted-foreground border-t border-border pt-3">
               Order will execute when price reaches {limitPrice || "..."} {toToken.symbol}/{fromToken.symbol}
             </p>
           </div>
@@ -329,10 +379,24 @@ export default function Swap() {
             </span>
           </div>
           {orderType === "limit" && (
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Order Type</span>
-              <span className="text-amber-500">Limit Order</span>
-            </div>
+            <>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Order Type</span>
+                <span className="text-amber-500">Limit Order</span>
+              </div>
+              {stopLoss && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Stop Loss</span>
+                  <span className="text-red-500">{stopLoss} {toToken.symbol}</span>
+                </div>
+              )}
+              {takeProfit && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Take Profit</span>
+                  <span className="text-green-500">{takeProfit} {toToken.symbol}</span>
+                </div>
+              )}
+            </>
           )}
         </div>
 
