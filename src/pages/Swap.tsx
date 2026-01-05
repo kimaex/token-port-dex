@@ -26,6 +26,9 @@ const tokens: Token[] = [
   { symbol: "MATIC", name: "Polygon", balance: "500.00", price: 0.92, icon: "⬡", network: "Polygon" },
 ];
 
+type SwapStep = "input" | "confirm";
+type OrderType = "market" | "limit";
+
 export default function Swap() {
   const [fromToken, setFromToken] = useState<Token>(tokens[0]);
   const [toToken, setToToken] = useState<Token>(tokens[2]);
@@ -35,6 +38,9 @@ export default function Swap() {
   const [showSettings, setShowSettings] = useState(false);
   const [slippage, setSlippage] = useState("0.5");
   const [searchQuery, setSearchQuery] = useState("");
+  const [swapStep, setSwapStep] = useState<SwapStep>("input");
+  const [orderType, setOrderType] = useState<OrderType>("market");
+  const [limitPrice, setLimitPrice] = useState("");
 
   const toAmount = useMemo(() => {
     if (!fromAmount || isNaN(parseFloat(fromAmount))) return "";
@@ -42,6 +48,12 @@ export default function Swap() {
     const result = fromValue / toToken.price;
     return result.toFixed(6);
   }, [fromAmount, fromToken, toToken]);
+
+  const limitToAmount = useMemo(() => {
+    if (!fromAmount || !limitPrice || isNaN(parseFloat(fromAmount)) || isNaN(parseFloat(limitPrice))) return "";
+    const result = parseFloat(fromAmount) * parseFloat(limitPrice);
+    return result.toFixed(6);
+  }, [fromAmount, limitPrice]);
 
   const exchangeRate = useMemo(() => {
     return (fromToken.price / toToken.price).toFixed(6);
@@ -60,6 +72,7 @@ export default function Swap() {
     setFromToken(toToken);
     setToToken(temp);
     setFromAmount("");
+    setLimitPrice("");
   };
 
   const handleSelectToken = (token: Token, isFrom: boolean) => {
@@ -77,14 +90,35 @@ export default function Swap() {
       setShowToSelector(false);
     }
     setSearchQuery("");
+    setLimitPrice("");
   };
 
-  const handleSwap = () => {
+  const handleProceedToConfirm = () => {
     if (!fromAmount || parseFloat(fromAmount) <= 0) {
       toast.error("Please enter an amount");
       return;
     }
-    toast.success(`Swapping ${fromAmount} ${fromToken.symbol} for ${toAmount} ${toToken.symbol}`);
+    if (orderType === "limit" && (!limitPrice || parseFloat(limitPrice) <= 0)) {
+      toast.error("Please enter a limit price");
+      return;
+    }
+    setSwapStep("confirm");
+  };
+
+  const handleConfirmSwap = () => {
+    if (orderType === "limit") {
+      toast.success(`Limit order placed: ${fromAmount} ${fromToken.symbol} → ${limitToAmount} ${toToken.symbol} at ${limitPrice} ${toToken.symbol}/${fromToken.symbol}`);
+    } else {
+      toast.success(`Swapping ${fromAmount} ${fromToken.symbol} for ${toAmount} ${toToken.symbol}`);
+    }
+    setSwapStep("input");
+    setFromAmount("");
+    setOrderType("market");
+    setLimitPrice("");
+  };
+
+  const handleCancelConfirm = () => {
+    setSwapStep("input");
   };
 
   const handleMaxAmount = () => {
@@ -191,6 +225,130 @@ export default function Swap() {
         <Button onClick={() => setShowSettings(false)} className="w-full">
           Save Settings
         </Button>
+      </div>
+    </div>
+  );
+
+  // Confirmation Modal
+  const ConfirmationModal = () => (
+    <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-card border border-border rounded-2xl w-full max-w-sm p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Confirm Swap</h2>
+          <Button variant="ghost" size="icon" onClick={handleCancelConfirm}>
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {/* Order Type Toggle */}
+        <div className="space-y-3">
+          <label className="text-sm font-medium">Order Type</label>
+          <div className="flex gap-2">
+            <Button
+              variant={orderType === "market" ? "default" : "outline"}
+              size="sm"
+              className="flex-1"
+              onClick={() => setOrderType("market")}
+            >
+              Market
+            </Button>
+            <Button
+              variant={orderType === "limit" ? "default" : "outline"}
+              size="sm"
+              className="flex-1"
+              onClick={() => setOrderType("limit")}
+            >
+              Limit Order
+            </Button>
+          </div>
+        </div>
+
+        {/* Limit Price Input */}
+        {orderType === "limit" && (
+          <div className="space-y-3">
+            <label className="text-sm font-medium">Limit Price ({toToken.symbol} per {fromToken.symbol})</label>
+            <div className="bg-secondary/30 rounded-xl p-3">
+              <Input
+                type="number"
+                placeholder={`Current: ${exchangeRate}`}
+                value={limitPrice}
+                onChange={(e) => setLimitPrice(e.target.value)}
+                className="text-lg font-semibold bg-transparent border-none p-0 h-auto focus-visible:ring-0"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Order will execute when price reaches {limitPrice || "..."} {toToken.symbol}/{fromToken.symbol}
+            </p>
+          </div>
+        )}
+
+        {/* Swap Summary */}
+        <div className="bg-secondary/30 rounded-xl p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">You pay</span>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-bold text-xs">
+                {fromToken.icon}
+              </div>
+              <span className="font-semibold">{fromAmount} {fromToken.symbol}</span>
+            </div>
+          </div>
+          <div className="flex justify-center">
+            <ArrowDownUp className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">You receive</span>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-bold text-xs">
+                {toToken.icon}
+              </div>
+              <span className="font-semibold">
+                {orderType === "limit" ? (limitToAmount || "...") : toAmount} {toToken.symbol}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Details */}
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Rate</span>
+            <span>
+              1 {fromToken.symbol} = {orderType === "limit" && limitPrice ? limitPrice : exchangeRate} {toToken.symbol}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Slippage</span>
+            <span>{slippage}%</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Network Fee</span>
+            <span className="flex items-center gap-1">
+              <Zap className="h-3 w-3 text-green-500" />
+              ~$0.50
+            </span>
+          </div>
+          {orderType === "limit" && (
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Order Type</span>
+              <span className="text-amber-500">Limit Order</span>
+            </div>
+          )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={handleCancelConfirm} className="flex-1">
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleConfirmSwap} 
+            className="flex-1"
+            disabled={orderType === "limit" && (!limitPrice || parseFloat(limitPrice) <= 0)}
+          >
+            {orderType === "limit" ? "Place Order" : "Confirm Swap"}
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -318,13 +476,13 @@ export default function Swap() {
             </div>
           )}
 
-          {/* Swap Button */}
+          {/* Proceed Button */}
           <Button
-            onClick={handleSwap}
+            onClick={handleProceedToConfirm}
             className="w-full h-14 text-lg font-semibold"
             disabled={!fromAmount || parseFloat(fromAmount) <= 0}
           >
-            {!fromAmount || parseFloat(fromAmount) <= 0 ? "Enter amount" : "Swap"}
+            {!fromAmount || parseFloat(fromAmount) <= 0 ? "Enter amount" : "Proceed"}
           </Button>
         </div>
 
@@ -355,6 +513,7 @@ export default function Swap() {
       {showFromSelector && <TokenSelector isFrom={true} />}
       {showToSelector && <TokenSelector isFrom={false} />}
       {showSettings && <SettingsModal />}
+      {swapStep === "confirm" && <ConfirmationModal />}
     </div>
   );
 }
