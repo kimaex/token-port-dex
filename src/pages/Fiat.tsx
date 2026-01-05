@@ -9,7 +9,7 @@ import { ArrowDownToLine, ArrowUpFromLine, Copy, Check, Clock, Building2, User, 
 import { toast } from "sonner";
 
 type BuyStep = "amount" | "payment" | "processing" | "complete";
-type SellStep = "form" | "confirm" | "processing" | "complete";
+type SellStep = "amount" | "bankDetails" | "confirm" | "processing" | "complete";
 
 const EXCHANGE_RATE = 1580; // 1 USDC = 1580 NGN (example rate)
 
@@ -20,7 +20,7 @@ const Fiat = () => {
   const [copied, setCopied] = useState(false);
 
   // Sell USDC states
-  const [sellStep, setSellStep] = useState<SellStep>("form");
+  const [sellStep, setSellStep] = useState<SellStep>("amount");
   const [sellAmount, setSellAmount] = useState("");
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
@@ -61,11 +61,15 @@ const Fiat = () => {
     }, 3000);
   };
 
-  const handleSellProceed = () => {
+  const handleSellAmountProceed = () => {
     if (!sellAmount || parseFloat(sellAmount) <= 0) {
       toast.error("Please enter a valid amount");
       return;
     }
+    setSellStep("bankDetails");
+  };
+
+  const handleSellBankProceed = () => {
     if (!bankName || !accountNumber || !accountName) {
       toast.error("Please fill in all bank details");
       return;
@@ -87,7 +91,7 @@ const Fiat = () => {
   };
 
   const resetSell = () => {
-    setSellStep("form");
+    setSellStep("amount");
     setSellAmount("");
     setBankName("");
     setAccountNumber("");
@@ -283,7 +287,7 @@ const Fiat = () => {
 
               {/* SELL USDC TAB */}
               <TabsContent value="sell" className="space-y-4">
-                {sellStep === "form" && (
+                {sellStep === "amount" && (
                   <>
                     <div className="bg-secondary/30 rounded-xl p-4 space-y-4">
                       <div className="space-y-2">
@@ -309,17 +313,40 @@ const Fiat = () => {
                       </div>
 
                       <div className="border-t border-border/50 pt-4 space-y-2">
-                        <Label className="text-muted-foreground">You will receive</Label>
+                        <Label className="text-muted-foreground">You will receive (Local Fiat)</Label>
                         <p className="text-2xl font-semibold">
                           ₦{sellFiatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                         </p>
                       </div>
                     </div>
 
+                    <div className="bg-secondary/20 rounded-xl p-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Exchange Rate</span>
+                        <span>1 USDC = ₦{EXCHANGE_RATE.toLocaleString()}</span>
+                      </div>
+                    </div>
+
+                    <Button onClick={handleSellAmountProceed} className="w-full h-14 text-lg font-semibold">
+                      Proceed
+                    </Button>
+                  </>
+                )}
+
+                {sellStep === "bankDetails" && (
+                  <>
+                    <div className="text-center mb-4">
+                      <p className="text-muted-foreground">Selling</p>
+                      <p className="text-3xl font-bold text-primary">{sellAmount} USDC</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        ≈ ₦{sellFiatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+
                     <div className="space-y-4">
                       <h3 className="font-semibold flex items-center gap-2">
                         <Building2 className="w-4 h-4" />
-                        Bank Details
+                        Enter Bank Details
                       </h3>
 
                       <div className="space-y-2">
@@ -351,15 +378,12 @@ const Fiat = () => {
                       </div>
                     </div>
 
-                    <div className="bg-secondary/20 rounded-xl p-3">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Exchange Rate</span>
-                        <span>1 USDC = ₦{EXCHANGE_RATE.toLocaleString()}</span>
-                      </div>
-                    </div>
-
-                    <Button onClick={handleSellProceed} className="w-full h-14 text-lg font-semibold">
+                    <Button onClick={handleSellBankProceed} className="w-full h-14 text-lg font-semibold">
                       Continue
+                    </Button>
+
+                    <Button variant="ghost" onClick={() => setSellStep("amount")} className="w-full">
+                      Back
                     </Button>
                   </>
                 )}
@@ -405,7 +429,7 @@ const Fiat = () => {
                       Confirm Withdrawal
                     </Button>
 
-                    <Button variant="ghost" onClick={() => setSellStep("form")} className="w-full">
+                    <Button variant="ghost" onClick={() => setSellStep("bankDetails")} className="w-full">
                       Go Back
                     </Button>
                   </>
