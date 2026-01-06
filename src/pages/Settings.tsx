@@ -75,12 +75,26 @@ const referralData = {
 };
 
 export default function Settings() {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    return document.documentElement.classList.contains('dark');
+  });
   const [showCurrencyModal, setShowCurrencyModal] = useState(false);
   const [showConnectedWallets, setShowConnectedWallets] = useState(false);
   const [showReferralModal, setShowReferralModal] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState(africanCurrencies[0]);
   const [connectedApps, setConnectedApps] = useState(connectedDApps);
+
+  const toggleDarkMode = (enabled: boolean) => {
+    setDarkMode(enabled);
+    if (enabled) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+    toast.success(`Dark mode ${enabled ? "enabled" : "disabled"}`);
+  };
 
   const settingsSections = [
     {
@@ -143,8 +157,7 @@ export default function Settings() {
 
   const handleSettingClick = (id: string) => {
     if (id === "dark-mode") {
-      setDarkMode(!darkMode);
-      toast.success(`Dark mode ${!darkMode ? "enabled" : "disabled"}`);
+      toggleDarkMode(!darkMode);
     } else if (id === "show-seed-phrase") {
       toast.info("Please verify your PIN to view seed phrase");
     } else if (id === "currency") {
@@ -230,8 +243,7 @@ export default function Settings() {
                     <Switch
                       checked={darkMode}
                       onCheckedChange={(checked) => {
-                        setDarkMode(checked);
-                        toast.success(`Dark mode ${checked ? "enabled" : "disabled"}`);
+                        toggleDarkMode(checked);
                       }}
                       onClick={(e) => e.stopPropagation()}
                     />
