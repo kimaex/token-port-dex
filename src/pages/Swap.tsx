@@ -26,7 +26,7 @@ const tokens: Token[] = [
   { symbol: "MATIC", name: "Polygon", balance: "500.00", price: 0.92, icon: "⬡", network: "Polygon" },
 ];
 
-type SwapStep = "input" | "confirm";
+type SwapStep = "input" | "confirm" | "finalConfirm";
 type OrderType = "market" | "limit";
 
 export default function Swap() {
@@ -100,11 +100,19 @@ export default function Swap() {
       toast.error("Please enter an amount");
       return;
     }
+    setSwapStep("confirm");
+  };
+
+  const handleProceedToFinalConfirm = () => {
     if (orderType === "limit" && (!limitPrice || parseFloat(limitPrice) <= 0)) {
       toast.error("Please enter a limit price");
       return;
     }
-    setSwapStep("confirm");
+    if (orderType === "limit") {
+      setSwapStep("finalConfirm");
+    } else {
+      handleConfirmSwap();
+    }
   };
 
   const handleConfirmSwap = () => {
@@ -126,6 +134,10 @@ export default function Swap() {
 
   const handleCancelConfirm = () => {
     setSwapStep("input");
+  };
+
+  const handleBackToConfirm = () => {
+    setSwapStep("confirm");
   };
 
   const handleMaxAmount = () => {
@@ -406,11 +418,90 @@ export default function Swap() {
             Cancel
           </Button>
           <Button 
-            onClick={handleConfirmSwap} 
+            onClick={handleProceedToFinalConfirm} 
             className="flex-1"
             disabled={orderType === "limit" && (!limitPrice || parseFloat(limitPrice) <= 0)}
           >
-            {orderType === "limit" ? "Place Order" : "Confirm Swap"}
+            {orderType === "limit" ? "Review Order" : "Confirm Swap"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Final Confirmation Modal for Limit Orders
+  const FinalConfirmationModal = () => (
+    <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-card border border-border rounded-2xl w-full max-w-sm p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Confirm Limit Order</h2>
+          <Button variant="ghost" size="icon" onClick={handleCancelConfirm}>
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {/* Order Summary */}
+        <div className="text-center space-y-2">
+          <p className="text-sm text-muted-foreground">You are about to place a limit order</p>
+          <div className="flex items-center justify-center gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
+                {fromToken.icon}
+              </div>
+              <span className="text-xl font-bold">{fromAmount} {fromToken.symbol}</span>
+            </div>
+            <ArrowDownUp className="h-5 w-5 text-muted-foreground" />
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
+                {toToken.icon}
+              </div>
+              <span className="text-xl font-bold">{limitToAmount} {toToken.symbol}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Order Details */}
+        <div className="bg-secondary/30 rounded-xl p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Limit Price</span>
+            <span className="font-semibold text-amber-500">{limitPrice} {toToken.symbol}/{fromToken.symbol}</span>
+          </div>
+          {stopLoss && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Stop Loss</span>
+              <span className="font-semibold text-red-500">{stopLoss} {toToken.symbol}</span>
+            </div>
+          )}
+          {takeProfit && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Take Profit</span>
+              <span className="font-semibold text-green-500">{takeProfit} {toToken.symbol}</span>
+            </div>
+          )}
+          <div className="flex items-center justify-between border-t border-border pt-3">
+            <span className="text-sm text-muted-foreground">Network Fee</span>
+            <span className="flex items-center gap-1">
+              <Zap className="h-3 w-3 text-green-500" />
+              ~$0.50
+            </span>
+          </div>
+        </div>
+
+        {/* Warning */}
+        <div className="flex items-start gap-3 p-3 bg-amber-500/10 rounded-xl border border-amber-500/20">
+          <Info className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-muted-foreground">
+            This order will execute when {fromToken.symbol} reaches {limitPrice} {toToken.symbol}. Make sure you have reviewed all details before confirming.
+          </p>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={handleBackToConfirm} className="flex-1">
+            Back
+          </Button>
+          <Button onClick={handleConfirmSwap} className="flex-1">
+            Place Order
           </Button>
         </div>
       </div>
@@ -578,6 +669,7 @@ export default function Swap() {
       {showToSelector && <TokenSelector isFrom={false} />}
       {showSettings && <SettingsModal />}
       {swapStep === "confirm" && <ConfirmationModal />}
+      {swapStep === "finalConfirm" && <FinalConfirmationModal />}
     </div>
   );
 }
