@@ -43,6 +43,10 @@ export default function Swap() {
   const [limitPrice, setLimitPrice] = useState("");
   const [stopLoss, setStopLoss] = useState("");
   const [takeProfit, setTakeProfit] = useState("");
+  const [stopLossEnabled, setStopLossEnabled] = useState(false);
+  const [takeProfitEnabled, setTakeProfitEnabled] = useState(false);
+  const [stopLossPercent, setStopLossPercent] = useState<number | null>(null);
+  const [takeProfitPercent, setTakeProfitPercent] = useState<number | null>(null);
 
   const toAmount = useMemo(() => {
     if (!fromAmount || isNaN(parseFloat(fromAmount))) return "";
@@ -130,6 +134,24 @@ export default function Swap() {
     setLimitPrice("");
     setStopLoss("");
     setTakeProfit("");
+    setStopLossEnabled(false);
+    setTakeProfitEnabled(false);
+    setStopLossPercent(null);
+    setTakeProfitPercent(null);
+  };
+
+  const handleStopLossPercentClick = (percent: number) => {
+    if (!limitPrice) return;
+    setStopLossPercent(percent);
+    const slPrice = parseFloat(limitPrice) * (1 - percent / 100);
+    setStopLoss(slPrice.toFixed(6));
+  };
+
+  const handleTakeProfitPercentClick = (percent: number) => {
+    if (!limitPrice) return;
+    setTakeProfitPercent(percent);
+    const tpPrice = parseFloat(limitPrice) * (1 + percent / 100);
+    setTakeProfit(tpPrice.toFixed(6));
   };
 
   const handleCancelConfirm = () => {
@@ -298,44 +320,120 @@ export default function Swap() {
               </div>
             </div>
 
-            {/* Stop Loss */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-red-500">Stop Loss</label>
-                <Info className="h-3 w-3 text-muted-foreground" />
+            {/* Stop Loss Toggle */}
+            <div className="space-y-3 border border-red-500/20 rounded-xl p-3 bg-red-500/5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                  <label className="text-sm font-medium">Stop Loss</label>
+                </div>
+                <button
+                  onClick={() => {
+                    setStopLossEnabled(!stopLossEnabled);
+                    if (stopLossEnabled) {
+                      setStopLoss("");
+                      setStopLossPercent(null);
+                    }
+                  }}
+                  className={`w-11 h-6 rounded-full transition-colors ${stopLossEnabled ? 'bg-red-500' : 'bg-secondary'}`}
+                >
+                  <div className={`w-5 h-5 rounded-full bg-white shadow transform transition-transform ${stopLossEnabled ? 'translate-x-5' : 'translate-x-0.5'}`}></div>
+                </button>
               </div>
-              <div className="bg-secondary/30 rounded-xl p-3">
-                <Input
-                  type="number"
-                  placeholder="Enter stop loss price (optional)"
-                  value={stopLoss}
-                  onChange={(e) => setStopLoss(e.target.value)}
-                  className="text-base font-medium bg-transparent border-none p-0 h-auto focus-visible:ring-0"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Auto-sell if price drops to {stopLoss || "..."} {toToken.symbol}/{fromToken.symbol}
-              </p>
+              {stopLossEnabled && (
+                <>
+                  <div className="flex gap-2">
+                    {[5, 10, 15, 25].map((percent) => (
+                      <button
+                        key={percent}
+                        onClick={() => handleStopLossPercentClick(percent)}
+                        className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                          stopLossPercent === percent
+                            ? 'bg-red-500 text-white'
+                            : 'bg-secondary hover:bg-secondary/80'
+                        }`}
+                      >
+                        -{percent}%
+                      </button>
+                    ))}
+                  </div>
+                  <div className="bg-secondary/50 rounded-lg p-2.5">
+                    <Input
+                      type="number"
+                      placeholder="Custom price"
+                      value={stopLoss}
+                      onChange={(e) => {
+                        setStopLoss(e.target.value);
+                        setStopLossPercent(null);
+                      }}
+                      className="text-sm bg-transparent border-none p-0 h-auto focus-visible:ring-0"
+                    />
+                  </div>
+                  {stopLoss && (
+                    <p className="text-xs text-red-400">
+                      Sell if price drops to {stopLoss} {toToken.symbol}
+                    </p>
+                  )}
+                </>
+              )}
             </div>
 
-            {/* Take Profit */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-green-500">Take Profit</label>
-                <Info className="h-3 w-3 text-muted-foreground" />
+            {/* Take Profit Toggle */}
+            <div className="space-y-3 border border-green-500/20 rounded-xl p-3 bg-green-500/5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  <label className="text-sm font-medium">Take Profit</label>
+                </div>
+                <button
+                  onClick={() => {
+                    setTakeProfitEnabled(!takeProfitEnabled);
+                    if (takeProfitEnabled) {
+                      setTakeProfit("");
+                      setTakeProfitPercent(null);
+                    }
+                  }}
+                  className={`w-11 h-6 rounded-full transition-colors ${takeProfitEnabled ? 'bg-green-500' : 'bg-secondary'}`}
+                >
+                  <div className={`w-5 h-5 rounded-full bg-white shadow transform transition-transform ${takeProfitEnabled ? 'translate-x-5' : 'translate-x-0.5'}`}></div>
+                </button>
               </div>
-              <div className="bg-secondary/30 rounded-xl p-3">
-                <Input
-                  type="number"
-                  placeholder="Enter take profit price (optional)"
-                  value={takeProfit}
-                  onChange={(e) => setTakeProfit(e.target.value)}
-                  className="text-base font-medium bg-transparent border-none p-0 h-auto focus-visible:ring-0"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Auto-sell if price rises to {takeProfit || "..."} {toToken.symbol}/{fromToken.symbol}
-              </p>
+              {takeProfitEnabled && (
+                <>
+                  <div className="flex gap-2">
+                    {[10, 25, 50, 100].map((percent) => (
+                      <button
+                        key={percent}
+                        onClick={() => handleTakeProfitPercentClick(percent)}
+                        className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                          takeProfitPercent === percent
+                            ? 'bg-green-500 text-white'
+                            : 'bg-secondary hover:bg-secondary/80'
+                        }`}
+                      >
+                        +{percent}%
+                      </button>
+                    ))}
+                  </div>
+                  <div className="bg-secondary/50 rounded-lg p-2.5">
+                    <Input
+                      type="number"
+                      placeholder="Custom price"
+                      value={takeProfit}
+                      onChange={(e) => {
+                        setTakeProfit(e.target.value);
+                        setTakeProfitPercent(null);
+                      }}
+                      className="text-sm bg-transparent border-none p-0 h-auto focus-visible:ring-0"
+                    />
+                  </div>
+                  {takeProfit && (
+                    <p className="text-xs text-green-400">
+                      Sell if price rises to {takeProfit} {toToken.symbol}
+                    </p>
+                  )}
+                </>
+              )}
             </div>
 
             <p className="text-xs text-muted-foreground border-t border-border pt-3">
