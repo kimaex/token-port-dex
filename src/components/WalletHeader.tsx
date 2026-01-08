@@ -2,6 +2,7 @@ import { Eye, EyeOff, LogIn, Settings } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
+import { WalletSelector } from "./WalletSelector";
 
 export const WalletHeader = () => {
   const [showBalance, setShowBalance] = useState(true);
@@ -10,12 +11,12 @@ export const WalletHeader = () => {
   return (
     <div className="p-6 pb-8">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold">Wallet</h1>
+        <WalletSelector />
         <div className="flex gap-2">
           <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={() => navigate("/auth")}>
             <LogIn className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={() => navigate("/settings")}>
             <Settings className="h-5 w-5" />
           </Button>
         </div>
