@@ -1,4 +1,4 @@
-import { Moon, Wallet, SlidersHorizontal, Shield, MessageCircle, Users, DollarSign, Key, ChevronRight, Check, Copy, Share2, Gift, X, ExternalLink } from "lucide-react";
+import { Moon, Wallet, SlidersHorizontal, Shield, MessageCircle, Users, DollarSign, Key, ChevronRight, Check, Copy, Share2, Gift, X, ExternalLink, Eye, EyeOff, Lock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
 import { Switch } from "@/components/ui/switch";
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const africanCurrencies = [
   { code: "NGN", symbol: "₦", name: "Nigerian Naira", country: "Nigeria" },
@@ -81,8 +82,16 @@ export default function Settings() {
   const [showCurrencyModal, setShowCurrencyModal] = useState(false);
   const [showConnectedWallets, setShowConnectedWallets] = useState(false);
   const [showReferralModal, setShowReferralModal] = useState(false);
+  const [showSeedPhraseModal, setShowSeedPhraseModal] = useState(false);
+  const [seedPhraseStep, setSeedPhraseStep] = useState<'password' | 'reveal'>('password');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [seedPhraseRevealed, setSeedPhraseRevealed] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState(africanCurrencies[0]);
   const [connectedApps, setConnectedApps] = useState(connectedDApps);
+
+  // Mock seed phrase - in real app this would be retrieved from secure storage
+  const mockSeedPhrase = "abandon ability able about above absent absorb abstract absurd abuse access accident";
 
   const toggleDarkMode = (enabled: boolean) => {
     setDarkMode(enabled);
@@ -159,7 +168,10 @@ export default function Settings() {
     if (id === "dark-mode") {
       toggleDarkMode(!darkMode);
     } else if (id === "show-seed-phrase") {
-      toast.info("Please verify your PIN to view seed phrase");
+      setShowSeedPhraseModal(true);
+      setSeedPhraseStep('password');
+      setPassword('');
+      setSeedPhraseRevealed(false);
     } else if (id === "currency") {
       setShowCurrencyModal(true);
     } else if (id === "connect-wallet") {
@@ -169,6 +181,29 @@ export default function Settings() {
     } else {
       toast.info(`Opening ${id} settings...`);
     }
+  };
+
+  const handlePasswordSubmit = () => {
+    // Mock password validation - in real app would verify against stored password
+    if (password.length >= 6) {
+      setSeedPhraseStep('reveal');
+      toast.success("Password verified");
+    } else {
+      toast.error("Invalid password. Please try again.");
+    }
+  };
+
+  const handleCopySeedPhrase = () => {
+    navigator.clipboard.writeText(mockSeedPhrase);
+    toast.success("Seed phrase copied to clipboard");
+  };
+
+  const handleCloseSeedPhraseModal = () => {
+    setShowSeedPhraseModal(false);
+    setSeedPhraseStep('password');
+    setPassword('');
+    setSeedPhraseRevealed(false);
+    setShowPassword(false);
   };
 
   const handleCurrencySelect = (currency: typeof africanCurrencies[0]) => {
@@ -452,6 +487,131 @@ export default function Settings() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Seed Phrase Modal - Phantom Style */}
+      <Dialog open={showSeedPhraseModal} onOpenChange={handleCloseSeedPhraseModal}>
+        <DialogContent className="max-w-md bg-background border-border p-0 overflow-hidden">
+          {seedPhraseStep === 'password' ? (
+            <>
+              {/* Password Verification Step */}
+              <div className="p-6 text-center">
+                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <Lock className="h-8 w-8 text-primary" />
+                </div>
+                <h2 className="text-xl font-bold text-foreground mb-2">
+                  Enter Your Password
+                </h2>
+                <p className="text-sm text-muted-foreground mb-6">
+                  To protect your wallet, please enter your password to view your seed phrase
+                </p>
+
+                <div className="relative mb-6">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="h-14 text-center text-lg bg-muted border-border pr-12"
+                    onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+
+                <Button
+                  className="w-full h-12 bg-gradient-primary hover:opacity-90"
+                  onClick={handlePasswordSubmit}
+                  disabled={password.length < 1}
+                >
+                  Unlock
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Seed Phrase Reveal Step */}
+              <div className="bg-gradient-to-br from-red-500/10 to-orange-500/10 p-4 border-b border-border">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                    <Shield className="h-5 w-5 text-red-500" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground text-sm">Warning</p>
+                    <p className="text-xs text-muted-foreground">
+                      Never share your seed phrase with anyone. Store it securely.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="text-center mb-4">
+                  <h2 className="text-xl font-bold text-foreground">
+                    Your Seed Phrase
+                  </h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Write down these 12 words in order and store them safely
+                  </p>
+                </div>
+
+                {/* Seed Phrase Grid with Blur Effect */}
+                <div className="relative">
+                  <div className={`grid grid-cols-3 gap-2 p-4 rounded-xl bg-muted border border-border transition-all duration-300 ${!seedPhraseRevealed ? 'blur-md select-none' : ''}`}>
+                    {mockSeedPhrase.split(' ').map((word, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 p-2 rounded-lg bg-card border border-border"
+                      >
+                        <span className="text-xs text-muted-foreground font-medium w-5">{index + 1}.</span>
+                        <span className="text-sm font-medium text-foreground">{word}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Reveal Overlay */}
+                  {!seedPhraseRevealed && (
+                    <div 
+                      className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer"
+                      onClick={() => setSeedPhraseRevealed(true)}
+                    >
+                      <div className="h-14 w-14 rounded-full bg-primary/20 flex items-center justify-center mb-3">
+                        <Eye className="h-7 w-7 text-primary" />
+                      </div>
+                      <p className="text-sm font-medium text-foreground">Tap to reveal</p>
+                      <p className="text-xs text-muted-foreground mt-1">Make sure no one is watching</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions */}
+                {seedPhraseRevealed && (
+                  <div className="space-y-3 mt-4">
+                    <Button
+                      variant="outline"
+                      className="w-full h-12 border-border"
+                      onClick={handleCopySeedPhrase}
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy to Clipboard
+                    </Button>
+                    <Button
+                      className="w-full h-12 bg-gradient-primary hover:opacity-90"
+                      onClick={handleCloseSeedPhraseModal}
+                    >
+                      Done
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 
