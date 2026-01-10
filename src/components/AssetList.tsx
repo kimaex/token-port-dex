@@ -132,6 +132,7 @@ export const AssetList = () => {
   const [showReceiveModal, setShowReceiveModal] = useState(false);
   const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null);
   const [showNetworkSelector, setShowNetworkSelector] = useState(false);
+  const [showReceiveNetworkSelector, setShowReceiveNetworkSelector] = useState(false);
   const [sendAddress, setSendAddress] = useState("");
   const [sendAmount, setSendAmount] = useState("");
   const [copiedAddress, setCopiedAddress] = useState(false);
@@ -425,23 +426,43 @@ export const AssetList = () => {
               {/* Network Selector */}
               {selectedAsset.networks && selectedAsset.networks.length > 1 && (
                 <div>
-                  <label className="text-sm text-muted-foreground mb-2 block">Select Network</label>
-                  <div className="space-y-2">
-                    {selectedAsset.networks.map((network) => (
-                      <button
-                        key={network.id}
-                        onClick={() => setSelectedNetwork(network)}
-                        className={`w-full p-3 rounded-xl text-left transition-colors border ${
-                          selectedNetwork?.id === network.id 
-                            ? 'border-primary bg-primary/10' 
-                            : 'border-border bg-secondary hover:bg-muted'
-                        }`}
-                      >
-                        <div className="font-medium">{network.name}</div>
-                        <div className="text-xs text-muted-foreground">Fee: {network.fee}</div>
-                      </button>
-                    ))}
-                  </div>
+                  <label className="text-sm text-muted-foreground mb-2 block">Network</label>
+                  <button
+                    onClick={() => setShowReceiveNetworkSelector(!showReceiveNetworkSelector)}
+                    className="w-full p-3 bg-secondary rounded-xl flex items-center justify-between"
+                  >
+                    <div className="text-left">
+                      <div>{selectedNetwork?.name || "Select Network"}</div>
+                      {selectedNetwork && (
+                        <div className="text-xs text-muted-foreground font-mono truncate max-w-[200px]">
+                          {selectedNetwork.address.slice(0, 10)}...{selectedNetwork.address.slice(-8)}
+                        </div>
+                      )}
+                    </div>
+                    <ChevronDown className={`h-4 w-4 transition-transform ${showReceiveNetworkSelector ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  {showReceiveNetworkSelector && (
+                    <div className="mt-2 bg-secondary rounded-xl overflow-hidden border border-border max-h-60 overflow-y-auto">
+                      {selectedAsset.networks.map((network) => (
+                        <button
+                          key={network.id}
+                          onClick={() => {
+                            setSelectedNetwork(network);
+                            setShowReceiveNetworkSelector(false);
+                          }}
+                          className={`w-full p-3 text-left hover:bg-muted transition-colors ${
+                            selectedNetwork?.id === network.id ? 'bg-muted' : ''
+                          }`}
+                        >
+                          <div className="font-medium">{network.name}</div>
+                          <div className="text-xs text-muted-foreground font-mono truncate">
+                            {network.address.slice(0, 10)}...{network.address.slice(-8)}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
