@@ -1,7 +1,18 @@
 import { useState } from "react";
-import { TrendingUp, TrendingDown, Send, Download, ArrowLeftRight, ChevronLeft, MoreVertical } from "lucide-react";
+import { TrendingUp, TrendingDown, Send, Download, ArrowLeftRight, ChevronLeft, MoreVertical, Copy, Check, QrCode, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+
+interface Network {
+  id: string;
+  name: string;
+  symbol: string;
+  address: string;
+  fee: string;
+}
 
 interface Asset {
   id: string;
@@ -12,7 +23,17 @@ interface Asset {
   change: number;
   icon: string;
   price: string;
+  networks?: Network[];
 }
+
+const generateWalletAddress = () => {
+  const chars = '0123456789abcdef';
+  let address = '0x';
+  for (let i = 0; i < 40; i++) {
+    address += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return address;
+};
 
 const assets: Asset[] = [
   {
@@ -24,6 +45,10 @@ const assets: Asset[] = [
     change: 5.2,
     icon: "₿",
     price: "$43,215.67",
+    networks: [
+      { id: "btc-main", name: "Bitcoin", symbol: "BTC", address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh", fee: "0.0001 BTC" },
+      { id: "btc-bep20", name: "BNB Smart Chain (BEP20)", symbol: "BTC", address: generateWalletAddress(), fee: "0.000005 BNB" },
+    ]
   },
   {
     id: "2",
@@ -34,6 +59,11 @@ const assets: Asset[] = [
     change: 3.8,
     icon: "Ξ",
     price: "$2,561.23",
+    networks: [
+      { id: "eth-main", name: "Ethereum (ERC20)", symbol: "ETH", address: generateWalletAddress(), fee: "0.001 ETH" },
+      { id: "eth-bep20", name: "BNB Smart Chain (BEP20)", symbol: "ETH", address: generateWalletAddress(), fee: "0.000005 BNB" },
+      { id: "eth-arb", name: "Arbitrum One", symbol: "ETH", address: generateWalletAddress(), fee: "0.0001 ETH" },
+    ]
   },
   {
     id: "3",
@@ -44,6 +74,9 @@ const assets: Asset[] = [
     change: -2.1,
     icon: "◎",
     price: "$45.25",
+    networks: [
+      { id: "sol-main", name: "Solana", symbol: "SOL", address: "7Np41oeYqPefeNQEHSv1UDhYrehxin3NStELsSKCT4K2", fee: "0.000005 SOL" },
+    ]
   },
   {
     id: "4",
@@ -54,6 +87,29 @@ const assets: Asset[] = [
     change: 1.5,
     icon: "₳",
     price: "$0.77",
+    networks: [
+      { id: "ada-main", name: "Cardano", symbol: "ADA", address: "addr1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh", fee: "0.17 ADA" },
+    ]
+  },
+  {
+    id: "5",
+    name: "USD Coin",
+    symbol: "USDC",
+    balance: "5,234.56",
+    value: "$5,234.56",
+    change: 0.01,
+    icon: "◈",
+    price: "$1.00",
+    networks: [
+      { id: "usdc-eth", name: "Ethereum (ERC20)", symbol: "USDC", address: generateWalletAddress(), fee: "5 USDC" },
+      { id: "usdc-bep20", name: "BNB Smart Chain (BEP20)", symbol: "USDC", address: generateWalletAddress(), fee: "0.1 USDC" },
+      { id: "usdc-sol", name: "Solana (SPL)", symbol: "USDC", address: "7Np41oeYqPefeNQEHSv1UDhYrehxin3NStELsSKCT4K2", fee: "0.01 USDC" },
+      { id: "usdc-polygon", name: "Polygon", symbol: "USDC", address: generateWalletAddress(), fee: "0.01 USDC" },
+      { id: "usdc-arb", name: "Arbitrum One", symbol: "USDC", address: generateWalletAddress(), fee: "0.1 USDC" },
+      { id: "usdc-avax", name: "Avalanche C-Chain", symbol: "USDC", address: generateWalletAddress(), fee: "0.1 USDC" },
+      { id: "usdc-tron", name: "Tron (TRC20)", symbol: "USDC", address: "TKFLmRxv1xqxs5xsqvs5xsqvs5xsqvs5xs", fee: "1 USDC" },
+      { id: "usdc-base", name: "Base", symbol: "USDC", address: generateWalletAddress(), fee: "0.01 USDC" },
+    ]
   },
 ];
 
@@ -72,8 +128,52 @@ const generateChartData = (isPositive: boolean) => {
 export const AssetList = () => {
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [activeTimeframe, setActiveTimeframe] = useState("1D");
+  const [showSendModal, setShowSendModal] = useState(false);
+  const [showReceiveModal, setShowReceiveModal] = useState(false);
+  const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null);
+  const [showNetworkSelector, setShowNetworkSelector] = useState(false);
+  const [sendAddress, setSendAddress] = useState("");
+  const [sendAmount, setSendAmount] = useState("");
+  const [copiedAddress, setCopiedAddress] = useState(false);
 
   const timeframes = ["1H", "1D", "1W", "1M", "1Y", "ALL"];
+
+  const handleCopyAddress = async (address: string) => {
+    try {
+      await navigator.clipboard.writeText(address);
+      setCopiedAddress(true);
+      toast.success("Address copied to clipboard");
+      setTimeout(() => setCopiedAddress(false), 2000);
+    } catch (err) {
+      toast.error("Failed to copy address");
+    }
+  };
+
+  const handleSend = () => {
+    if (!sendAddress || !sendAmount) {
+      toast.error("Please enter address and amount");
+      return;
+    }
+    toast.success(`Sending ${sendAmount} ${selectedAsset?.symbol} to ${sendAddress.slice(0, 10)}...`);
+    setShowSendModal(false);
+    setSendAddress("");
+    setSendAmount("");
+    setSelectedNetwork(null);
+  };
+
+  const handleOpenSend = () => {
+    if (selectedAsset?.networks && selectedAsset.networks.length > 0) {
+      setSelectedNetwork(selectedAsset.networks[0]);
+    }
+    setShowSendModal(true);
+  };
+
+  const handleOpenReceive = () => {
+    if (selectedAsset?.networks && selectedAsset.networks.length > 0) {
+      setSelectedNetwork(selectedAsset.networks[0]);
+    }
+    setShowReceiveModal(true);
+  };
 
   if (selectedAsset) {
     const chartData = generateChartData(selectedAsset.change >= 0);
@@ -173,10 +273,7 @@ export const AssetList = () => {
           <Button 
             className="flex-col h-auto py-4 gap-2"
             variant="outline"
-            onClick={() => {
-              console.log("Send", selectedAsset.name);
-              setSelectedAsset(null);
-            }}
+            onClick={handleOpenSend}
           >
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
               <Send className="h-5 w-5 text-primary" />
@@ -187,10 +284,7 @@ export const AssetList = () => {
           <Button 
             className="flex-col h-auto py-4 gap-2"
             variant="outline"
-            onClick={() => {
-              console.log("Receive", selectedAsset.name);
-              setSelectedAsset(null);
-            }}
+            onClick={handleOpenReceive}
           >
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
               <Download className="h-5 w-5 text-primary" />
@@ -212,6 +306,193 @@ export const AssetList = () => {
             <span className="text-sm">Swap</span>
           </Button>
         </div>
+
+        {/* Send Modal */}
+        <Dialog open={showSendModal} onOpenChange={setShowSendModal}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full bg-gradient-primary flex items-center justify-center text-sm font-bold">
+                  {selectedAsset.icon}
+                </div>
+                Send {selectedAsset.symbol}
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {/* Network Selector */}
+              {selectedAsset.networks && selectedAsset.networks.length > 1 && (
+                <div>
+                  <label className="text-sm text-muted-foreground mb-2 block">Network</label>
+                  <button
+                    onClick={() => setShowNetworkSelector(!showNetworkSelector)}
+                    className="w-full p-3 bg-secondary rounded-xl flex items-center justify-between"
+                  >
+                    <span>{selectedNetwork?.name || "Select Network"}</span>
+                    <ChevronDown className={`h-4 w-4 transition-transform ${showNetworkSelector ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  {showNetworkSelector && (
+                    <div className="mt-2 bg-secondary rounded-xl overflow-hidden border border-border">
+                      {selectedAsset.networks.map((network) => (
+                        <button
+                          key={network.id}
+                          onClick={() => {
+                            setSelectedNetwork(network);
+                            setShowNetworkSelector(false);
+                          }}
+                          className={`w-full p-3 text-left hover:bg-muted transition-colors ${
+                            selectedNetwork?.id === network.id ? 'bg-muted' : ''
+                          }`}
+                        >
+                          <div className="font-medium">{network.name}</div>
+                          <div className="text-xs text-muted-foreground">Fee: {network.fee}</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Recipient Address */}
+              <div>
+                <label className="text-sm text-muted-foreground mb-2 block">Recipient Address</label>
+                <Input
+                  placeholder={`Enter ${selectedAsset.symbol} address`}
+                  value={sendAddress}
+                  onChange={(e) => setSendAddress(e.target.value)}
+                  className="bg-secondary"
+                />
+              </div>
+
+              {/* Amount */}
+              <div>
+                <label className="text-sm text-muted-foreground mb-2 block">Amount</label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    placeholder="0.00"
+                    value={sendAmount}
+                    onChange={(e) => setSendAmount(e.target.value)}
+                    className="bg-secondary pr-20"
+                  />
+                  <button 
+                    onClick={() => setSendAmount(selectedAsset.balance.replace(/,/g, ''))}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-primary font-medium"
+                  >
+                    MAX
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Available: {selectedAsset.balance} {selectedAsset.symbol}
+                </p>
+              </div>
+
+              {/* Network Fee */}
+              {selectedNetwork && (
+                <div className="p-3 bg-muted rounded-xl">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Network Fee</span>
+                    <span>{selectedNetwork.fee}</span>
+                  </div>
+                </div>
+              )}
+
+              <Button 
+                className="w-full bg-gradient-primary"
+                onClick={handleSend}
+                disabled={!sendAddress || !sendAmount}
+              >
+                Send {selectedAsset.symbol}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Receive Modal */}
+        <Dialog open={showReceiveModal} onOpenChange={setShowReceiveModal}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full bg-gradient-primary flex items-center justify-center text-sm font-bold">
+                  {selectedAsset.icon}
+                </div>
+                Receive {selectedAsset.symbol}
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {/* Network Selector */}
+              {selectedAsset.networks && selectedAsset.networks.length > 1 && (
+                <div>
+                  <label className="text-sm text-muted-foreground mb-2 block">Select Network</label>
+                  <div className="space-y-2">
+                    {selectedAsset.networks.map((network) => (
+                      <button
+                        key={network.id}
+                        onClick={() => setSelectedNetwork(network)}
+                        className={`w-full p-3 rounded-xl text-left transition-colors border ${
+                          selectedNetwork?.id === network.id 
+                            ? 'border-primary bg-primary/10' 
+                            : 'border-border bg-secondary hover:bg-muted'
+                        }`}
+                      >
+                        <div className="font-medium">{network.name}</div>
+                        <div className="text-xs text-muted-foreground">Fee: {network.fee}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedNetwork && (
+                <>
+                  {/* QR Code Placeholder */}
+                  <div className="flex flex-col items-center p-6 bg-white rounded-2xl">
+                    <div className="h-48 w-48 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-300">
+                      <QrCode className="h-24 w-24 text-gray-400" />
+                    </div>
+                  </div>
+
+                  {/* Address */}
+                  <div>
+                    <label className="text-sm text-muted-foreground mb-2 block">
+                      {selectedNetwork.name} Address
+                    </label>
+                    <div className="p-3 bg-secondary rounded-xl">
+                      <p className="text-xs font-mono break-all mb-2">{selectedNetwork.address}</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => handleCopyAddress(selectedNetwork.address)}
+                      >
+                        {copiedAddress ? (
+                          <>
+                            <Check className="h-4 w-4 mr-2" />
+                            Copied!
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-4 w-4 mr-2" />
+                            Copy Address
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Warning */}
+                  <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+                    <p className="text-xs text-amber-600 dark:text-amber-400">
+                      ⚠️ Only send {selectedAsset.symbol} on the {selectedNetwork.name} network. Sending other assets may result in permanent loss.
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
