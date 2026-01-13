@@ -1,10 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, TrendingUp, TrendingDown, ChevronDown, Settings, Star, BarChart3 } from 'lucide-react';
+import { 
+  ArrowLeft, TrendingUp, TrendingDown, ChevronDown, Settings, Star, BarChart3, 
+  Link2, AlertCircle, Shield, Check, X, Info, Wallet, RefreshCw, Minus, Plus,
+  ChevronRight, Calculator, Clock
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
 import { BottomNav } from '@/components/BottomNav';
+import { toast } from 'sonner';
 
 interface TradingPair {
   pair: string;
@@ -17,17 +24,85 @@ interface TradingPair {
   markPrice: string;
   indexPrice: string;
   fundingRate: string;
+  openInterest: string;
+  contractAddress: string;
+}
+
+interface Position {
+  id: string;
+  pair: string;
+  side: 'long' | 'short';
+  size: string;
+  entryPrice: string;
+  markPrice: string;
+  pnl: string;
+  pnlPercent: number;
+  leverage: string;
+  margin: string;
+  liquidationPrice: string;
+  tp?: string;
+  sl?: string;
+}
+
+interface Order {
+  id: string;
+  pair: string;
+  side: 'long' | 'short';
+  type: 'limit' | 'market' | 'conditional';
+  price: string;
+  amount: string;
+  filled: string;
+  status: 'open' | 'partial' | 'filled' | 'cancelled';
+  time: string;
+  tp?: string;
+  sl?: string;
 }
 
 const tradingPairs: TradingPair[] = [
-  { pair: 'BTCUSDT', price: '43,250.50', change: 2.45, volume: '1.2B', leverage: '100x', high24h: '44,100.00', low24h: '42,100.00', markPrice: '43,248.30', indexPrice: '43,252.10', fundingRate: '0.0100%' },
-  { pair: 'ETHUSDT', price: '2,285.30', change: -1.23, volume: '890M', leverage: '100x', high24h: '2,350.00', low24h: '2,250.00', markPrice: '2,284.90', indexPrice: '2,285.50', fundingRate: '0.0085%' },
-  { pair: 'SOLUSDT', price: '98.45', change: 5.67, volume: '456M', leverage: '50x', high24h: '102.00', low24h: '92.00', markPrice: '98.42', indexPrice: '98.48', fundingRate: '0.0120%' },
-  { pair: 'BNBUSDT', price: '312.80', change: 0.89, volume: '234M', leverage: '50x', high24h: '318.00', low24h: '308.00', markPrice: '312.75', indexPrice: '312.85', fundingRate: '0.0050%' },
-  { pair: 'XRPUSDT', price: '0.6234', change: -2.15, volume: '178M', leverage: '50x', high24h: '0.6500', low24h: '0.6100', markPrice: '0.6232', indexPrice: '0.6236', fundingRate: '0.0075%' },
-  { pair: 'DOGEUSDT', price: '0.0892', change: 3.45, volume: '145M', leverage: '25x', high24h: '0.0920', low24h: '0.0860', markPrice: '0.0891', indexPrice: '0.0893', fundingRate: '0.0200%' },
-  { pair: 'ADAUSDT', price: '0.5678', change: 1.23, volume: '98M', leverage: '50x', high24h: '0.5800', low24h: '0.5500', markPrice: '0.5676', indexPrice: '0.5680', fundingRate: '0.0065%' },
-  { pair: 'MATICUSDT', price: '0.8912', change: -0.56, volume: '87M', leverage: '50x', high24h: '0.9100', low24h: '0.8700', markPrice: '0.8910', indexPrice: '0.8914', fundingRate: '0.0045%' },
+  { pair: 'BTCUSDT', price: '43,250.50', change: 2.45, volume: '1.2B', leverage: '100x', high24h: '44,100.00', low24h: '42,100.00', markPrice: '43,248.30', indexPrice: '43,252.10', fundingRate: '0.0100%', openInterest: '2.4B', contractAddress: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984' },
+  { pair: 'ETHUSDT', price: '2,285.30', change: -1.23, volume: '890M', leverage: '100x', high24h: '2,350.00', low24h: '2,250.00', markPrice: '2,284.90', indexPrice: '2,285.50', fundingRate: '0.0085%', openInterest: '1.8B', contractAddress: '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9' },
+  { pair: 'SOLUSDT', price: '98.45', change: 5.67, volume: '456M', leverage: '50x', high24h: '102.00', low24h: '92.00', markPrice: '98.42', indexPrice: '98.48', fundingRate: '0.0120%', openInterest: '650M', contractAddress: '0x570a5d26f7765ecb712c0924e4de545b89fd43df' },
+  { pair: 'BNBUSDT', price: '312.80', change: 0.89, volume: '234M', leverage: '50x', high24h: '318.00', low24h: '308.00', markPrice: '312.75', indexPrice: '312.85', fundingRate: '0.0050%', openInterest: '420M', contractAddress: '0xb8c77482e45f1f44de1745f52c74426c631bdd52' },
+  { pair: 'XRPUSDT', price: '0.6234', change: -2.15, volume: '178M', leverage: '50x', high24h: '0.6500', low24h: '0.6100', markPrice: '0.6232', indexPrice: '0.6236', fundingRate: '0.0075%', openInterest: '280M', contractAddress: '0x1d2f0da169ceb9fc7b3144628db156f3f6c60dbe' },
+  { pair: 'DOGEUSDT', price: '0.0892', change: 3.45, volume: '145M', leverage: '25x', high24h: '0.0920', low24h: '0.0860', markPrice: '0.0891', indexPrice: '0.0893', fundingRate: '0.0200%', openInterest: '180M', contractAddress: '0xba2ae424d960c26247dd6c32edc70b295c744c43' },
+  { pair: 'ADAUSDT', price: '0.5678', change: 1.23, volume: '98M', leverage: '50x', high24h: '0.5800', low24h: '0.5500', markPrice: '0.5676', indexPrice: '0.5680', fundingRate: '0.0065%', openInterest: '150M', contractAddress: '0x3ee2200efb3400fabb9aacf31297cbdd1d435d47' },
+  { pair: 'MATICUSDT', price: '0.8912', change: -0.56, volume: '87M', leverage: '50x', high24h: '0.9100', low24h: '0.8700', markPrice: '0.8910', indexPrice: '0.8914', fundingRate: '0.0045%', openInterest: '120M', contractAddress: '0xcc42724c6683b7e57334c4e856f4c9965ed682bd' },
+];
+
+// Mock positions
+const mockPositions: Position[] = [
+  {
+    id: '1',
+    pair: 'BTCUSDT',
+    side: 'long',
+    size: '0.5',
+    entryPrice: '42,500.00',
+    markPrice: '43,250.50',
+    pnl: '+375.25',
+    pnlPercent: 8.83,
+    leverage: '20x',
+    margin: '1,062.50',
+    liquidationPrice: '38,250.00',
+    tp: '45,000.00',
+    sl: '41,000.00'
+  }
+];
+
+// Mock orders
+const mockOrders: Order[] = [
+  {
+    id: '1',
+    pair: 'ETHUSDT',
+    side: 'long',
+    type: 'limit',
+    price: '2,200.00',
+    amount: '2.5',
+    filled: '0',
+    status: 'open',
+    time: '2024-01-15 14:32:05',
+    tp: '2,500.00',
+    sl: '2,100.00'
+  }
 ];
 
 // Generate order book data
@@ -49,15 +124,569 @@ const FutureTrading = () => {
   const navigate = useNavigate();
   const [selectedPair, setSelectedPair] = useState<TradingPair>(tradingPairs[0]);
   const [showPairSelector, setShowPairSelector] = useState(false);
-  const [orderType, setOrderType] = useState<'limit' | 'market'>('limit');
+  const [showConnectionModal, setShowConnectionModal] = useState(false);
+  const [showLeverageModal, setShowLeverageModal] = useState(false);
+  const [showTPSLModal, setShowTPSLModal] = useState(false);
+  const [showPositionDetails, setShowPositionDetails] = useState<Position | null>(null);
+  const [showMarginModeModal, setShowMarginModeModal] = useState(false);
+  
+  // Connection state
+  const [isConnected, setIsConnected] = useState(false);
+  const [connectionStep, setConnectionStep] = useState<'idle' | 'connecting' | 'approving' | 'connected'>('idle');
+  
+  // Trading state
+  const [orderType, setOrderType] = useState<'limit' | 'market' | 'conditional'>('limit');
   const [tradeDirection, setTradeDirection] = useState<'long' | 'short'>('long');
-  const [leverage, setLeverage] = useState('20');
+  const [marginMode, setMarginMode] = useState<'cross' | 'isolated'>('cross');
+  const [leverage, setLeverage] = useState(20);
   const [price, setPrice] = useState('');
   const [amount, setAmount] = useState('');
   const [activeTab, setActiveTab] = useState('position');
+  
+  // TP/SL state
+  const [tpslEnabled, setTpslEnabled] = useState(false);
+  const [tpPrice, setTpPrice] = useState('');
+  const [slPrice, setSlPrice] = useState('');
+  const [tpType, setTpType] = useState<'mark' | 'last'>('last');
+  const [slType, setSlType] = useState<'mark' | 'last'>('last');
+  
+  // Conditional order state
+  const [triggerPrice, setTriggerPrice] = useState('');
+  const [triggerType, setTriggerType] = useState<'mark' | 'last' | 'index'>('last');
+  
+  // Calculator state
+  const [showCalculator, setShowCalculator] = useState(false);
 
   const basePrice = parseFloat(selectedPair.price.replace(',', ''));
   const orderBook = generateOrderBook(basePrice);
+
+  const handleConnect = () => {
+    setConnectionStep('connecting');
+    setTimeout(() => {
+      setConnectionStep('approving');
+    }, 1500);
+  };
+
+  const handleApproveContract = () => {
+    setTimeout(() => {
+      setConnectionStep('connected');
+      setIsConnected(true);
+      toast.success('Smart contract connected successfully!');
+      setTimeout(() => {
+        setShowConnectionModal(false);
+        setConnectionStep('idle');
+      }, 1000);
+    }, 2000);
+  };
+
+  const handleOpenPosition = () => {
+    if (!isConnected) {
+      setShowConnectionModal(true);
+      return;
+    }
+    
+    if (!amount) {
+      toast.error('Please enter amount');
+      return;
+    }
+    
+    if (orderType === 'limit' && !price) {
+      toast.error('Please enter price');
+      return;
+    }
+    
+    if (orderType === 'conditional' && !triggerPrice) {
+      toast.error('Please enter trigger price');
+      return;
+    }
+
+    toast.success(`${tradeDirection === 'long' ? 'Long' : 'Short'} position opened successfully!`);
+  };
+
+  const calculateTPSLPercent = (type: 'tp' | 'sl', targetPrice: string) => {
+    const entry = orderType === 'market' ? basePrice : parseFloat(price || String(basePrice));
+    const target = parseFloat(targetPrice);
+    if (!entry || !target) return 0;
+    
+    const percent = ((target - entry) / entry) * 100;
+    return type === 'tp' ? (tradeDirection === 'long' ? percent : -percent) : (tradeDirection === 'long' ? -percent : percent);
+  };
+
+  // Smart Contract Connection Modal
+  if (showConnectionModal) {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <div className="max-w-md mx-auto">
+          <div className="flex items-center gap-4 p-4 border-b border-border bg-card">
+            <button onClick={() => setShowConnectionModal(false)} className="p-2 hover:bg-muted rounded-lg">
+              <X className="w-5 h-5 text-foreground" />
+            </button>
+            <h1 className="text-lg font-bold text-foreground">Connect to Perpetual Contract</h1>
+          </div>
+          
+          <div className="p-4 space-y-6">
+            {/* Contract Info */}
+            <div className="bg-card rounded-xl p-4 border border-border">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
+                  <Link2 className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">{selectedPair.pair} Perpetual</h3>
+                  <p className="text-xs text-muted-foreground">Decentralized Perpetual Protocol</p>
+                </div>
+              </div>
+              
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Contract Address</span>
+                  <span className="text-foreground font-mono text-xs">
+                    {selectedPair.contractAddress.slice(0, 6)}...{selectedPair.contractAddress.slice(-4)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Network</span>
+                  <span className="text-foreground">Arbitrum One</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Max Leverage</span>
+                  <span className="text-foreground">{selectedPair.leverage}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Connection Steps */}
+            <div className="space-y-4">
+              <h4 className="font-medium text-foreground">Connection Steps</h4>
+              
+              <div className={`flex items-center gap-3 p-3 rounded-lg ${connectionStep === 'connecting' ? 'bg-primary/10 border border-primary' : connectionStep === 'approving' || connectionStep === 'connected' ? 'bg-green-500/10 border border-green-500' : 'bg-muted'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${connectionStep === 'connecting' ? 'bg-primary' : connectionStep === 'approving' || connectionStep === 'connected' ? 'bg-green-500' : 'bg-muted-foreground/20'}`}>
+                  {connectionStep === 'connecting' ? (
+                    <RefreshCw className="w-4 h-4 text-white animate-spin" />
+                  ) : connectionStep === 'approving' || connectionStep === 'connected' ? (
+                    <Check className="w-4 h-4 text-white" />
+                  ) : (
+                    <span className="text-sm text-muted-foreground">1</span>
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium text-foreground text-sm">Connect Wallet</p>
+                  <p className="text-xs text-muted-foreground">Verify wallet signature</p>
+                </div>
+              </div>
+
+              <div className={`flex items-center gap-3 p-3 rounded-lg ${connectionStep === 'approving' ? 'bg-primary/10 border border-primary' : connectionStep === 'connected' ? 'bg-green-500/10 border border-green-500' : 'bg-muted'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${connectionStep === 'approving' ? 'bg-primary' : connectionStep === 'connected' ? 'bg-green-500' : 'bg-muted-foreground/20'}`}>
+                  {connectionStep === 'approving' ? (
+                    <RefreshCw className="w-4 h-4 text-white animate-spin" />
+                  ) : connectionStep === 'connected' ? (
+                    <Check className="w-4 h-4 text-white" />
+                  ) : (
+                    <span className="text-sm text-muted-foreground">2</span>
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium text-foreground text-sm">Approve Contract</p>
+                  <p className="text-xs text-muted-foreground">Grant trading permissions</p>
+                </div>
+              </div>
+
+              <div className={`flex items-center gap-3 p-3 rounded-lg ${connectionStep === 'connected' ? 'bg-green-500/10 border border-green-500' : 'bg-muted'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${connectionStep === 'connected' ? 'bg-green-500' : 'bg-muted-foreground/20'}`}>
+                  {connectionStep === 'connected' ? (
+                    <Check className="w-4 h-4 text-white" />
+                  ) : (
+                    <span className="text-sm text-muted-foreground">3</span>
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium text-foreground text-sm">Ready to Trade</p>
+                  <p className="text-xs text-muted-foreground">Start perpetual trading</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Security Notice */}
+            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
+              <div className="text-xs">
+                <p className="font-medium text-yellow-500">Non-Custodial Trading</p>
+                <p className="text-muted-foreground mt-1">
+                  Your funds remain in your wallet. Smart contract only gets permission to execute trades on your behalf.
+                </p>
+              </div>
+            </div>
+
+            {/* Action Button */}
+            {connectionStep === 'idle' && (
+              <Button onClick={handleConnect} className="w-full bg-primary hover:bg-primary/90">
+                <Link2 className="w-4 h-4 mr-2" />
+                Connect to Contract
+              </Button>
+            )}
+            
+            {connectionStep === 'approving' && (
+              <Button onClick={handleApproveContract} className="w-full bg-green-500 hover:bg-green-600">
+                <Shield className="w-4 h-4 mr-2" />
+                Approve Trading Contract
+              </Button>
+            )}
+            
+            {connectionStep === 'connected' && (
+              <Button className="w-full bg-green-500" disabled>
+                <Check className="w-4 h-4 mr-2" />
+                Connected Successfully
+              </Button>
+            )}
+          </div>
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
+
+  // Leverage Modal
+  if (showLeverageModal) {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <div className="max-w-md mx-auto">
+          <div className="flex items-center gap-4 p-4 border-b border-border bg-card">
+            <button onClick={() => setShowLeverageModal(false)} className="p-2 hover:bg-muted rounded-lg">
+              <ArrowLeft className="w-5 h-5 text-foreground" />
+            </button>
+            <h1 className="text-lg font-bold text-foreground">Adjust Leverage</h1>
+          </div>
+          
+          <div className="p-4 space-y-6">
+            <div className="text-center">
+              <span className="text-5xl font-bold text-primary">{leverage}x</span>
+              <p className="text-sm text-muted-foreground mt-2">Current Leverage</p>
+            </div>
+
+            <div className="px-4">
+              <Slider
+                value={[leverage]}
+                onValueChange={(value) => setLeverage(value[0])}
+                max={parseInt(selectedPair.leverage)}
+                min={1}
+                step={1}
+                className="py-4"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                <span>1x</span>
+                <span>{selectedPair.leverage}</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-5 gap-2">
+              {[1, 5, 10, 25, 50, 75, 100].filter(l => l <= parseInt(selectedPair.leverage)).map((lev) => (
+                <button
+                  key={lev}
+                  onClick={() => setLeverage(lev)}
+                  className={`py-2 text-sm rounded-lg transition-colors ${
+                    leverage === lev 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  }`}
+                >
+                  {lev}x
+                </button>
+              ))}
+            </div>
+
+            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Max Position Size</span>
+                <span className="text-foreground">{(100000 / leverage).toFixed(2)} USDT</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Initial Margin</span>
+                <span className="text-foreground">{(100 / leverage).toFixed(2)}%</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Maintenance Margin</span>
+                <span className="text-foreground">{(50 / leverage).toFixed(2)}%</span>
+              </div>
+            </div>
+
+            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 text-yellow-500 flex-shrink-0" />
+              <p className="text-xs text-muted-foreground">
+                Higher leverage increases both potential profit and risk of liquidation. Trade responsibly.
+              </p>
+            </div>
+
+            <Button onClick={() => setShowLeverageModal(false)} className="w-full">
+              Confirm Leverage
+            </Button>
+          </div>
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
+
+  // TP/SL Modal
+  if (showTPSLModal) {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <div className="max-w-md mx-auto">
+          <div className="flex items-center gap-4 p-4 border-b border-border bg-card">
+            <button onClick={() => setShowTPSLModal(false)} className="p-2 hover:bg-muted rounded-lg">
+              <ArrowLeft className="w-5 h-5 text-foreground" />
+            </button>
+            <h1 className="text-lg font-bold text-foreground">Take Profit / Stop Loss</h1>
+          </div>
+          
+          <div className="p-4 space-y-6">
+            {/* Take Profit Section */}
+            <div className="bg-card rounded-xl p-4 border border-border">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-green-500" />
+                  <span className="font-semibold text-foreground">Take Profit</span>
+                </div>
+                <Switch checked={!!tpPrice} onCheckedChange={(checked) => !checked && setTpPrice('')} />
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">TP Trigger Price</label>
+                  <div className="relative">
+                    <Input
+                      type="text"
+                      placeholder="Enter price"
+                      value={tpPrice}
+                      onChange={(e) => setTpPrice(e.target.value)}
+                      className="pr-16 bg-muted border-border"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">USDT</span>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  {['+5%', '+10%', '+25%', '+50%', '+100%'].map((pct) => (
+                    <button
+                      key={pct}
+                      onClick={() => {
+                        const percent = parseFloat(pct) / 100;
+                        const entry = orderType === 'market' ? basePrice : parseFloat(price || String(basePrice));
+                        const targetPrice = tradeDirection === 'long' 
+                          ? entry * (1 + percent)
+                          : entry * (1 - percent);
+                        setTpPrice(targetPrice.toFixed(2));
+                      }}
+                      className="flex-1 py-1.5 text-xs bg-green-500/10 text-green-500 rounded hover:bg-green-500/20"
+                    >
+                      {pct}
+                    </button>
+                  ))}
+                </div>
+                
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setTpType('last')}
+                    className={`flex-1 py-1.5 text-xs rounded ${tpType === 'last' ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}
+                  >
+                    Last Price
+                  </button>
+                  <button 
+                    onClick={() => setTpType('mark')}
+                    className={`flex-1 py-1.5 text-xs rounded ${tpType === 'mark' ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}
+                  >
+                    Mark Price
+                  </button>
+                </div>
+                
+                {tpPrice && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Est. Profit</span>
+                    <span className="text-green-500">+{calculateTPSLPercent('tp', tpPrice).toFixed(2)}%</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Stop Loss Section */}
+            <div className="bg-card rounded-xl p-4 border border-border">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <TrendingDown className="w-5 h-5 text-red-500" />
+                  <span className="font-semibold text-foreground">Stop Loss</span>
+                </div>
+                <Switch checked={!!slPrice} onCheckedChange={(checked) => !checked && setSlPrice('')} />
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">SL Trigger Price</label>
+                  <div className="relative">
+                    <Input
+                      type="text"
+                      placeholder="Enter price"
+                      value={slPrice}
+                      onChange={(e) => setSlPrice(e.target.value)}
+                      className="pr-16 bg-muted border-border"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">USDT</span>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  {['-5%', '-10%', '-25%', '-50%', '-75%'].map((pct) => (
+                    <button
+                      key={pct}
+                      onClick={() => {
+                        const percent = Math.abs(parseFloat(pct)) / 100;
+                        const entry = orderType === 'market' ? basePrice : parseFloat(price || String(basePrice));
+                        const targetPrice = tradeDirection === 'long' 
+                          ? entry * (1 - percent)
+                          : entry * (1 + percent);
+                        setSlPrice(targetPrice.toFixed(2));
+                      }}
+                      className="flex-1 py-1.5 text-xs bg-red-500/10 text-red-500 rounded hover:bg-red-500/20"
+                    >
+                      {pct}
+                    </button>
+                  ))}
+                </div>
+                
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setSlType('last')}
+                    className={`flex-1 py-1.5 text-xs rounded ${slType === 'last' ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}
+                  >
+                    Last Price
+                  </button>
+                  <button 
+                    onClick={() => setSlType('mark')}
+                    className={`flex-1 py-1.5 text-xs rounded ${slType === 'mark' ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}
+                  >
+                    Mark Price
+                  </button>
+                </div>
+                
+                {slPrice && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Max Loss</span>
+                    <span className="text-red-500">{calculateTPSLPercent('sl', slPrice).toFixed(2)}%</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Button onClick={() => {
+              setTpslEnabled(true);
+              setShowTPSLModal(false);
+            }} className="w-full">
+              Confirm TP/SL
+            </Button>
+          </div>
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
+
+  // Position Details Modal
+  if (showPositionDetails) {
+    const position = showPositionDetails;
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <div className="max-w-md mx-auto">
+          <div className="flex items-center gap-4 p-4 border-b border-border bg-card">
+            <button onClick={() => setShowPositionDetails(null)} className="p-2 hover:bg-muted rounded-lg">
+              <ArrowLeft className="w-5 h-5 text-foreground" />
+            </button>
+            <h1 className="text-lg font-bold text-foreground">Position Details</h1>
+          </div>
+          
+          <div className="p-4 space-y-4">
+            <div className="bg-card rounded-xl p-4 border border-border">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <span className="font-bold text-lg text-foreground">{position.pair}</span>
+                  <span className={`ml-2 px-2 py-0.5 text-xs rounded ${position.side === 'long' ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+                    {position.side.toUpperCase()} {position.leverage}
+                  </span>
+                </div>
+                <div className={`text-right ${position.pnlPercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  <p className="font-bold">{position.pnl} USDT</p>
+                  <p className="text-sm">{position.pnlPercent >= 0 ? '+' : ''}{position.pnlPercent}%</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-muted-foreground">Size</p>
+                  <p className="text-foreground font-medium">{position.size} {position.pair.replace('USDT', '')}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Margin</p>
+                  <p className="text-foreground font-medium">{position.margin} USDT</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Entry Price</p>
+                  <p className="text-foreground font-medium">${position.entryPrice}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Mark Price</p>
+                  <p className="text-foreground font-medium">${position.markPrice}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Liq. Price</p>
+                  <p className="text-red-500 font-medium">${position.liquidationPrice}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Leverage</p>
+                  <p className="text-foreground font-medium">{position.leverage}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* TP/SL Info */}
+            <div className="bg-card rounded-xl p-4 border border-border">
+              <h3 className="font-semibold text-foreground mb-3">TP/SL Orders</h3>
+              <div className="space-y-2">
+                {position.tp && (
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-green-500" />
+                      <span className="text-sm text-muted-foreground">Take Profit</span>
+                    </div>
+                    <span className="text-green-500 font-medium">${position.tp}</span>
+                  </div>
+                )}
+                {position.sl && (
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <TrendingDown className="w-4 h-4 text-red-500" />
+                      <span className="text-sm text-muted-foreground">Stop Loss</span>
+                    </div>
+                    <span className="text-red-500 font-medium">${position.sl}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Button variant="outline" className="border-green-500 text-green-500 hover:bg-green-500/10">
+                Add Margin
+              </Button>
+              <Button variant="outline" className="border-primary text-primary hover:bg-primary/10">
+                Set TP/SL
+              </Button>
+            </div>
+
+            <Button className="w-full bg-red-500 hover:bg-red-600 text-white">
+              Close Position
+            </Button>
+          </div>
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
 
   // Pair Selector Modal
   if (showPairSelector) {
@@ -92,7 +721,7 @@ const FutureTrading = () => {
                   <Star className="w-4 h-4 text-muted-foreground" />
                   <div className="text-left">
                     <p className="font-semibold text-foreground">{pair.pair}</p>
-                    <p className="text-xs text-muted-foreground">Perpetual</p>
+                    <p className="text-xs text-muted-foreground">Perpetual • {pair.leverage}</p>
                   </div>
                 </div>
                 <div className="text-right">
@@ -124,8 +753,20 @@ const FutureTrading = () => {
             <ChevronDown className="w-4 h-4 text-muted-foreground" />
           </button>
           <div className="flex items-center gap-2">
+            {/* Connection Status */}
+            <button 
+              onClick={() => !isConnected && setShowConnectionModal(true)}
+              className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium ${
+                isConnected 
+                  ? 'bg-green-500/20 text-green-500' 
+                  : 'bg-yellow-500/20 text-yellow-500'
+              }`}
+            >
+              <Link2 className="w-3 h-3" />
+              {isConnected ? 'Connected' : 'Connect'}
+            </button>
             <button className="p-2 hover:bg-muted rounded-lg">
-              <BarChart3 className="w-5 h-5 text-muted-foreground" />
+              <Calculator className="w-5 h-5 text-muted-foreground" />
             </button>
             <button className="p-2 hover:bg-muted rounded-lg">
               <Settings className="w-5 h-5 text-muted-foreground" />
@@ -218,8 +859,24 @@ const FutureTrading = () => {
 
           {/* Trade Panel */}
           <div className="w-1/2 p-2 bg-card">
+            {/* Margin Mode & Leverage */}
+            <div className="flex items-center gap-2 mb-2">
+              <button 
+                onClick={() => setMarginMode(marginMode === 'cross' ? 'isolated' : 'cross')}
+                className="px-2 py-1 text-xs bg-muted text-muted-foreground rounded hover:bg-muted/80"
+              >
+                {marginMode === 'cross' ? 'Cross' : 'Isolated'}
+              </button>
+              <button 
+                onClick={() => setShowLeverageModal(true)}
+                className="px-2 py-1 text-xs bg-primary/20 text-primary rounded hover:bg-primary/30"
+              >
+                {leverage}x
+              </button>
+            </div>
+
             {/* Long/Short Toggle */}
-            <div className="grid grid-cols-2 gap-1 mb-3">
+            <div className="grid grid-cols-2 gap-1 mb-2">
               <button
                 onClick={() => setTradeDirection('long')}
                 className={`py-2 text-sm font-semibold rounded transition-colors ${
@@ -242,52 +899,50 @@ const FutureTrading = () => {
               </button>
             </div>
 
-            {/* Leverage Selector */}
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-xs text-muted-foreground">Leverage</span>
-              <div className="flex-1 flex items-center gap-1">
-                {['5', '10', '20', '50', '100'].map((lev) => (
-                  <button
-                    key={lev}
-                    onClick={() => setLeverage(lev)}
-                    className={`flex-1 py-1 text-xs rounded ${
-                      leverage === lev 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    {lev}x
-                  </button>
-                ))}
-              </div>
+            {/* Order Type */}
+            <div className="flex gap-1 mb-2">
+              {(['limit', 'market', 'conditional'] as const).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setOrderType(type)}
+                  className={`text-xs px-2 py-1 rounded capitalize ${
+                    orderType === type 
+                      ? 'bg-primary/20 text-primary' 
+                      : 'text-muted-foreground hover:bg-muted'
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
             </div>
 
-            {/* Order Type */}
-            <div className="flex gap-2 mb-2">
-              <button
-                onClick={() => setOrderType('limit')}
-                className={`text-xs px-2 py-1 rounded ${
-                  orderType === 'limit' 
-                    ? 'bg-primary/20 text-primary' 
-                    : 'text-muted-foreground'
-                }`}
-              >
-                Limit
-              </button>
-              <button
-                onClick={() => setOrderType('market')}
-                className={`text-xs px-2 py-1 rounded ${
-                  orderType === 'market' 
-                    ? 'bg-primary/20 text-primary' 
-                    : 'text-muted-foreground'
-                }`}
-              >
-                Market
-              </button>
-            </div>
+            {/* Conditional Trigger Price */}
+            {orderType === 'conditional' && (
+              <div className="mb-2">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs text-muted-foreground">Trigger Price</label>
+                  <select 
+                    value={triggerType}
+                    onChange={(e) => setTriggerType(e.target.value as any)}
+                    className="text-xs bg-transparent text-muted-foreground"
+                  >
+                    <option value="last">Last</option>
+                    <option value="mark">Mark</option>
+                    <option value="index">Index</option>
+                  </select>
+                </div>
+                <Input
+                  type="text"
+                  placeholder="Trigger price"
+                  value={triggerPrice}
+                  onChange={(e) => setTriggerPrice(e.target.value)}
+                  className="h-8 text-sm bg-muted border-border"
+                />
+              </div>
+            )}
 
             {/* Price Input */}
-            {orderType === 'limit' && (
+            {(orderType === 'limit' || orderType === 'conditional') && (
               <div className="mb-2">
                 <Input
                   type="text"
@@ -311,7 +966,7 @@ const FutureTrading = () => {
             </div>
 
             {/* Amount Shortcuts */}
-            <div className="flex gap-1 mb-3">
+            <div className="flex gap-1 mb-2">
               {['25%', '50%', '75%', '100%'].map((pct) => (
                 <button
                   key={pct}
@@ -322,15 +977,35 @@ const FutureTrading = () => {
               ))}
             </div>
 
+            {/* TP/SL Toggle */}
+            <button 
+              onClick={() => setShowTPSLModal(true)}
+              className="w-full flex items-center justify-between p-2 mb-2 bg-muted rounded-lg hover:bg-muted/80"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">TP/SL</span>
+                {(tpPrice || slPrice) && (
+                  <span className="text-xs text-green-500">Active</span>
+                )}
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </button>
+
             {/* Submit Button */}
             <Button
+              onClick={handleOpenPosition}
               className={`w-full font-semibold ${
                 tradeDirection === 'long'
                   ? 'bg-green-500 hover:bg-green-600 text-white'
                   : 'bg-red-500 hover:bg-red-600 text-white'
               }`}
             >
-              {tradeDirection === 'long' ? (
+              {!isConnected ? (
+                <>
+                  <Link2 className="w-4 h-4 mr-1" />
+                  Connect to Trade
+                </>
+              ) : tradeDirection === 'long' ? (
                 <>
                   <TrendingUp className="w-4 h-4 mr-1" />
                   Open Long
@@ -353,13 +1028,13 @@ const FutureTrading = () => {
                 value="position" 
                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2"
               >
-                Position(0)
+                Position({mockPositions.length})
               </TabsTrigger>
               <TabsTrigger 
                 value="orders" 
                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2"
               >
-                Orders(0)
+                Orders({mockOrders.length})
               </TabsTrigger>
               <TabsTrigger 
                 value="history" 
@@ -374,12 +1049,113 @@ const FutureTrading = () => {
                 Assets
               </TabsTrigger>
             </TabsList>
-          </Tabs>
 
-          {/* Empty State */}
-          <div className="p-8 text-center">
-            <p className="text-muted-foreground text-sm">No {activeTab} data</p>
-          </div>
+            <TabsContent value="position" className="mt-0">
+              {mockPositions.length > 0 ? (
+                <div className="divide-y divide-border">
+                  {mockPositions.map((position) => (
+                    <button
+                      key={position.id}
+                      onClick={() => setShowPositionDetails(position)}
+                      className="w-full p-3 hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-foreground">{position.pair}</span>
+                          <span className={`px-1.5 py-0.5 text-xs rounded ${position.side === 'long' ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+                            {position.side.toUpperCase()} {position.leverage}
+                          </span>
+                        </div>
+                        <div className={`text-right ${position.pnlPercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                          <span className="font-medium">{position.pnl}</span>
+                          <span className="text-xs ml-1">({position.pnlPercent >= 0 ? '+' : ''}{position.pnlPercent}%)</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Size: {position.size}</span>
+                        <span>Entry: ${position.entryPrice}</span>
+                        <span>Mark: ${position.markPrice}</span>
+                      </div>
+                      {(position.tp || position.sl) && (
+                        <div className="flex gap-4 mt-2 text-xs">
+                          {position.tp && <span className="text-green-500">TP: ${position.tp}</span>}
+                          {position.sl && <span className="text-red-500">SL: ${position.sl}</span>}
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 text-center">
+                  <p className="text-muted-foreground text-sm">No open positions</p>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="orders" className="mt-0">
+              {mockOrders.length > 0 ? (
+                <div className="divide-y divide-border">
+                  {mockOrders.map((order) => (
+                    <div key={order.id} className="p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-foreground">{order.pair}</span>
+                          <span className={`px-1.5 py-0.5 text-xs rounded ${order.side === 'long' ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+                            {order.side.toUpperCase()}
+                          </span>
+                          <span className="px-1.5 py-0.5 text-xs bg-muted rounded capitalize">{order.type}</span>
+                        </div>
+                        <button className="text-red-500 text-xs">Cancel</button>
+                      </div>
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Price: ${order.price}</span>
+                        <span>Amount: {order.amount}</span>
+                        <span>Filled: {order.filled}</span>
+                      </div>
+                      {(order.tp || order.sl) && (
+                        <div className="flex gap-4 mt-2 text-xs">
+                          {order.tp && <span className="text-green-500">TP: ${order.tp}</span>}
+                          {order.sl && <span className="text-red-500">SL: ${order.sl}</span>}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 text-center">
+                  <p className="text-muted-foreground text-sm">No open orders</p>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="history" className="mt-0">
+              <div className="p-8 text-center">
+                <Clock className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-muted-foreground text-sm">No trade history</p>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="assets" className="mt-0">
+              <div className="p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Total Margin Balance</span>
+                  <span className="font-bold text-foreground">10,000.00 USDT</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Available Balance</span>
+                  <span className="text-foreground">8,937.50 USDT</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Used Margin</span>
+                  <span className="text-foreground">1,062.50 USDT</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Unrealized PnL</span>
+                  <span className="text-green-500">+375.25 USDT</span>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Funding Rate Bar */}
@@ -395,8 +1171,8 @@ const FutureTrading = () => {
             </div>
           </div>
           <div>
-            <span className="text-muted-foreground">Vol 24h: </span>
-            <span className="text-foreground">{selectedPair.volume}</span>
+            <span className="text-muted-foreground">OI: </span>
+            <span className="text-foreground">{selectedPair.openInterest}</span>
           </div>
         </div>
       </div>
