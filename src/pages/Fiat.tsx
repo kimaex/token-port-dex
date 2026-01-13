@@ -5,15 +5,211 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowDownToLine, ArrowUpFromLine, Copy, Check, Clock, Building2, User, CreditCard, DollarSign } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, Copy, Check, Clock, Building2, User, CreditCard, DollarSign, Smartphone, ChevronDown, Globe } from "lucide-react";
 import { toast } from "sonner";
 
-type BuyStep = "amount" | "payment" | "processing" | "complete";
-type SellStep = "amount" | "bankDetails" | "confirm" | "processing" | "complete";
+type BuyStep = "amount" | "paymentMethod" | "payment" | "processing" | "complete";
+type SellStep = "amount" | "paymentMethod" | "paymentDetails" | "confirm" | "processing" | "complete";
+type PaymentMethod = "bank" | "mobile_money" | "card";
 
-const EXCHANGE_RATE = 1580; // 1 USDC = 1580 NGN (example rate)
+interface Country {
+  code: string;
+  name: string;
+  currency: string;
+  currencySymbol: string;
+  exchangeRate: number;
+  paymentMethods: {
+    bank: boolean;
+    mobileMoneyProviders: string[];
+    card: boolean;
+  };
+}
+
+const COUNTRIES: Country[] = [
+  {
+    code: "NG",
+    name: "Nigeria",
+    currency: "NGN",
+    currencySymbol: "₦",
+    exchangeRate: 1580,
+    paymentMethods: {
+      bank: true,
+      mobileMoneyProviders: ["OPay", "Palmpay", "Moniepoint", "Kuda"],
+      card: true,
+    },
+  },
+  {
+    code: "GH",
+    name: "Ghana",
+    currency: "GHS",
+    currencySymbol: "GH₵",
+    exchangeRate: 15.5,
+    paymentMethods: {
+      bank: true,
+      mobileMoneyProviders: ["MTN MoMo", "Vodafone Cash", "AirtelTigo Money"],
+      card: true,
+    },
+  },
+  {
+    code: "KE",
+    name: "Kenya",
+    currency: "KES",
+    currencySymbol: "KSh",
+    exchangeRate: 153,
+    paymentMethods: {
+      bank: true,
+      mobileMoneyProviders: ["M-Pesa", "Airtel Money", "T-Kash"],
+      card: true,
+    },
+  },
+  {
+    code: "ZA",
+    name: "South Africa",
+    currency: "ZAR",
+    currencySymbol: "R",
+    exchangeRate: 18.5,
+    paymentMethods: {
+      bank: true,
+      mobileMoneyProviders: ["FNB eWallet", "Vodapay", "MTN MoMo"],
+      card: true,
+    },
+  },
+  {
+    code: "TZ",
+    name: "Tanzania",
+    currency: "TZS",
+    currencySymbol: "TSh",
+    exchangeRate: 2650,
+    paymentMethods: {
+      bank: true,
+      mobileMoneyProviders: ["M-Pesa", "Tigo Pesa", "Airtel Money", "HaloPesa"],
+      card: false,
+    },
+  },
+  {
+    code: "UG",
+    name: "Uganda",
+    currency: "UGX",
+    currencySymbol: "USh",
+    exchangeRate: 3750,
+    paymentMethods: {
+      bank: true,
+      mobileMoneyProviders: ["MTN MoMo", "Airtel Money"],
+      card: false,
+    },
+  },
+  {
+    code: "RW",
+    name: "Rwanda",
+    currency: "RWF",
+    currencySymbol: "FRw",
+    exchangeRate: 1300,
+    paymentMethods: {
+      bank: true,
+      mobileMoneyProviders: ["MTN MoMo", "Airtel Money"],
+      card: false,
+    },
+  },
+  {
+    code: "SN",
+    name: "Senegal",
+    currency: "XOF",
+    currencySymbol: "CFA",
+    exchangeRate: 610,
+    paymentMethods: {
+      bank: true,
+      mobileMoneyProviders: ["Orange Money", "Wave", "Free Money"],
+      card: true,
+    },
+  },
+  {
+    code: "CI",
+    name: "Côte d'Ivoire",
+    currency: "XOF",
+    currencySymbol: "CFA",
+    exchangeRate: 610,
+    paymentMethods: {
+      bank: true,
+      mobileMoneyProviders: ["Orange Money", "MTN MoMo", "Wave", "Moov Money"],
+      card: true,
+    },
+  },
+  {
+    code: "CM",
+    name: "Cameroon",
+    currency: "XAF",
+    currencySymbol: "FCFA",
+    exchangeRate: 610,
+    paymentMethods: {
+      bank: true,
+      mobileMoneyProviders: ["MTN MoMo", "Orange Money"],
+      card: false,
+    },
+  },
+  {
+    code: "EG",
+    name: "Egypt",
+    currency: "EGP",
+    currencySymbol: "E£",
+    exchangeRate: 49,
+    paymentMethods: {
+      bank: true,
+      mobileMoneyProviders: ["Vodafone Cash", "Orange Cash", "Etisalat Cash", "Fawry"],
+      card: true,
+    },
+  },
+  {
+    code: "MA",
+    name: "Morocco",
+    currency: "MAD",
+    currencySymbol: "DH",
+    exchangeRate: 10.2,
+    paymentMethods: {
+      bank: true,
+      mobileMoneyProviders: ["M-Wallet", "Orange Money"],
+      card: true,
+    },
+  },
+  {
+    code: "ZM",
+    name: "Zambia",
+    currency: "ZMW",
+    currencySymbol: "ZK",
+    exchangeRate: 27,
+    paymentMethods: {
+      bank: true,
+      mobileMoneyProviders: ["MTN MoMo", "Airtel Money", "Zamtel Kwacha"],
+      card: false,
+    },
+  },
+  {
+    code: "BW",
+    name: "Botswana",
+    currency: "BWP",
+    currencySymbol: "P",
+    exchangeRate: 13.5,
+    paymentMethods: {
+      bank: true,
+      mobileMoneyProviders: ["Orange Money", "Smega"],
+      card: true,
+    },
+  },
+];
 
 const Fiat = () => {
+  // Country selection
+  const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRIES[0]);
+  const [showCountrySelector, setShowCountrySelector] = useState(false);
+
+  // Payment method
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bank");
+  const [mobileMoneyProvider, setMobileMoneyProvider] = useState("");
+  const [mobileMoneyNumber, setMobileMoneyNumber] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvv, setCardCvv] = useState("");
+  const [cardName, setCardName] = useState("");
+
   // Buy USDC states
   const [buyStep, setBuyStep] = useState<BuyStep>("amount");
   const [usdcAmount, setUsdcAmount] = useState("");
@@ -25,12 +221,11 @@ const Fiat = () => {
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [accountName, setAccountName] = useState("");
-  const [currency, setCurrency] = useState("NGN");
 
-  const fiatAmount = parseFloat(usdcAmount || "0") * EXCHANGE_RATE;
-  const sellFiatAmount = parseFloat(sellAmount || "0") * EXCHANGE_RATE;
+  const fiatAmount = parseFloat(usdcAmount || "0") * selectedCountry.exchangeRate;
+  const sellFiatAmount = parseFloat(sellAmount || "0") * selectedCountry.exchangeRate;
 
-  // Bank details for payment
+  // Bank details for payment (for buying)
   const bankDetails = {
     bankName: "First Bank Nigeria",
     accountNumber: "3124567890",
@@ -50,12 +245,23 @@ const Fiat = () => {
       toast.error("Please enter a valid amount");
       return;
     }
+    setBuyStep("paymentMethod");
+  };
+
+  const handleBuyPaymentMethodProceed = () => {
     setBuyStep("payment");
   };
 
   const handleConfirmPayment = () => {
+    if (paymentMethod === "mobile_money" && !mobileMoneyNumber) {
+      toast.error("Please enter your mobile money number");
+      return;
+    }
+    if (paymentMethod === "card" && (!cardNumber || !cardExpiry || !cardCvv || !cardName)) {
+      toast.error("Please fill in all card details");
+      return;
+    }
     setBuyStep("processing");
-    // Simulate processing
     setTimeout(() => {
       setBuyStep("complete");
     }, 3000);
@@ -66,12 +272,20 @@ const Fiat = () => {
       toast.error("Please enter a valid amount");
       return;
     }
-    setSellStep("bankDetails");
+    setSellStep("paymentMethod");
   };
 
-  const handleSellBankProceed = () => {
-    if (!bankName || !accountNumber || !accountName) {
+  const handleSellPaymentMethodProceed = () => {
+    setSellStep("paymentDetails");
+  };
+
+  const handleSellDetailsProceed = () => {
+    if (paymentMethod === "bank" && (!bankName || !accountNumber || !accountName)) {
       toast.error("Please fill in all bank details");
+      return;
+    }
+    if (paymentMethod === "mobile_money" && (!mobileMoneyProvider || !mobileMoneyNumber)) {
+      toast.error("Please fill in mobile money details");
       return;
     }
     setSellStep("confirm");
@@ -79,7 +293,6 @@ const Fiat = () => {
 
   const handleConfirmSell = () => {
     setSellStep("processing");
-    // Simulate processing
     setTimeout(() => {
       setSellStep("complete");
     }, 3000);
@@ -88,6 +301,13 @@ const Fiat = () => {
   const resetBuy = () => {
     setBuyStep("amount");
     setUsdcAmount("");
+    setPaymentMethod("bank");
+    setMobileMoneyNumber("");
+    setMobileMoneyProvider("");
+    setCardNumber("");
+    setCardExpiry("");
+    setCardCvv("");
+    setCardName("");
   };
 
   const resetSell = () => {
@@ -96,7 +316,190 @@ const Fiat = () => {
     setBankName("");
     setAccountNumber("");
     setAccountName("");
+    setPaymentMethod("bank");
+    setMobileMoneyNumber("");
+    setMobileMoneyProvider("");
   };
+
+  const formatCardNumber = (value: string) => {
+    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
+    const matches = v.match(/\d{4,16}/g);
+    const match = (matches && matches[0]) || "";
+    const parts = [];
+    for (let i = 0, len = match.length; i < len; i += 4) {
+      parts.push(match.substring(i, i + 4));
+    }
+    return parts.length ? parts.join(" ") : value;
+  };
+
+  const formatExpiry = (value: string) => {
+    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
+    if (v.length >= 2) {
+      return v.slice(0, 2) + "/" + v.slice(2, 4);
+    }
+    return v;
+  };
+
+  const getPaymentMethodIcon = (method: PaymentMethod) => {
+    switch (method) {
+      case "bank":
+        return <Building2 className="w-5 h-5" />;
+      case "mobile_money":
+        return <Smartphone className="w-5 h-5" />;
+      case "card":
+        return <CreditCard className="w-5 h-5" />;
+    }
+  };
+
+  const getPaymentMethodName = (method: PaymentMethod) => {
+    switch (method) {
+      case "bank":
+        return "Bank Transfer";
+      case "mobile_money":
+        return "Mobile Money";
+      case "card":
+        return "Card Payment";
+    }
+  };
+
+  // Country Selector Component
+  const CountrySelector = () => (
+    <div className="relative mb-4">
+      <button
+        onClick={() => setShowCountrySelector(!showCountrySelector)}
+        className="w-full p-3 bg-secondary rounded-xl flex items-center justify-between"
+      >
+        <div className="flex items-center gap-3">
+          <Globe className="w-5 h-5 text-muted-foreground" />
+          <div className="text-left">
+            <div className="font-medium">{selectedCountry.name}</div>
+            <div className="text-xs text-muted-foreground">{selectedCountry.currency} ({selectedCountry.currencySymbol})</div>
+          </div>
+        </div>
+        <ChevronDown className={`h-4 w-4 transition-transform ${showCountrySelector ? 'rotate-180' : ''}`} />
+      </button>
+      
+      {showCountrySelector && (
+        <div className="absolute z-50 w-full mt-2 bg-background border border-border rounded-xl shadow-lg max-h-60 overflow-y-auto">
+          {COUNTRIES.map((country) => (
+            <button
+              key={country.code}
+              onClick={() => {
+                setSelectedCountry(country);
+                setShowCountrySelector(false);
+                setPaymentMethod("bank");
+                setMobileMoneyProvider("");
+              }}
+              className={`w-full p-3 text-left hover:bg-muted transition-colors flex items-center gap-3 ${
+                selectedCountry.code === country.code ? 'bg-muted' : ''
+              }`}
+            >
+              <div>
+                <div className="font-medium">{country.name}</div>
+                <div className="text-xs text-muted-foreground">{country.currency} ({country.currencySymbol})</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  // Payment Method Selector Component
+  const PaymentMethodSelector = ({ mode }: { mode: "buy" | "sell" }) => (
+    <div className="space-y-3">
+      <Label className="text-sm text-muted-foreground">Select Payment Method</Label>
+      <div className="space-y-2">
+        {/* Bank Transfer */}
+        {selectedCountry.paymentMethods.bank && (
+          <button
+            onClick={() => setPaymentMethod("bank")}
+            className={`w-full p-4 rounded-xl text-left transition-colors border flex items-center gap-4 ${
+              paymentMethod === "bank"
+                ? 'border-primary bg-primary/10'
+                : 'border-border bg-secondary hover:bg-muted'
+            }`}
+          >
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+              paymentMethod === "bank" ? 'bg-primary text-primary-foreground' : 'bg-muted'
+            }`}>
+              <Building2 className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="font-medium">Bank Transfer</div>
+              <div className="text-xs text-muted-foreground">Transfer from your bank account</div>
+            </div>
+          </button>
+        )}
+
+        {/* Mobile Money */}
+        {selectedCountry.paymentMethods.mobileMoneyProviders.length > 0 && (
+          <button
+            onClick={() => setPaymentMethod("mobile_money")}
+            className={`w-full p-4 rounded-xl text-left transition-colors border flex items-center gap-4 ${
+              paymentMethod === "mobile_money"
+                ? 'border-primary bg-primary/10'
+                : 'border-border bg-secondary hover:bg-muted'
+            }`}
+          >
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+              paymentMethod === "mobile_money" ? 'bg-primary text-primary-foreground' : 'bg-muted'
+            }`}>
+              <Smartphone className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="font-medium">Mobile Money</div>
+              <div className="text-xs text-muted-foreground">
+                {selectedCountry.paymentMethods.mobileMoneyProviders.slice(0, 2).join(", ")}
+                {selectedCountry.paymentMethods.mobileMoneyProviders.length > 2 && " & more"}
+              </div>
+            </div>
+          </button>
+        )}
+
+        {/* Card Payment */}
+        {selectedCountry.paymentMethods.card && (
+          <button
+            onClick={() => setPaymentMethod("card")}
+            className={`w-full p-4 rounded-xl text-left transition-colors border flex items-center gap-4 ${
+              paymentMethod === "card"
+                ? 'border-primary bg-primary/10'
+                : 'border-border bg-secondary hover:bg-muted'
+            }`}
+          >
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+              paymentMethod === "card" ? 'bg-primary text-primary-foreground' : 'bg-muted'
+            }`}>
+              <CreditCard className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="font-medium">Card Payment</div>
+              <div className="text-xs text-muted-foreground">Pay with Visa, Mastercard, Verve</div>
+            </div>
+          </button>
+        )}
+      </div>
+
+      {/* Mobile Money Provider Selection */}
+      {paymentMethod === "mobile_money" && (
+        <div className="mt-4 space-y-2">
+          <Label>Select Provider</Label>
+          <Select value={mobileMoneyProvider} onValueChange={setMobileMoneyProvider}>
+            <SelectTrigger>
+              <SelectValue placeholder="Choose mobile money provider" />
+            </SelectTrigger>
+            <SelectContent>
+              {selectedCountry.paymentMethods.mobileMoneyProviders.map((provider) => (
+                <SelectItem key={provider} value={provider}>
+                  {provider}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -113,6 +516,8 @@ const Fiat = () => {
 
         <Card className="shadow-card border-border/50">
           <CardContent className="pt-6">
+            <CountrySelector />
+            
             <Tabs defaultValue="buy" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="buy" className="gap-2">
@@ -153,17 +558,11 @@ const Fiat = () => {
                         <Label className="text-muted-foreground">You will pay</Label>
                         <div className="flex items-center justify-between">
                           <span className="text-2xl font-semibold">
-                            {currency === "NGN" ? "₦" : "$"}{fiatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                            {selectedCountry.currencySymbol}{fiatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                           </span>
-                          <Select value={currency} onValueChange={setCurrency}>
-                            <SelectTrigger className="w-24">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="NGN">NGN</SelectItem>
-                              <SelectItem value="USD">USD</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <span className="text-sm text-muted-foreground bg-secondary px-2 py-1 rounded">
+                            {selectedCountry.currency}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -171,7 +570,7 @@ const Fiat = () => {
                     <div className="bg-secondary/20 rounded-xl p-3">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Exchange Rate</span>
-                        <span>1 USDC = ₦{EXCHANGE_RATE.toLocaleString()}</span>
+                        <span>1 USDC = {selectedCountry.currencySymbol}{selectedCountry.exchangeRate.toLocaleString()}</span>
                       </div>
                     </div>
 
@@ -181,65 +580,162 @@ const Fiat = () => {
                   </>
                 )}
 
+                {buyStep === "paymentMethod" && (
+                  <>
+                    <div className="text-center mb-4">
+                      <p className="text-muted-foreground">Buying</p>
+                      <p className="text-3xl font-bold text-primary">{usdcAmount} USDC</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        ≈ {selectedCountry.currencySymbol}{fiatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+
+                    <PaymentMethodSelector mode="buy" />
+
+                    <Button 
+                      onClick={handleBuyPaymentMethodProceed} 
+                      className="w-full h-14 text-lg font-semibold"
+                      disabled={paymentMethod === "mobile_money" && !mobileMoneyProvider}
+                    >
+                      Continue with {getPaymentMethodName(paymentMethod)}
+                    </Button>
+
+                    <Button variant="ghost" onClick={() => setBuyStep("amount")} className="w-full">
+                      Back
+                    </Button>
+                  </>
+                )}
+
                 {buyStep === "payment" && (
                   <>
                     <div className="text-center mb-4">
-                      <p className="text-muted-foreground">Transfer exactly</p>
+                      <p className="text-muted-foreground">Pay exactly</p>
                       <p className="text-3xl font-bold text-primary">
-                        ₦{fiatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                        {selectedCountry.currencySymbol}{fiatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                       </p>
                       <p className="text-sm text-muted-foreground">for {usdcAmount} USDC</p>
                     </div>
 
-                    <div className="bg-secondary/30 rounded-xl p-4 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">Bank Name</span>
-                        </div>
-                        <span className="font-medium">{bankDetails.bankName}</span>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <CreditCard className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">Account Number</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-medium">{bankDetails.accountNumber}</span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={handleCopyAccountNumber}
-                          >
-                            {copied ? (
-                              <Check className="h-4 w-4 text-green-500" />
-                            ) : (
-                              <Copy className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">Account Name</span>
-                        </div>
-                        <span className="font-medium">{bankDetails.accountName}</span>
-                      </div>
-
-                      <div className="border-t border-border/50 pt-4">
+                    {/* Bank Transfer Payment Details */}
+                    {paymentMethod === "bank" && (
+                      <div className="bg-secondary/30 rounded-xl p-4 space-y-4">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Reference</span>
-                          <span className="font-mono text-primary font-medium">{bankDetails.reference}</span>
+                          <div className="flex items-center gap-2">
+                            <Building2 className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">Bank Name</span>
+                          </div>
+                          <span className="font-medium">{bankDetails.bankName}</span>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Use this reference when making the transfer
-                        </p>
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">Account Number</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-medium">{bankDetails.accountNumber}</span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={handleCopyAccountNumber}
+                            >
+                              {copied ? (
+                                <Check className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <Copy className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <User className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">Account Name</span>
+                          </div>
+                          <span className="font-medium">{bankDetails.accountName}</span>
+                        </div>
+
+                        <div className="border-t border-border/50 pt-4">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Reference</span>
+                            <span className="font-mono text-primary font-medium">{bankDetails.reference}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Use this reference when making the transfer
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    )}
+
+                    {/* Mobile Money Payment Details */}
+                    {paymentMethod === "mobile_money" && (
+                      <div className="space-y-4">
+                        <div className="bg-secondary/30 rounded-xl p-4">
+                          <div className="flex items-center gap-3 mb-4">
+                            <Smartphone className="w-5 h-5 text-primary" />
+                            <span className="font-medium">{mobileMoneyProvider}</span>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Your {mobileMoneyProvider} Number</Label>
+                            <Input
+                              placeholder="Enter phone number"
+                              value={mobileMoneyNumber}
+                              onChange={(e) => setMobileMoneyNumber(e.target.value.replace(/\D/g, ""))}
+                              maxLength={15}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              You'll receive a payment prompt on this number
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Card Payment Details */}
+                    {paymentMethod === "card" && (
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label>Card Number</Label>
+                          <Input
+                            placeholder="1234 5678 9012 3456"
+                            value={cardNumber}
+                            onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                            maxLength={19}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Expiry Date</Label>
+                            <Input
+                              placeholder="MM/YY"
+                              value={cardExpiry}
+                              onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
+                              maxLength={5}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>CVV</Label>
+                            <Input
+                              placeholder="123"
+                              type="password"
+                              value={cardCvv}
+                              onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                              maxLength={4}
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Cardholder Name</Label>
+                          <Input
+                            placeholder="Name on card"
+                            value={cardName}
+                            onChange={(e) => setCardName(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
 
                     <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3">
                       <p className="text-sm text-amber-600 text-center">
@@ -248,11 +744,11 @@ const Fiat = () => {
                     </div>
 
                     <Button onClick={handleConfirmPayment} className="w-full h-14 text-lg font-semibold">
-                      I've Made the Payment
+                      {paymentMethod === "bank" ? "I've Made the Payment" : "Pay Now"}
                     </Button>
 
-                    <Button variant="ghost" onClick={resetBuy} className="w-full">
-                      Cancel
+                    <Button variant="ghost" onClick={() => setBuyStep("paymentMethod")} className="w-full">
+                      Back
                     </Button>
                   </>
                 )}
@@ -313,9 +809,9 @@ const Fiat = () => {
                       </div>
 
                       <div className="border-t border-border/50 pt-4 space-y-2">
-                        <Label className="text-muted-foreground">You will receive (Local Fiat)</Label>
+                        <Label className="text-muted-foreground">You will receive</Label>
                         <p className="text-2xl font-semibold">
-                          ₦{sellFiatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                          {selectedCountry.currencySymbol}{sellFiatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                         </p>
                       </div>
                     </div>
@@ -323,7 +819,7 @@ const Fiat = () => {
                     <div className="bg-secondary/20 rounded-xl p-3">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Exchange Rate</span>
-                        <span>1 USDC = ₦{EXCHANGE_RATE.toLocaleString()}</span>
+                        <span>1 USDC = {selectedCountry.currencySymbol}{selectedCountry.exchangeRate.toLocaleString()}</span>
                       </div>
                     </div>
 
@@ -333,56 +829,127 @@ const Fiat = () => {
                   </>
                 )}
 
-                {sellStep === "bankDetails" && (
+                {sellStep === "paymentMethod" && (
                   <>
                     <div className="text-center mb-4">
                       <p className="text-muted-foreground">Selling</p>
                       <p className="text-3xl font-bold text-primary">{sellAmount} USDC</p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        ≈ ₦{sellFiatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                        ≈ {selectedCountry.currencySymbol}{sellFiatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                       </p>
                     </div>
 
-                    <div className="space-y-4">
-                      <h3 className="font-semibold flex items-center gap-2">
-                        <Building2 className="w-4 h-4" />
-                        Enter Bank Details
-                      </h3>
+                    <PaymentMethodSelector mode="sell" />
 
-                      <div className="space-y-2">
-                        <Label>Bank Name</Label>
-                        <Input
-                          placeholder="e.g., First Bank, GTBank, Access Bank"
-                          value={bankName}
-                          onChange={(e) => setBankName(e.target.value)}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Account Number</Label>
-                        <Input
-                          placeholder="Enter 10-digit account number"
-                          value={accountNumber}
-                          onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                          maxLength={10}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Account Holder Name</Label>
-                        <Input
-                          placeholder="Enter full name on account"
-                          value={accountName}
-                          onChange={(e) => setAccountName(e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <Button onClick={handleSellBankProceed} className="w-full h-14 text-lg font-semibold">
+                    <Button 
+                      onClick={handleSellPaymentMethodProceed} 
+                      className="w-full h-14 text-lg font-semibold"
+                      disabled={paymentMethod === "mobile_money" && !mobileMoneyProvider}
+                    >
                       Continue
                     </Button>
 
                     <Button variant="ghost" onClick={() => setSellStep("amount")} className="w-full">
+                      Back
+                    </Button>
+                  </>
+                )}
+
+                {sellStep === "paymentDetails" && (
+                  <>
+                    <div className="text-center mb-4">
+                      <p className="text-muted-foreground">Receiving</p>
+                      <p className="text-3xl font-bold text-primary">
+                        {selectedCountry.currencySymbol}{sellFiatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                      </p>
+                      <div className="flex items-center justify-center gap-2 mt-2">
+                        {getPaymentMethodIcon(paymentMethod)}
+                        <span className="text-sm text-muted-foreground">{getPaymentMethodName(paymentMethod)}</span>
+                      </div>
+                    </div>
+
+                    {/* Bank Details Form */}
+                    {paymentMethod === "bank" && (
+                      <div className="space-y-4">
+                        <h3 className="font-semibold flex items-center gap-2">
+                          <Building2 className="w-4 h-4" />
+                          Enter Bank Details
+                        </h3>
+
+                        <div className="space-y-2">
+                          <Label>Bank Name</Label>
+                          <Input
+                            placeholder="e.g., First Bank, GTBank, Access Bank"
+                            value={bankName}
+                            onChange={(e) => setBankName(e.target.value)}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Account Number</Label>
+                          <Input
+                            placeholder="Enter account number"
+                            value={accountNumber}
+                            onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, "").slice(0, 15))}
+                            maxLength={15}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Account Holder Name</Label>
+                          <Input
+                            placeholder="Enter full name on account"
+                            value={accountName}
+                            onChange={(e) => setAccountName(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Mobile Money Details Form */}
+                    {paymentMethod === "mobile_money" && (
+                      <div className="space-y-4">
+                        <h3 className="font-semibold flex items-center gap-2">
+                          <Smartphone className="w-4 h-4" />
+                          {mobileMoneyProvider} Details
+                        </h3>
+
+                        <div className="space-y-2">
+                          <Label>Phone Number</Label>
+                          <Input
+                            placeholder="Enter phone number"
+                            value={mobileMoneyNumber}
+                            onChange={(e) => setMobileMoneyNumber(e.target.value.replace(/\D/g, ""))}
+                            maxLength={15}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Account Name</Label>
+                          <Input
+                            placeholder="Name registered on mobile money"
+                            value={accountName}
+                            onChange={(e) => setAccountName(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Card - not typically used for receiving, show message */}
+                    {paymentMethod === "card" && (
+                      <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 text-center">
+                        <p className="text-sm text-amber-600">
+                          Card withdrawals are processed as refunds to your original payment card.
+                          Please use Bank Transfer or Mobile Money for faster withdrawals.
+                        </p>
+                      </div>
+                    )}
+
+                    <Button onClick={handleSellDetailsProceed} className="w-full h-14 text-lg font-semibold">
+                      Continue
+                    </Button>
+
+                    <Button variant="ghost" onClick={() => setSellStep("paymentMethod")} className="w-full">
                       Back
                     </Button>
                   </>
@@ -399,19 +966,45 @@ const Fiat = () => {
                       <h4 className="font-semibold text-center">Payout Details</h4>
 
                       <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Method</span>
+                        <div className="flex items-center gap-2">
+                          {getPaymentMethodIcon(paymentMethod)}
+                          <span className="font-medium">{getPaymentMethodName(paymentMethod)}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground">Amount</span>
-                        <span className="font-semibold">₦{sellFiatAmount.toLocaleString()}</span>
+                        <span className="font-semibold">
+                          {selectedCountry.currencySymbol}{sellFiatAmount.toLocaleString()}
+                        </span>
                       </div>
 
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Bank</span>
-                        <span className="font-medium">{bankName}</span>
-                      </div>
+                      {paymentMethod === "bank" && (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Bank</span>
+                            <span className="font-medium">{bankName}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Account</span>
+                            <span className="font-mono">{accountNumber}</span>
+                          </div>
+                        </>
+                      )}
 
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Account</span>
-                        <span className="font-mono">{accountNumber}</span>
-                      </div>
+                      {paymentMethod === "mobile_money" && (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Provider</span>
+                            <span className="font-medium">{mobileMoneyProvider}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Phone</span>
+                            <span className="font-mono">{mobileMoneyNumber}</span>
+                          </div>
+                        </>
+                      )}
 
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground">Name</span>
@@ -421,7 +1014,7 @@ const Fiat = () => {
 
                     <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3">
                       <p className="text-sm text-amber-600 text-center">
-                        Please verify your bank details are correct
+                        Please verify your details are correct
                       </p>
                     </div>
 
@@ -429,7 +1022,7 @@ const Fiat = () => {
                       Confirm Withdrawal
                     </Button>
 
-                    <Button variant="ghost" onClick={() => setSellStep("bankDetails")} className="w-full">
+                    <Button variant="ghost" onClick={() => setSellStep("paymentDetails")} className="w-full">
                       Go Back
                     </Button>
                   </>
@@ -442,7 +1035,7 @@ const Fiat = () => {
                     </div>
                     <h3 className="text-xl font-semibold">Processing Withdrawal</h3>
                     <p className="text-muted-foreground">
-                      Your funds will be sent to your bank account within 24 hours.
+                      Your funds will be sent within {paymentMethod === "mobile_money" ? "a few minutes" : "24 hours"}.
                     </p>
                   </div>
                 )}
@@ -454,7 +1047,7 @@ const Fiat = () => {
                     </div>
                     <h3 className="text-xl font-semibold">Withdrawal Initiated!</h3>
                     <p className="text-muted-foreground">
-                      ₦{sellFiatAmount.toLocaleString()} will be sent to your bank account
+                      {selectedCountry.currencySymbol}{sellFiatAmount.toLocaleString()} will be sent via {getPaymentMethodName(paymentMethod)}
                     </p>
                     <Button onClick={resetSell} className="mt-4">
                       Make Another Withdrawal
@@ -470,9 +1063,9 @@ const Fiat = () => {
         <div className="space-y-3">
           <h2 className="text-lg font-semibold">Recent Transactions</h2>
           {[
-            { type: "buy", amount: "500 USDC", fiat: "₦790,000", time: "2 hours ago", status: "completed" },
-            { type: "sell", amount: "200 USDC", fiat: "₦316,000", time: "Yesterday", status: "completed" },
-            { type: "buy", amount: "1,000 USDC", fiat: "₦1,580,000", time: "3 days ago", status: "completed" },
+            { type: "buy", amount: "500 USDC", fiat: `${selectedCountry.currencySymbol}${(500 * selectedCountry.exchangeRate).toLocaleString()}`, time: "2 hours ago", status: "completed", method: "Bank Transfer" },
+            { type: "sell", amount: "200 USDC", fiat: `${selectedCountry.currencySymbol}${(200 * selectedCountry.exchangeRate).toLocaleString()}`, time: "Yesterday", status: "completed", method: "Mobile Money" },
+            { type: "buy", amount: "1,000 USDC", fiat: `${selectedCountry.currencySymbol}${(1000 * selectedCountry.exchangeRate).toLocaleString()}`, time: "3 days ago", status: "completed", method: "Card" },
           ].map((tx, i) => (
             <Card key={i} className="shadow-sm border-border/50">
               <CardContent className="p-4">
@@ -489,7 +1082,7 @@ const Fiat = () => {
                     </div>
                     <div>
                       <p className="font-medium capitalize">{tx.type} USDC</p>
-                      <p className="text-sm text-muted-foreground">{tx.time}</p>
+                      <p className="text-xs text-muted-foreground">{tx.method} • {tx.time}</p>
                     </div>
                   </div>
                   <div className="text-right">
