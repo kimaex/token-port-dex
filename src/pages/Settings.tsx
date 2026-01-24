@@ -1,4 +1,12 @@
-import { Moon, Wallet, SlidersHorizontal, Shield, MessageCircle, Users, DollarSign, Key, ChevronRight, Check, Copy, Share2, Gift, X, ExternalLink, Eye, EyeOff, Lock } from "lucide-react";
+import { Moon, Wallet, SlidersHorizontal, Shield, MessageCircle, Users, DollarSign, Key, ChevronRight, Check, Copy, Share2, Gift, X, ExternalLink, Eye, EyeOff, Lock, FileText } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
 import { Switch } from "@/components/ui/switch";
@@ -74,6 +82,15 @@ const referralData = {
   totalEarnings: 234.75,
   referralLink: "https://kimaex.app/ref/KIMAEX2024",
 };
+
+// Mock referral earnings history
+const referralEarnings = [
+  { id: 1, date: "2024-01-15", username: "user***42", amount: 45.20, contractAddress: "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD35" },
+  { id: 2, date: "2024-01-12", username: "trad***89", amount: 32.50, contractAddress: "0x8Ba1f109551bD432803012645Ac136ddd64DBA72" },
+  { id: 3, date: "2024-01-10", username: "cry***21", amount: 28.75, contractAddress: "0xdD2FD4581271e230360230F9337D5c0430Bf44C0" },
+  { id: 4, date: "2024-01-08", username: "dex***55", amount: 52.30, contractAddress: "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec" },
+  { id: 5, date: "2024-01-05", username: "kim***33", amount: 76.00, contractAddress: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB" },
+];
 
 export default function Settings() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -440,6 +457,74 @@ export default function Settings() {
               <div className="p-4 rounded-xl bg-card border border-border text-center">
                 <p className="text-2xl font-bold text-green-500">${referralData.totalEarnings.toFixed(2)}</p>
                 <p className="text-xs text-muted-foreground mt-1">Earned</p>
+              </div>
+            </div>
+
+            {/* Referral Earnings Table */}
+            <div className="space-y-3">
+              <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
+                <p className="text-sm text-center font-medium text-foreground">
+                  Refer your families and friends to Kimaex and earn <span className="text-primary font-bold">30% fees</span> when they trade
+                </p>
+              </div>
+
+              <ScrollArea className="h-[200px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-border">
+                      <TableHead className="text-muted-foreground">Date</TableHead>
+                      <TableHead className="text-muted-foreground">User</TableHead>
+                      <TableHead className="text-right text-muted-foreground">Earned</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {referralEarnings.map((earning) => (
+                      <TableRow key={earning.id} className="border-border">
+                        <TableCell className="text-foreground text-xs">{earning.date}</TableCell>
+                        <TableCell className="text-foreground text-xs">{earning.username}</TableCell>
+                        <TableCell className="text-right text-green-500 font-medium text-xs">${earning.amount.toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+
+              {/* Total Earnings */}
+              <div className="p-4 rounded-xl bg-card border border-border">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Total Earnings</span>
+                  <span className="text-xl font-bold text-green-500">${referralData.totalEarnings.toFixed(2)}</span>
+                </div>
+              </div>
+
+              {/* Smart Contract Addresses */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs font-medium text-muted-foreground">Smart Contract Addresses</span>
+                </div>
+                <ScrollArea className="h-[100px]">
+                  <div className="space-y-2">
+                    {referralEarnings.map((earning) => (
+                      <div key={earning.id} className="p-2 rounded-lg bg-muted/50 flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-muted-foreground truncate">{earning.contractAddress}</p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 flex-shrink-0"
+                          onClick={() => {
+                            navigator.clipboard.writeText(earning.contractAddress);
+                            toast.success("Contract address copied!");
+                          }}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
               </div>
             </div>
 
