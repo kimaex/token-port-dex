@@ -1,4 +1,4 @@
-import { Moon, Wallet, SlidersHorizontal, Shield, MessageCircle, Users, DollarSign, Key, ChevronRight, Check, Copy, Share2, Gift, X, ExternalLink, Eye, EyeOff, Lock, FileText } from "lucide-react";
+import { Moon, Wallet, SlidersHorizontal, Shield, MessageCircle, Users, DollarSign, Key, ChevronRight, Check, Copy, Share2, Gift, X, ExternalLink, Eye, EyeOff, Lock, FileText, HelpCircle, Clock, CheckCircle, Send, Headphones, CreditCard, UserCheck, ShieldAlert, ArrowRight } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -106,6 +106,23 @@ export default function Settings() {
   const [seedPhraseRevealed, setSeedPhraseRevealed] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState(africanCurrencies[0]);
   const [connectedApps, setConnectedApps] = useState(connectedDApps);
+  const [showCustomerCareModal, setShowCustomerCareModal] = useState(false);
+
+  // Customer care help categories
+  const helpCategories = [
+    { id: "transactions", icon: CreditCard, label: "Transactions", description: "Help with deposits, withdrawals & trades" },
+    { id: "verification", icon: UserCheck, label: "Verification", description: "KYC and identity verification issues" },
+    { id: "security", icon: ShieldAlert, label: "Security", description: "Account security and 2FA support" },
+    { id: "general", icon: HelpCircle, label: "General", description: "Other questions and inquiries" },
+  ];
+
+  // FAQ articles
+  const faqArticles = [
+    { id: 1, title: "How to deposit funds", views: "2.3k" },
+    { id: 2, title: "Why is my withdrawal pending?", views: "1.8k" },
+    { id: 3, title: "How to enable 2FA", views: "1.5k" },
+    { id: 4, title: "Trading fees explained", views: "1.2k" },
+  ];
 
   // Mock seed phrase - in real app this would be retrieved from secure storage
   const mockSeedPhrase = "abandon ability able about above absent absorb abstract absurd abuse access accident";
@@ -195,9 +212,20 @@ export default function Settings() {
       setShowConnectedWallets(true);
     } else if (id === "referral") {
       setShowReferralModal(true);
+    } else if (id === "customer-care") {
+      setShowCustomerCareModal(true);
     } else {
       toast.info(`Opening ${id} settings...`);
     }
+  };
+
+  const handleStartChat = () => {
+    toast.success("Connecting to a support agent...");
+    setShowCustomerCareModal(false);
+  };
+
+  const handleCategoryClick = (categoryId: string) => {
+    toast.info(`Opening ${categoryId} support...`);
   };
 
   const handlePasswordSubmit = () => {
@@ -572,6 +600,119 @@ export default function Settings() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Customer Care Modal - Roqqu Style */}
+      <Dialog open={showCustomerCareModal} onOpenChange={setShowCustomerCareModal}>
+        <DialogContent className="max-w-md bg-background border-border p-0 overflow-hidden max-h-[90vh]">
+          {/* Header */}
+          <div className="bg-gradient-primary p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center">
+                  <Headphones className="h-6 w-6 text-primary-foreground" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-primary-foreground">Help Center</h2>
+                  <p className="text-primary-foreground/80 text-sm">We're here to help</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Status Indicator */}
+            <div className="flex items-center gap-2 bg-white/10 rounded-full px-4 py-2 w-fit">
+              <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
+              <span className="text-sm text-primary-foreground">All systems operational</span>
+            </div>
+          </div>
+
+          <ScrollArea className="max-h-[60vh]">
+            <div className="p-6 space-y-6">
+              {/* Live Chat Card */}
+              <div 
+                className="p-4 rounded-2xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 cursor-pointer hover:border-primary/40 transition-all"
+                onClick={handleStartChat}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
+                      <MessageCircle className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">Chat with us</p>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        <span>Typically replies in under 10 minutes</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center">
+                    <Send className="h-5 w-5 text-primary-foreground" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Help Categories */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-foreground">How can we help?</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {helpCategories.map((category) => {
+                    const Icon = category.icon;
+                    return (
+                      <div
+                        key={category.id}
+                        className="p-4 rounded-xl bg-card border border-border cursor-pointer hover:border-primary/40 hover:bg-card/80 transition-all"
+                        onClick={() => handleCategoryClick(category.id)}
+                      >
+                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center mb-3">
+                          <Icon className="h-5 w-5 text-primary" />
+                        </div>
+                        <p className="font-medium text-foreground text-sm">{category.label}</p>
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{category.description}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Popular Articles */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-foreground">Popular Articles</h3>
+                  <button className="text-sm text-primary hover:underline">View all</button>
+                </div>
+                <div className="space-y-2">
+                  {faqArticles.map((article) => (
+                    <div
+                      key={article.id}
+                      className="flex items-center justify-between p-3 rounded-xl bg-muted/50 cursor-pointer hover:bg-muted transition-all"
+                      onClick={() => toast.info(`Opening: ${article.title}`)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full bg-card flex items-center justify-center">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <p className="text-sm text-foreground">{article.title}</p>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Support Hours */}
+              <div className="p-4 rounded-xl bg-muted/50 border border-border">
+                <div className="flex items-center gap-3">
+                  <Clock className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Support Hours</p>
+                    <p className="text-xs text-muted-foreground">Monday - Sunday, 6:00 AM - 7:00 PM (WAT)</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 
