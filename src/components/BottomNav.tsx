@@ -1,4 +1,4 @@
-import { Wallet, Repeat, Image, TrendingUp, Settings } from "lucide-react";
+import { Wallet, Repeat, Grid3X3, TrendingUp, Settings } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 export const BottomNav = () => {
@@ -8,7 +8,7 @@ export const BottomNav = () => {
   const navItems = [
     { id: "wallet", icon: Wallet, label: "Wallet", path: "/" },
     { id: "swap", icon: Repeat, label: "Swap", path: "/swap" },
-    { id: "nft", icon: Image, label: "NFTs", path: "/nft" },
+    { id: "dapps", icon: Grid3X3, label: "DApps", path: "/dapps" },
     { id: "futures", icon: TrendingUp, label: "Futures", path: "/futures" },
     { id: "settings", icon: Settings, label: "Settings", path: "/settings" },
   ];
