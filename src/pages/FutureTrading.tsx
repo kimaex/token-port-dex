@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, TrendingUp, TrendingDown, ChevronDown, Settings, Star, BarChart3, 
   Link2, AlertCircle, Shield, Check, X, Info, Wallet, RefreshCw, Minus, Plus,
-  ChevronRight, Calculator, Clock
+  ChevronRight, Calculator, Clock, ArrowDownUp, ArrowUpRight, ArrowDownRight, Copy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -129,10 +129,17 @@ const FutureTrading = () => {
   const [showTPSLModal, setShowTPSLModal] = useState(false);
   const [showPositionDetails, setShowPositionDetails] = useState<Position | null>(null);
   const [showMarginModeModal, setShowMarginModeModal] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [transferType, setTransferType] = useState<'deposit' | 'withdraw'>('deposit');
+  const [transferAmount, setTransferAmount] = useState('');
   
   // Connection state
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStep, setConnectionStep] = useState<'idle' | 'connecting' | 'approving' | 'connected'>('idle');
+  
+  // Wallet balances
+  const [mainWalletUSDC, setMainWalletUSDC] = useState(5000.00);
+  const [futuresWalletUSDC, setFuturesWalletUSDC] = useState(10000.00);
   
   // Trading state
   const [orderType, setOrderType] = useState<'limit' | 'market' | 'conditional'>('limit');
@@ -156,6 +163,9 @@ const FutureTrading = () => {
   
   // Calculator state
   const [showCalculator, setShowCalculator] = useState(false);
+  
+  // ARB contract address for USDC
+  const arbUSDCContract = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831";
 
   const basePrice = parseFloat(selectedPair.price.replace(',', ''));
   const orderBook = generateOrderBook(basePrice);
@@ -171,12 +181,46 @@ const FutureTrading = () => {
     setTimeout(() => {
       setConnectionStep('connected');
       setIsConnected(true);
-      toast.success('Smart contract connected successfully!');
+      toast.success('Connected to ARB Network successfully!');
       setTimeout(() => {
         setShowConnectionModal(false);
         setConnectionStep('idle');
       }, 1000);
     }, 2000);
+  };
+
+  const handleTransfer = () => {
+    const transferValue = parseFloat(transferAmount);
+    if (!transferValue || transferValue <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+    
+    if (transferType === 'deposit') {
+      if (transferValue > mainWalletUSDC) {
+        toast.error('Insufficient USDC in main wallet');
+        return;
+      }
+      setMainWalletUSDC(prev => prev - transferValue);
+      setFuturesWalletUSDC(prev => prev + transferValue);
+      toast.success(`Deposited ${transferValue.toFixed(2)} USDC to Futures wallet`);
+    } else {
+      if (transferValue > futuresWalletUSDC) {
+        toast.error('Insufficient USDC in futures wallet');
+        return;
+      }
+      setFuturesWalletUSDC(prev => prev - transferValue);
+      setMainWalletUSDC(prev => prev + transferValue);
+      toast.success(`Withdrawn ${transferValue.toFixed(2)} USDC to Main wallet`);
+    }
+    
+    setTransferAmount('');
+    setShowTransferModal(false);
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Address copied to clipboard');
   };
 
   const handleOpenPosition = () => {
@@ -221,32 +265,49 @@ const FutureTrading = () => {
             <button onClick={() => setShowConnectionModal(false)} className="p-2 hover:bg-muted rounded-lg">
               <X className="w-5 h-5 text-foreground" />
             </button>
-            <h1 className="text-lg font-bold text-foreground">Connect to Perpetual Contract</h1>
+            <h1 className="text-lg font-bold text-foreground">Connect to ARB Network</h1>
           </div>
           
           <div className="p-4 space-y-6">
-            {/* Contract Info */}
-            <div className="bg-card rounded-xl p-4 border border-border">
+            {/* ARB Network Info */}
+            <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl p-4 border border-blue-500/30">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
-                  <Link2 className="w-6 h-6 text-primary" />
+                <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center">
+                  <img 
+                    src="https://cryptologos.cc/logos/arbitrum-arb-logo.png" 
+                    alt="ARB" 
+                    className="w-7 h-7"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '';
+                      (e.target as HTMLImageElement).className = 'hidden';
+                    }}
+                  />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground">{selectedPair.pair} Perpetual</h3>
-                  <p className="text-xs text-muted-foreground">Decentralized Perpetual Protocol</p>
+                  <h3 className="font-semibold text-foreground">Arbitrum One Network</h3>
+                  <p className="text-xs text-muted-foreground">Layer 2 Ethereum Scaling Solution</p>
                 </div>
               </div>
               
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Contract Address</span>
-                  <span className="text-foreground font-mono text-xs">
-                    {selectedPair.contractAddress.slice(0, 6)}...{selectedPair.contractAddress.slice(-4)}
-                  </span>
+                  <span className="text-muted-foreground">USDC Contract</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-foreground font-mono text-xs">
+                      {arbUSDCContract.slice(0, 6)}...{arbUSDCContract.slice(-4)}
+                    </span>
+                    <button onClick={() => copyToClipboard(arbUSDCContract)} className="text-primary hover:text-primary/80">
+                      <Copy className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Network</span>
-                  <span className="text-foreground">Arbitrum One</span>
+                  <span className="text-blue-400 font-medium">Arbitrum One (ARB)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Chain ID</span>
+                  <span className="text-foreground">42161</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Max Leverage</span>
@@ -259,8 +320,8 @@ const FutureTrading = () => {
             <div className="space-y-4">
               <h4 className="font-medium text-foreground">Connection Steps</h4>
               
-              <div className={`flex items-center gap-3 p-3 rounded-lg ${connectionStep === 'connecting' ? 'bg-primary/10 border border-primary' : connectionStep === 'approving' || connectionStep === 'connected' ? 'bg-green-500/10 border border-green-500' : 'bg-muted'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${connectionStep === 'connecting' ? 'bg-primary' : connectionStep === 'approving' || connectionStep === 'connected' ? 'bg-green-500' : 'bg-muted-foreground/20'}`}>
+              <div className={`flex items-center gap-3 p-3 rounded-lg ${connectionStep === 'connecting' ? 'bg-blue-500/10 border border-blue-500' : connectionStep === 'approving' || connectionStep === 'connected' ? 'bg-green-500/10 border border-green-500' : 'bg-muted'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${connectionStep === 'connecting' ? 'bg-blue-500' : connectionStep === 'approving' || connectionStep === 'connected' ? 'bg-green-500' : 'bg-muted-foreground/20'}`}>
                   {connectionStep === 'connecting' ? (
                     <RefreshCw className="w-4 h-4 text-white animate-spin" />
                   ) : connectionStep === 'approving' || connectionStep === 'connected' ? (
@@ -270,13 +331,13 @@ const FutureTrading = () => {
                   )}
                 </div>
                 <div>
-                  <p className="font-medium text-foreground text-sm">Connect Wallet</p>
-                  <p className="text-xs text-muted-foreground">Verify wallet signature</p>
+                  <p className="font-medium text-foreground text-sm">Connect to ARB Network</p>
+                  <p className="text-xs text-muted-foreground">Switch network to Arbitrum One</p>
                 </div>
               </div>
 
-              <div className={`flex items-center gap-3 p-3 rounded-lg ${connectionStep === 'approving' ? 'bg-primary/10 border border-primary' : connectionStep === 'connected' ? 'bg-green-500/10 border border-green-500' : 'bg-muted'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${connectionStep === 'approving' ? 'bg-primary' : connectionStep === 'connected' ? 'bg-green-500' : 'bg-muted-foreground/20'}`}>
+              <div className={`flex items-center gap-3 p-3 rounded-lg ${connectionStep === 'approving' ? 'bg-blue-500/10 border border-blue-500' : connectionStep === 'connected' ? 'bg-green-500/10 border border-green-500' : 'bg-muted'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${connectionStep === 'approving' ? 'bg-blue-500' : connectionStep === 'connected' ? 'bg-green-500' : 'bg-muted-foreground/20'}`}>
                   {connectionStep === 'approving' ? (
                     <RefreshCw className="w-4 h-4 text-white animate-spin" />
                   ) : connectionStep === 'connected' ? (
@@ -286,8 +347,8 @@ const FutureTrading = () => {
                   )}
                 </div>
                 <div>
-                  <p className="font-medium text-foreground text-sm">Approve Contract</p>
-                  <p className="text-xs text-muted-foreground">Grant trading permissions</p>
+                  <p className="font-medium text-foreground text-sm">Approve USDC Contract</p>
+                  <p className="text-xs text-muted-foreground">Grant trading permissions on ARB</p>
                 </div>
               </div>
 
@@ -301,43 +362,195 @@ const FutureTrading = () => {
                 </div>
                 <div>
                   <p className="font-medium text-foreground text-sm">Ready to Trade</p>
-                  <p className="text-xs text-muted-foreground">Start perpetual trading</p>
+                  <p className="text-xs text-muted-foreground">Start perpetual trading on ARB</p>
                 </div>
               </div>
             </div>
 
             {/* Security Notice */}
-            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
               <div className="text-xs">
-                <p className="font-medium text-yellow-500">Non-Custodial Trading</p>
+                <p className="font-medium text-blue-400">Non-Custodial on Arbitrum</p>
                 <p className="text-muted-foreground mt-1">
-                  Your funds remain in your wallet. Smart contract only gets permission to execute trades on your behalf.
+                  Your USDC remains in your wallet on the ARB network. Smart contract only gets permission to execute trades on your behalf.
                 </p>
               </div>
             </div>
 
             {/* Action Button */}
             {connectionStep === 'idle' && (
-              <Button onClick={handleConnect} className="w-full bg-primary hover:bg-primary/90">
+              <Button onClick={handleConnect} className="w-full bg-blue-500 hover:bg-blue-600">
                 <Link2 className="w-4 h-4 mr-2" />
-                Connect to Contract
+                Connect to ARB Network
               </Button>
             )}
             
             {connectionStep === 'approving' && (
               <Button onClick={handleApproveContract} className="w-full bg-green-500 hover:bg-green-600">
                 <Shield className="w-4 h-4 mr-2" />
-                Approve Trading Contract
+                Approve USDC on ARB
               </Button>
             )}
             
             {connectionStep === 'connected' && (
               <Button className="w-full bg-green-500" disabled>
                 <Check className="w-4 h-4 mr-2" />
-                Connected Successfully
+                Connected to ARB
               </Button>
             )}
+          </div>
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
+
+  // Transfer Modal (Deposit/Withdraw)
+  if (showTransferModal) {
+    const availableBalance = transferType === 'deposit' ? mainWalletUSDC : futuresWalletUSDC;
+    
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <div className="max-w-md mx-auto">
+          <div className="flex items-center gap-4 p-4 border-b border-border bg-card">
+            <button onClick={() => setShowTransferModal(false)} className="p-2 hover:bg-muted rounded-lg">
+              <X className="w-5 h-5 text-foreground" />
+            </button>
+            <h1 className="text-lg font-bold text-foreground">Transfer USDC</h1>
+          </div>
+          
+          <div className="p-4 space-y-6">
+            {/* Transfer Type Toggle */}
+            <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-lg">
+              <button
+                onClick={() => setTransferType('deposit')}
+                className={`py-3 text-sm font-semibold rounded-md transition-colors ${
+                  transferType === 'deposit' 
+                    ? 'bg-green-500 text-white' 
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <ArrowDownRight className="w-4 h-4 inline mr-2" />
+                Deposit to Futures
+              </button>
+              <button
+                onClick={() => setTransferType('withdraw')}
+                className={`py-3 text-sm font-semibold rounded-md transition-colors ${
+                  transferType === 'withdraw' 
+                    ? 'bg-orange-500 text-white' 
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <ArrowUpRight className="w-4 h-4 inline mr-2" />
+                Withdraw to Main
+              </button>
+            </div>
+
+            {/* Transfer Flow Visual */}
+            <div className="bg-card rounded-xl p-4 border border-border">
+              <div className="flex items-center justify-between">
+                <div className="text-center flex-1">
+                  <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Wallet className="w-6 h-6 text-primary" />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Main Wallet</p>
+                  <p className="text-sm font-bold text-foreground">{mainWalletUSDC.toFixed(2)} USDC</p>
+                </div>
+                
+                <div className="flex-shrink-0 px-4">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    transferType === 'deposit' ? 'bg-green-500/20' : 'bg-orange-500/20'
+                  }`}>
+                    <ArrowDownUp className={`w-5 h-5 ${
+                      transferType === 'deposit' ? 'text-green-500 rotate-180' : 'text-orange-500'
+                    }`} />
+                  </div>
+                </div>
+                
+                <div className="text-center flex-1">
+                  <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <BarChart3 className="w-6 h-6 text-blue-500" />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Futures Wallet</p>
+                  <p className="text-sm font-bold text-foreground">{futuresWalletUSDC.toFixed(2)} USDC</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Network Badge */}
+            <div className="flex items-center justify-center gap-2 py-2">
+              <div className="w-5 h-5 bg-blue-500/20 rounded-full flex items-center justify-center">
+                <span className="text-xs font-bold text-blue-400">A</span>
+              </div>
+              <span className="text-sm text-blue-400 font-medium">Arbitrum One Network</span>
+            </div>
+
+            {/* Amount Input */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-sm text-muted-foreground">Amount</label>
+                <span className="text-xs text-muted-foreground">
+                  Available: <span className="text-foreground font-medium">{availableBalance.toFixed(2)} USDC</span>
+                </span>
+              </div>
+              <div className="relative">
+                <Input
+                  type="number"
+                  placeholder="0.00"
+                  value={transferAmount}
+                  onChange={(e) => setTransferAmount(e.target.value)}
+                  className="pr-24 text-lg font-bold bg-muted border-border h-14"
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                  <button 
+                    onClick={() => setTransferAmount(availableBalance.toString())}
+                    className="text-xs text-primary font-medium hover:text-primary/80"
+                  >
+                    MAX
+                  </button>
+                  <span className="text-sm text-muted-foreground">USDC</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Amount Buttons */}
+            <div className="grid grid-cols-4 gap-2">
+              {[25, 50, 75, 100].map((pct) => (
+                <button
+                  key={pct}
+                  onClick={() => setTransferAmount((availableBalance * pct / 100).toFixed(2))}
+                  className="py-2 text-sm bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 transition-colors"
+                >
+                  {pct}%
+                </button>
+              ))}
+            </div>
+
+            {/* Fee Info */}
+            <div className="bg-muted/50 rounded-lg p-3 space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Network Fee</span>
+                <span className="text-foreground">~$0.10 (ARB)</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Transfer Fee</span>
+                <span className="text-green-500">Free</span>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <Button 
+              onClick={handleTransfer}
+              disabled={!transferAmount || parseFloat(transferAmount) <= 0}
+              className={`w-full h-12 text-lg font-semibold ${
+                transferType === 'deposit' 
+                  ? 'bg-green-500 hover:bg-green-600' 
+                  : 'bg-orange-500 hover:bg-orange-600'
+              }`}
+            >
+              {transferType === 'deposit' ? 'Deposit to Futures' : 'Withdraw to Main Wallet'}
+            </Button>
           </div>
         </div>
         <BottomNav />
@@ -1136,23 +1349,90 @@ const FutureTrading = () => {
             </TabsContent>
 
             <TabsContent value="assets" className="mt-0">
-              <div className="p-4 space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Total Margin Balance</span>
-                  <span className="font-bold text-foreground">10,000.00 USDT</span>
+              <div className="p-4 space-y-4">
+                {/* ARB Network Badge */}
+                <div className="flex items-center justify-center gap-2 py-2 bg-blue-500/10 rounded-lg">
+                  <div className="w-5 h-5 bg-blue-500/30 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-blue-400">A</span>
+                  </div>
+                  <span className="text-sm text-blue-400 font-medium">Arbitrum One Network</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Available Balance</span>
-                  <span className="text-foreground">8,937.50 USDT</span>
+
+                {/* Main Wallet Balance */}
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Wallet className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-medium text-foreground">Main Wallet (USDC)</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-2xl font-bold text-foreground">{mainWalletUSDC.toFixed(2)}</span>
+                    <span className="text-sm text-muted-foreground">USDC</span>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Used Margin</span>
-                  <span className="text-foreground">1,062.50 USDT</span>
+
+                {/* Futures Wallet Balance */}
+                <div className="bg-blue-500/10 rounded-lg p-3 border border-blue-500/30">
+                  <div className="flex items-center gap-2 mb-2">
+                    <BarChart3 className="w-4 h-4 text-blue-400" />
+                    <span className="text-sm font-medium text-foreground">Futures Wallet (USDC)</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-2xl font-bold text-blue-400">{futuresWalletUSDC.toFixed(2)}</span>
+                    <span className="text-sm text-muted-foreground">USDC</span>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Unrealized PnL</span>
-                  <span className="text-green-500">+375.25 USDT</span>
+
+                {/* Balance Details */}
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Available Balance</span>
+                    <span className="text-foreground">{(futuresWalletUSDC - 1062.50).toFixed(2)} USDC</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Used Margin</span>
+                    <span className="text-foreground">1,062.50 USDC</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Unrealized PnL</span>
+                    <span className="text-green-500">+375.25 USDC</span>
+                  </div>
                 </div>
+
+                {/* Transfer Buttons */}
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <Button 
+                    onClick={() => {
+                      setTransferType('deposit');
+                      setShowTransferModal(true);
+                    }}
+                    className="bg-green-500 hover:bg-green-600 text-white"
+                    disabled={!isConnected}
+                  >
+                    <ArrowDownRight className="w-4 h-4 mr-2" />
+                    Deposit
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      setTransferType('withdraw');
+                      setShowTransferModal(true);
+                    }}
+                    variant="outline"
+                    className="border-orange-500 text-orange-500 hover:bg-orange-500/10"
+                    disabled={!isConnected}
+                  >
+                    <ArrowUpRight className="w-4 h-4 mr-2" />
+                    Withdraw
+                  </Button>
+                </div>
+
+                {!isConnected && (
+                  <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                    <p className="text-xs text-muted-foreground">
+                      Connect to ARB network to deposit/withdraw USDC
+                    </p>
+                  </div>
+                )}
               </div>
             </TabsContent>
           </Tabs>
