@@ -531,7 +531,7 @@ const FutureTrading = () => {
             <div className="bg-muted/50 rounded-lg p-3 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Network Fee</span>
-                <span className="text-foreground">~$0.10 (ARB)</span>
+                <span className="text-foreground">~0.10 USDC</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Transfer Fee</span>
