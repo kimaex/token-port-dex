@@ -1,4 +1,4 @@
-import { Eye, EyeOff, ScanLine, Settings } from "lucide-react";
+import { Eye, EyeOff, ScanLine, Bell } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
@@ -16,8 +16,8 @@ export const WalletHeader = () => {
           <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={() => navigate("/scan")}>
             <ScanLine className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={() => navigate("/settings")}>
-            <Settings className="h-5 w-5" />
+          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={() => navigate("/notifications")}>
+            <Bell className="h-5 w-5" />
           </Button>
         </div>
       </div>
