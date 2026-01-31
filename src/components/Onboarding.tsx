@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Shield, Wallet, Zap } from "lucide-react";
+import { ChevronRight, Shield, Wallet, Zap, Banknote } from "lucide-react";
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -14,6 +14,11 @@ export const Onboarding = ({ onComplete }: OnboardingProps) => {
       icon: Shield,
       title: "Secure & Private",
       description: "Your keys, your crypto. Full control with bank-level security.",
+    },
+    {
+      icon: Banknote,
+      title: "Fiat Access",
+      description: "Buy and sell crypto with local currencies. Mobile money, bank transfers, and cards supported across Africa.",
     },
     {
       icon: Wallet,
