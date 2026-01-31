@@ -18,6 +18,7 @@ import Settings from "./pages/Settings";
 import StakeEarn from "./pages/StakeEarn";
 import GovernmentBonds from "./pages/GovernmentBonds";
 import SpinWin from "./pages/SpinWin";
+import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/stake-earn" element={<StakeEarn />} />
           <Route path="/government-bonds" element={<GovernmentBonds />} />
           <Route path="/spin-win" element={<SpinWin />} />
+          <Route path="/notifications" element={<Notifications />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
