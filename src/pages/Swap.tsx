@@ -306,26 +306,26 @@ export default function Swap() {
 
         {/* Limit Price Input */}
         {orderType === "limit" && (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Limit Price ({toToken.symbol} per {fromToken.symbol})</label>
-              <div className="bg-secondary/30 rounded-xl p-3">
+          <div className="space-y-2 max-h-[320px] overflow-y-auto">
+            <div className="space-y-1">
+              <label className="text-xs font-medium">Limit Price ({toToken.symbol}/{fromToken.symbol})</label>
+              <div className="bg-secondary/30 rounded-lg p-2">
                 <Input
                   type="number"
                   placeholder={`Current: ${exchangeRate}`}
                   value={limitPrice}
                   onChange={(e) => setLimitPrice(e.target.value)}
-                  className="text-lg font-semibold bg-transparent border-none p-0 h-auto focus-visible:ring-0"
+                  className="text-sm font-semibold bg-transparent border-none p-0 h-auto focus-visible:ring-0"
                 />
               </div>
             </div>
 
-            {/* Stop Loss Toggle */}
-            <div className="space-y-3 border border-red-500/20 rounded-xl p-3 bg-red-500/5">
+            {/* Stop Loss Toggle - Compact */}
+            <div className="space-y-1.5 border border-red-500/20 rounded-lg p-2 bg-red-500/5">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                  <label className="text-sm font-medium">Stop Loss</label>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                  <label className="text-xs font-medium">Stop Loss</label>
                 </div>
                 <button
                   onClick={() => {
@@ -335,19 +335,19 @@ export default function Swap() {
                       setStopLossPercent(null);
                     }
                   }}
-                  className={`w-11 h-6 rounded-full transition-colors ${stopLossEnabled ? 'bg-red-500' : 'bg-secondary'}`}
+                  className={`w-9 h-5 rounded-full transition-colors ${stopLossEnabled ? 'bg-red-500' : 'bg-secondary'}`}
                 >
-                  <div className={`w-5 h-5 rounded-full bg-white shadow transform transition-transform ${stopLossEnabled ? 'translate-x-5' : 'translate-x-0.5'}`}></div>
+                  <div className={`w-4 h-4 rounded-full bg-white shadow transform transition-transform ${stopLossEnabled ? 'translate-x-4' : 'translate-x-0.5'}`}></div>
                 </button>
               </div>
               {stopLossEnabled && (
                 <>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1">
                     {[5, 10, 15, 25].map((percent) => (
                       <button
                         key={percent}
                         onClick={() => handleStopLossPercentClick(percent)}
-                        className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                        className={`flex-1 py-1 text-[10px] font-medium rounded transition-colors ${
                           stopLossPercent === percent
                             ? 'bg-red-500 text-white'
                             : 'bg-secondary hover:bg-secondary/80'
@@ -357,7 +357,7 @@ export default function Swap() {
                       </button>
                     ))}
                   </div>
-                  <div className="bg-secondary/50 rounded-lg p-2.5">
+                  <div className="bg-secondary/50 rounded p-1.5">
                     <Input
                       type="number"
                       placeholder="Custom price"
@@ -366,24 +366,24 @@ export default function Swap() {
                         setStopLoss(e.target.value);
                         setStopLossPercent(null);
                       }}
-                      className="text-sm bg-transparent border-none p-0 h-auto focus-visible:ring-0"
+                      className="text-xs bg-transparent border-none p-0 h-auto focus-visible:ring-0"
                     />
                   </div>
                   {stopLoss && (
-                    <p className="text-xs text-red-400">
-                      Sell if price drops to {stopLoss} {toToken.symbol}
+                    <p className="text-[10px] text-red-400">
+                      Sell at {stopLoss} {toToken.symbol}
                     </p>
                   )}
                 </>
               )}
             </div>
 
-            {/* Take Profit Toggle */}
-            <div className="space-y-3 border border-green-500/20 rounded-xl p-3 bg-green-500/5">
+            {/* Take Profit Toggle - Compact */}
+            <div className="space-y-1.5 border border-green-500/20 rounded-lg p-2 bg-green-500/5">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  <label className="text-sm font-medium">Take Profit</label>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                  <label className="text-xs font-medium">Take Profit</label>
                 </div>
                 <button
                   onClick={() => {
@@ -393,19 +393,19 @@ export default function Swap() {
                       setTakeProfitPercent(null);
                     }
                   }}
-                  className={`w-11 h-6 rounded-full transition-colors ${takeProfitEnabled ? 'bg-green-500' : 'bg-secondary'}`}
+                  className={`w-9 h-5 rounded-full transition-colors ${takeProfitEnabled ? 'bg-green-500' : 'bg-secondary'}`}
                 >
-                  <div className={`w-5 h-5 rounded-full bg-white shadow transform transition-transform ${takeProfitEnabled ? 'translate-x-5' : 'translate-x-0.5'}`}></div>
+                  <div className={`w-4 h-4 rounded-full bg-white shadow transform transition-transform ${takeProfitEnabled ? 'translate-x-4' : 'translate-x-0.5'}`}></div>
                 </button>
               </div>
               {takeProfitEnabled && (
                 <>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1">
                     {[10, 25, 50, 100].map((percent) => (
                       <button
                         key={percent}
                         onClick={() => handleTakeProfitPercentClick(percent)}
-                        className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                        className={`flex-1 py-1 text-[10px] font-medium rounded transition-colors ${
                           takeProfitPercent === percent
                             ? 'bg-green-500 text-white'
                             : 'bg-secondary hover:bg-secondary/80'
@@ -415,7 +415,7 @@ export default function Swap() {
                       </button>
                     ))}
                   </div>
-                  <div className="bg-secondary/50 rounded-lg p-2.5">
+                  <div className="bg-secondary/50 rounded p-1.5">
                     <Input
                       type="number"
                       placeholder="Custom price"
@@ -424,20 +424,20 @@ export default function Swap() {
                         setTakeProfit(e.target.value);
                         setTakeProfitPercent(null);
                       }}
-                      className="text-sm bg-transparent border-none p-0 h-auto focus-visible:ring-0"
+                      className="text-xs bg-transparent border-none p-0 h-auto focus-visible:ring-0"
                     />
                   </div>
                   {takeProfit && (
-                    <p className="text-xs text-green-400">
-                      Sell if price rises to {takeProfit} {toToken.symbol}
+                    <p className="text-[10px] text-green-400">
+                      Sell at {takeProfit} {toToken.symbol}
                     </p>
                   )}
                 </>
               )}
             </div>
 
-            <p className="text-xs text-muted-foreground border-t border-border pt-3">
-              Order will execute when price reaches {limitPrice || "..."} {toToken.symbol}/{fromToken.symbol}
+            <p className="text-[10px] text-muted-foreground border-t border-border pt-2">
+              Executes at {limitPrice || "..."} {toToken.symbol}/{fromToken.symbol}
             </p>
           </div>
         )}
