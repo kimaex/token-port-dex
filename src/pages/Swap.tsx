@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowDownUp, ChevronDown, Search, Settings, X, Zap, Info } from "lucide-react";
 import { toast } from "sonner";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface Token {
   symbol: string;
@@ -30,6 +31,7 @@ type SwapStep = "input" | "confirm" | "finalConfirm";
 type OrderType = "market" | "limit";
 
 export default function Swap() {
+  const { formatPrice, currency } = useCurrency();
   const [fromToken, setFromToken] = useState<Token>(tokens[0]);
   const [toToken, setToToken] = useState<Token>(tokens[2]);
   const [fromAmount, setFromAmount] = useState("");
@@ -446,11 +448,16 @@ export default function Swap() {
         <div className="bg-secondary/30 rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">You pay</span>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-bold text-xs">
-                {fromToken.icon}
+            <div className="text-right">
+              <div className="flex items-center gap-2 justify-end">
+                <div className="w-6 h-6 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-bold text-xs">
+                  {fromToken.icon}
+                </div>
+                <span className="font-semibold">{fromAmount} {fromToken.symbol}</span>
               </div>
-              <span className="font-semibold">{fromAmount} {fromToken.symbol}</span>
+              <span className="text-xs text-muted-foreground">
+                ≈ {formatPrice(parseFloat(fromAmount || "0") * fromToken.price)}
+              </span>
             </div>
           </div>
           <div className="flex justify-center">
@@ -458,12 +465,17 @@ export default function Swap() {
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">You receive</span>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-bold text-xs">
-                {toToken.icon}
+            <div className="text-right">
+              <div className="flex items-center gap-2 justify-end">
+                <div className="w-6 h-6 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-bold text-xs">
+                  {toToken.icon}
+                </div>
+                <span className="font-semibold">
+                  {orderType === "limit" ? (limitToAmount || "...") : toAmount} {toToken.symbol}
+                </span>
               </div>
-              <span className="font-semibold">
-                {orderType === "limit" ? (limitToAmount || "...") : toAmount} {toToken.symbol}
+              <span className="text-xs text-muted-foreground">
+                ≈ {formatPrice(parseFloat(orderType === "limit" ? (limitToAmount || "0") : (toAmount || "0")) * toToken.price)}
               </span>
             </div>
           </div>
@@ -485,7 +497,7 @@ export default function Swap() {
             <span className="text-muted-foreground">Network Fee</span>
             <span className="flex items-center gap-1">
               <Zap className="h-3 w-3 text-green-500" />
-              ~$0.50
+              ~{formatPrice(0.50)}
             </span>
           </div>
           {orderType === "limit" && (
@@ -580,7 +592,7 @@ export default function Swap() {
             <span className="text-sm text-muted-foreground">Network Fee</span>
             <span className="flex items-center gap-1">
               <Zap className="h-3 w-3 text-green-500" />
-              ~$0.50
+              ~{formatPrice(0.50)}
             </span>
           </div>
         </div>

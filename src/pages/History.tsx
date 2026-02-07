@@ -1,15 +1,18 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowDownLeft, ArrowUpRight, Clock, Repeat } from "lucide-react";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 const History = () => {
+  const { formatPrice } = useCurrency();
+  
   const transactions = [
-    { id: 1, type: "receive", asset: "BTC", amount: "+0.025", value: "$1,250", time: "2 hours ago", status: "completed" },
-    { id: 2, type: "send", asset: "ETH", amount: "-1.5", value: "$4,500", time: "5 hours ago", status: "completed" },
-    { id: 3, type: "swap", asset: "USDT → BNB", amount: "500", value: "$500", time: "1 day ago", status: "completed" },
-    { id: 4, type: "receive", asset: "SOL", amount: "+25", value: "$2,000", time: "2 days ago", status: "completed" },
-    { id: 5, type: "send", asset: "USDC", amount: "-1000", value: "$1,000", time: "3 days ago", status: "completed" },
-    { id: 6, type: "swap", asset: "ETH → BTC", amount: "0.5", value: "$1,500", time: "4 days ago", status: "pending" },
+    { id: 1, type: "receive", asset: "BTC", amount: "+0.025", valueUSD: 1250, time: "2 hours ago", status: "completed" },
+    { id: 2, type: "send", asset: "ETH", amount: "-1.5", valueUSD: 4500, time: "5 hours ago", status: "completed" },
+    { id: 3, type: "swap", asset: "USDT → BNB", amount: "500", valueUSD: 500, time: "1 day ago", status: "completed" },
+    { id: 4, type: "receive", asset: "SOL", amount: "+25", valueUSD: 2000, time: "2 days ago", status: "completed" },
+    { id: 5, type: "send", asset: "USDC", amount: "-1000", valueUSD: 1000, time: "3 days ago", status: "completed" },
+    { id: 6, type: "swap", asset: "ETH → BTC", amount: "0.5", valueUSD: 1500, time: "4 days ago", status: "pending" },
   ];
 
   const getIcon = (type: string) => {
@@ -63,7 +66,7 @@ const History = () => {
                     </div>
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>{tx.time}</span>
-                      <span>{tx.value}</span>
+                      <span>{formatPrice(tx.valueUSD)}</span>
                     </div>
                   </div>
                   <Badge variant={tx.status === "completed" ? "secondary" : "outline"} className="text-xs">
