@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, TrendingUp, TrendingDown, ChevronDown, Settings, Star, BarChart3, 
@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { BottomNav } from '@/components/BottomNav';
 import { toast } from 'sonner';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface TradingPair {
   pair: string;
@@ -122,9 +123,9 @@ const generateOrderBook = (basePrice: number) => {
 
 const FutureTrading = () => {
   const navigate = useNavigate();
+  const { formatPrice, currency } = useCurrency();
   const [selectedPair, setSelectedPair] = useState<TradingPair>(tradingPairs[0]);
   const [showPairSelector, setShowPairSelector] = useState(false);
-  const [showConnectionModal, setShowConnectionModal] = useState(false);
   const [showLeverageModal, setShowLeverageModal] = useState(false);
   const [showTPSLModal, setShowTPSLModal] = useState(false);
   const [showPositionDetails, setShowPositionDetails] = useState<Position | null>(null);
@@ -133,9 +134,13 @@ const FutureTrading = () => {
   const [transferType, setTransferType] = useState<'deposit' | 'withdraw'>('deposit');
   const [transferAmount, setTransferAmount] = useState('');
   
-  // Connection state
-  const [isConnected, setIsConnected] = useState(false);
-  const [connectionStep, setConnectionStep] = useState<'idle' | 'connecting' | 'approving' | 'connected'>('idle');
+  // Auto-connected state (no manual connection needed)
+  const [isConnected, setIsConnected] = useState(true);
+  
+  // Auto-connect on mount
+  useEffect(() => {
+    setIsConnected(true);
+  }, []);
   
   // Wallet balances
   const [mainWalletUSDC, setMainWalletUSDC] = useState(5000.00);
@@ -170,24 +175,7 @@ const FutureTrading = () => {
   const basePrice = parseFloat(selectedPair.price.replace(',', ''));
   const orderBook = generateOrderBook(basePrice);
 
-  const handleConnect = () => {
-    setConnectionStep('connecting');
-    setTimeout(() => {
-      setConnectionStep('approving');
-    }, 1500);
-  };
-
-  const handleApproveContract = () => {
-    setTimeout(() => {
-      setConnectionStep('connected');
-      setIsConnected(true);
-      toast.success('Connected to ARB Network successfully!');
-      setTimeout(() => {
-        setShowConnectionModal(false);
-        setConnectionStep('idle');
-      }, 1000);
-    }, 2000);
-  };
+  // Connection is automatic - no manual steps needed
 
   const handleTransfer = () => {
     const transferValue = parseFloat(transferAmount);
@@ -224,11 +212,6 @@ const FutureTrading = () => {
   };
 
   const handleOpenPosition = () => {
-    if (!isConnected) {
-      setShowConnectionModal(true);
-      return;
-    }
-    
     if (!amount) {
       toast.error('Please enter amount');
       return;
@@ -247,6 +230,13 @@ const FutureTrading = () => {
     toast.success(`${tradeDirection === 'long' ? 'Long' : 'Short'} position opened successfully!`);
   };
 
+  // Helper to format USD price to local currency
+  const formatUSDToLocal = (usdPrice: string) => {
+    const numericPrice = parseFloat(usdPrice.replace(/,/g, ''));
+    if (isNaN(numericPrice)) return usdPrice;
+    return formatPrice(numericPrice);
+  };
+
   const calculateTPSLPercent = (type: 'tp' | 'sl', targetPrice: string) => {
     const entry = orderType === 'market' ? basePrice : parseFloat(price || String(basePrice));
     const target = parseFloat(targetPrice);
@@ -255,156 +245,6 @@ const FutureTrading = () => {
     const percent = ((target - entry) / entry) * 100;
     return type === 'tp' ? (tradeDirection === 'long' ? percent : -percent) : (tradeDirection === 'long' ? -percent : percent);
   };
-
-  // Smart Contract Connection Modal
-  if (showConnectionModal) {
-    return (
-      <div className="min-h-screen bg-background pb-24">
-        <div className="max-w-md mx-auto">
-          <div className="flex items-center gap-4 p-4 border-b border-border bg-card">
-            <button onClick={() => setShowConnectionModal(false)} className="p-2 hover:bg-muted rounded-lg">
-              <X className="w-5 h-5 text-foreground" />
-            </button>
-            <h1 className="text-lg font-bold text-foreground">Connect to ARB Network</h1>
-          </div>
-          
-          <div className="p-4 space-y-6">
-            {/* ARB Network Info */}
-            <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl p-4 border border-blue-500/30">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center">
-                  <img 
-                    src="https://cryptologos.cc/logos/arbitrum-arb-logo.png" 
-                    alt="ARB" 
-                    className="w-7 h-7"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = '';
-                      (e.target as HTMLImageElement).className = 'hidden';
-                    }}
-                  />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">Arbitrum One Network</h3>
-                  <p className="text-xs text-muted-foreground">Layer 2 Ethereum Scaling Solution</p>
-                </div>
-              </div>
-              
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">USDC Contract</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-foreground font-mono text-xs">
-                      {arbUSDCContract.slice(0, 6)}...{arbUSDCContract.slice(-4)}
-                    </span>
-                    <button onClick={() => copyToClipboard(arbUSDCContract)} className="text-primary hover:text-primary/80">
-                      <Copy className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Network</span>
-                  <span className="text-blue-400 font-medium">Arbitrum One (ARB)</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Chain ID</span>
-                  <span className="text-foreground">42161</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Max Leverage</span>
-                  <span className="text-foreground">{selectedPair.leverage}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Connection Steps */}
-            <div className="space-y-4">
-              <h4 className="font-medium text-foreground">Connection Steps</h4>
-              
-              <div className={`flex items-center gap-3 p-3 rounded-lg ${connectionStep === 'connecting' ? 'bg-blue-500/10 border border-blue-500' : connectionStep === 'approving' || connectionStep === 'connected' ? 'bg-green-500/10 border border-green-500' : 'bg-muted'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${connectionStep === 'connecting' ? 'bg-blue-500' : connectionStep === 'approving' || connectionStep === 'connected' ? 'bg-green-500' : 'bg-muted-foreground/20'}`}>
-                  {connectionStep === 'connecting' ? (
-                    <RefreshCw className="w-4 h-4 text-white animate-spin" />
-                  ) : connectionStep === 'approving' || connectionStep === 'connected' ? (
-                    <Check className="w-4 h-4 text-white" />
-                  ) : (
-                    <span className="text-sm text-muted-foreground">1</span>
-                  )}
-                </div>
-                <div>
-                  <p className="font-medium text-foreground text-sm">Connect to ARB Network</p>
-                  <p className="text-xs text-muted-foreground">Switch network to Arbitrum One</p>
-                </div>
-              </div>
-
-              <div className={`flex items-center gap-3 p-3 rounded-lg ${connectionStep === 'approving' ? 'bg-blue-500/10 border border-blue-500' : connectionStep === 'connected' ? 'bg-green-500/10 border border-green-500' : 'bg-muted'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${connectionStep === 'approving' ? 'bg-blue-500' : connectionStep === 'connected' ? 'bg-green-500' : 'bg-muted-foreground/20'}`}>
-                  {connectionStep === 'approving' ? (
-                    <RefreshCw className="w-4 h-4 text-white animate-spin" />
-                  ) : connectionStep === 'connected' ? (
-                    <Check className="w-4 h-4 text-white" />
-                  ) : (
-                    <span className="text-sm text-muted-foreground">2</span>
-                  )}
-                </div>
-                <div>
-                  <p className="font-medium text-foreground text-sm">Approve USDC Contract</p>
-                  <p className="text-xs text-muted-foreground">Grant trading permissions on ARB</p>
-                </div>
-              </div>
-
-              <div className={`flex items-center gap-3 p-3 rounded-lg ${connectionStep === 'connected' ? 'bg-green-500/10 border border-green-500' : 'bg-muted'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${connectionStep === 'connected' ? 'bg-green-500' : 'bg-muted-foreground/20'}`}>
-                  {connectionStep === 'connected' ? (
-                    <Check className="w-4 h-4 text-white" />
-                  ) : (
-                    <span className="text-sm text-muted-foreground">3</span>
-                  )}
-                </div>
-                <div>
-                  <p className="font-medium text-foreground text-sm">Ready to Trade</p>
-                  <p className="text-xs text-muted-foreground">Start perpetual trading on ARB</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Security Notice */}
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
-              <div className="text-xs">
-                <p className="font-medium text-blue-400">Non-Custodial on Arbitrum</p>
-                <p className="text-muted-foreground mt-1">
-                  Your USDC remains in your wallet on the ARB network. Smart contract only gets permission to execute trades on your behalf.
-                </p>
-              </div>
-            </div>
-
-            {/* Action Button */}
-            {connectionStep === 'idle' && (
-              <Button onClick={handleConnect} className="w-full bg-blue-500 hover:bg-blue-600">
-                <Link2 className="w-4 h-4 mr-2" />
-                Connect to ARB Network
-              </Button>
-            )}
-            
-            {connectionStep === 'approving' && (
-              <Button onClick={handleApproveContract} className="w-full bg-green-500 hover:bg-green-600">
-                <Shield className="w-4 h-4 mr-2" />
-                Approve USDC on ARB
-              </Button>
-            )}
-            
-            {connectionStep === 'connected' && (
-              <Button className="w-full bg-green-500" disabled>
-                <Check className="w-4 h-4 mr-2" />
-                Connected to ARB
-              </Button>
-            )}
-          </div>
-        </div>
-        <BottomNav />
-      </div>
-    );
-  }
 
   // Transfer Modal (Deposit/Withdraw)
   if (showTransferModal) {
@@ -966,18 +806,11 @@ const FutureTrading = () => {
             <ChevronDown className="w-4 h-4 text-muted-foreground" />
           </button>
           <div className="flex items-center gap-2">
-            {/* Connection Status */}
-            <button 
-              onClick={() => !isConnected && setShowConnectionModal(true)}
-              className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium ${
-                isConnected 
-                  ? 'bg-green-500/20 text-green-500' 
-                  : 'bg-yellow-500/20 text-yellow-500'
-              }`}
-            >
+            {/* Connection Status - Always connected */}
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium bg-green-500/20 text-green-500">
               <Link2 className="w-3 h-3" />
-              {isConnected ? 'Connected' : 'Connect'}
-            </button>
+              ARB Connected
+            </div>
             <button className="p-2 hover:bg-muted rounded-lg">
               <Calculator className="w-5 h-5 text-muted-foreground" />
             </button>

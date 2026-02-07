@@ -21,51 +21,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-const africanCurrencies = [
-  { code: "NGN", symbol: "₦", name: "Nigerian Naira", country: "Nigeria" },
-  { code: "ZAR", symbol: "R", name: "South African Rand", country: "South Africa" },
-  { code: "EGP", symbol: "E£", name: "Egyptian Pound", country: "Egypt" },
-  { code: "KES", symbol: "KSh", name: "Kenyan Shilling", country: "Kenya" },
-  { code: "GHS", symbol: "GH₵", name: "Ghanaian Cedi", country: "Ghana" },
-  { code: "MAD", symbol: "MAD", name: "Moroccan Dirham", country: "Morocco" },
-  { code: "TZS", symbol: "TSh", name: "Tanzanian Shilling", country: "Tanzania" },
-  { code: "UGX", symbol: "USh", name: "Ugandan Shilling", country: "Uganda" },
-  { code: "ETB", symbol: "Br", name: "Ethiopian Birr", country: "Ethiopia" },
-  { code: "XOF", symbol: "CFA", name: "West African CFA Franc", country: "West Africa" },
-  { code: "XAF", symbol: "FCFA", name: "Central African CFA Franc", country: "Central Africa" },
-  { code: "DZD", symbol: "DA", name: "Algerian Dinar", country: "Algeria" },
-  { code: "TND", symbol: "DT", name: "Tunisian Dinar", country: "Tunisia" },
-  { code: "LYD", symbol: "LD", name: "Libyan Dinar", country: "Libya" },
-  { code: "SDG", symbol: "SDG", name: "Sudanese Pound", country: "Sudan" },
-  { code: "AOA", symbol: "Kz", name: "Angolan Kwanza", country: "Angola" },
-  { code: "ZMW", symbol: "ZK", name: "Zambian Kwacha", country: "Zambia" },
-  { code: "MWK", symbol: "MK", name: "Malawian Kwacha", country: "Malawi" },
-  { code: "BWP", symbol: "P", name: "Botswanan Pula", country: "Botswana" },
-  { code: "NAD", symbol: "N$", name: "Namibian Dollar", country: "Namibia" },
-  { code: "MZN", symbol: "MT", name: "Mozambican Metical", country: "Mozambique" },
-  { code: "RWF", symbol: "FRw", name: "Rwandan Franc", country: "Rwanda" },
-  { code: "BIF", symbol: "FBu", name: "Burundian Franc", country: "Burundi" },
-  { code: "CDF", symbol: "FC", name: "Congolese Franc", country: "DR Congo" },
-  { code: "SZL", symbol: "E", name: "Swazi Lilangeni", country: "Eswatini" },
-  { code: "LSL", symbol: "L", name: "Lesotho Loti", country: "Lesotho" },
-  { code: "GMD", symbol: "D", name: "Gambian Dalasi", country: "Gambia" },
-  { code: "SLL", symbol: "Le", name: "Sierra Leonean Leone", country: "Sierra Leone" },
-  { code: "LRD", symbol: "L$", name: "Liberian Dollar", country: "Liberia" },
-  { code: "GNF", symbol: "FG", name: "Guinean Franc", country: "Guinea" },
-  { code: "MRU", symbol: "UM", name: "Mauritanian Ouguiya", country: "Mauritania" },
-  { code: "CVE", symbol: "Esc", name: "Cape Verdean Escudo", country: "Cape Verde" },
-  { code: "STN", symbol: "Db", name: "São Tomé Dobra", country: "São Tomé" },
-  { code: "SCR", symbol: "SR", name: "Seychellois Rupee", country: "Seychelles" },
-  { code: "MUR", symbol: "Rs", name: "Mauritian Rupee", country: "Mauritius" },
-  { code: "MGA", symbol: "Ar", name: "Malagasy Ariary", country: "Madagascar" },
-  { code: "KMF", symbol: "CF", name: "Comorian Franc", country: "Comoros" },
-  { code: "DJF", symbol: "Fdj", name: "Djiboutian Franc", country: "Djibouti" },
-  { code: "ERN", symbol: "Nfk", name: "Eritrean Nakfa", country: "Eritrea" },
-  { code: "SOS", symbol: "Sh.So.", name: "Somali Shilling", country: "Somalia" },
-  { code: "SSP", symbol: "SSP", name: "South Sudanese Pound", country: "South Sudan" },
-  { code: "ZWL", symbol: "Z$", name: "Zimbabwean Dollar", country: "Zimbabwe" },
-];
+import { useCurrency, africanCurrencies } from "@/contexts/CurrencyContext";
 
 // Mock connected dApps data
 const connectedDApps = [
@@ -93,6 +49,7 @@ const referralEarnings = [
 ];
 
 export default function Settings() {
+  const { currency, setCurrency } = useCurrency();
   const [darkMode, setDarkMode] = useState(() => {
     return document.documentElement.classList.contains('dark');
   });
@@ -104,7 +61,6 @@ export default function Settings() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [seedPhraseRevealed, setSeedPhraseRevealed] = useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState(africanCurrencies[0]);
   const [connectedApps, setConnectedApps] = useState(connectedDApps);
   const [showCustomerCareModal, setShowCustomerCareModal] = useState(false);
 
@@ -158,7 +114,7 @@ export default function Settings() {
       id: "currency",
       icon: DollarSign,
       label: "Currency",
-      description: `Current: ${selectedCurrency.symbol} ${selectedCurrency.code}`,
+      description: `Current: ${currency.symbol} ${currency.code}`,
       hasSwitch: false,
     },
     {
@@ -251,10 +207,10 @@ export default function Settings() {
     setShowPassword(false);
   };
 
-  const handleCurrencySelect = (currency: typeof africanCurrencies[0]) => {
-    setSelectedCurrency(currency);
+  const handleCurrencySelect = (curr: typeof africanCurrencies[0]) => {
+    setCurrency(curr);
     setShowCurrencyModal(false);
-    toast.success(`Currency changed to ${currency.code} (${currency.symbol})`);
+    toast.success(`Currency changed to ${curr.code} (${curr.symbol})`);
   };
 
   const handleDisconnectApp = (appId: number) => {
@@ -347,12 +303,12 @@ export default function Settings() {
           </DialogHeader>
           <ScrollArea className="h-[400px] pr-4">
             <div className="space-y-2">
-              {africanCurrencies.map((currency) => (
+              {africanCurrencies.map((curr) => (
                 <div
-                  key={currency.code}
-                  onClick={() => handleCurrencySelect(currency)}
+                  key={curr.code}
+                  onClick={() => handleCurrencySelect(curr)}
                   className={`p-4 rounded-xl cursor-pointer transition-all flex items-center justify-between ${
-                    selectedCurrency.code === currency.code
+                    currency.code === curr.code
                       ? "bg-primary/20 border border-primary"
                       : "bg-card hover:bg-card/80 border border-border"
                   }`}
@@ -360,15 +316,15 @@ export default function Settings() {
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-full bg-gradient-primary flex items-center justify-center">
                       <span className="text-primary-foreground font-bold text-sm">
-                        {currency.symbol}
+                        {curr.symbol}
                       </span>
                     </div>
                     <div>
-                      <p className="font-semibold text-foreground">{currency.code}</p>
-                      <p className="text-sm text-muted-foreground">{currency.country}</p>
+                      <p className="font-semibold text-foreground">{curr.code}</p>
+                      <p className="text-sm text-muted-foreground">{curr.country}</p>
                     </div>
                   </div>
-                  {selectedCurrency.code === currency.code && (
+                  {currency.code === curr.code && (
                     <Check className="h-5 w-5 text-primary" />
                   )}
                 </div>
