@@ -370,12 +370,8 @@ const FutureTrading = () => {
             {/* Fee Info */}
             <div className="bg-muted/50 rounded-lg p-3 space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Network Fee</span>
-                <span className="text-foreground">~0.10 USDC</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Transfer Fee</span>
-                <span className="text-green-500">Free</span>
+                <span className="text-muted-foreground">Service Fee (2%)</span>
+                <span className="text-foreground">{(parseFloat(transferAmount || "0") * 0.02).toFixed(2)} USDC</span>
               </div>
             </div>
 
