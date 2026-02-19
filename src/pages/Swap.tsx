@@ -494,10 +494,10 @@ export default function Swap() {
             <span>{slippage}%</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Network Fee</span>
+            <span className="text-muted-foreground">Service Fee (2%)</span>
             <span className="flex items-center gap-1">
               <Zap className="h-3 w-3 text-green-500" />
-              ~{formatPrice(0.50)}
+              ~{formatPrice(parseFloat(fromAmount || "0") * fromToken.price * 0.02)}
             </span>
           </div>
           {orderType === "limit" && (
@@ -589,10 +589,10 @@ export default function Swap() {
             </div>
           )}
           <div className="flex items-center justify-between border-t border-border pt-3">
-            <span className="text-sm text-muted-foreground">Network Fee</span>
+            <span className="text-sm text-muted-foreground">Service Fee (2%)</span>
             <span className="flex items-center gap-1">
               <Zap className="h-3 w-3 text-green-500" />
-              ~{formatPrice(0.50)}
+              ~{formatPrice(parseFloat(fromAmount || "0") * fromToken.price * 0.02)}
             </span>
           </div>
         </div>
@@ -732,10 +732,10 @@ export default function Swap() {
                 <span>{slippage}%</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Network Fee</span>
+                <span className="text-muted-foreground">Service Fee (2%)</span>
                 <span className="flex items-center gap-1">
                   <Zap className="h-3 w-3 text-green-500" />
-                  ~$0.50
+                  ~{formatPrice(parseFloat(fromAmount || "0") * fromToken.price * 0.02)}
                 </span>
               </div>
             </div>

@@ -567,10 +567,14 @@ const Fiat = () => {
                       </div>
                     </div>
 
-                    <div className="bg-secondary/20 rounded-xl p-3">
+                    <div className="bg-secondary/20 rounded-xl p-3 space-y-2">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Exchange Rate</span>
                         <span>1 USDC = {selectedCountry.currencySymbol}{selectedCountry.exchangeRate.toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Service Fee (2%)</span>
+                        <span>{selectedCountry.currencySymbol}{(fiatAmount * 0.02).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                       </div>
                     </div>
 
@@ -816,10 +820,14 @@ const Fiat = () => {
                       </div>
                     </div>
 
-                    <div className="bg-secondary/20 rounded-xl p-3">
+                    <div className="bg-secondary/20 rounded-xl p-3 space-y-2">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Exchange Rate</span>
                         <span>1 USDC = {selectedCountry.currencySymbol}{selectedCountry.exchangeRate.toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Service Fee (2%)</span>
+                        <span>{selectedCountry.currencySymbol}{(sellFiatAmount * 0.02).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                       </div>
                     </div>
 

@@ -340,7 +340,7 @@ export default function StakeEarn() {
                 <div className="text-xs text-muted-foreground space-y-1">
                   <p>• Your tokens will be locked for the selected period</p>
                   <p>• Rewards are distributed daily to your wallet</p>
-                  <p>• Early unstaking incurs a 10% penalty fee</p>
+                  <p>• A 2% service fee applies on staking</p>
                 </div>
               </div>
 
