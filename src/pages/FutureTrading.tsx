@@ -169,8 +169,8 @@ const FutureTrading = () => {
   // Calculator state
   const [showCalculator, setShowCalculator] = useState(false);
   
-  // ARB contract address for USDC
-  const arbUSDCContract = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831";
+  // Hyperliquid contract address for USDC
+  const hlUSDCContract = "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7";
 
   const basePrice = parseFloat(selectedPair.price.replace(',', ''));
   const orderBook = generateOrderBook(basePrice);
@@ -320,10 +320,10 @@ const FutureTrading = () => {
 
             {/* Network Badge */}
             <div className="flex items-center justify-center gap-2 py-2">
-              <div className="w-5 h-5 bg-blue-500/20 rounded-full flex items-center justify-center">
-                <span className="text-xs font-bold text-blue-400">A</span>
+              <div className="w-5 h-5 bg-emerald-500/20 rounded-full flex items-center justify-center">
+                <span className="text-xs font-bold text-emerald-400">HL</span>
               </div>
-              <span className="text-sm text-blue-400 font-medium">Arbitrum One Network</span>
+              <span className="text-sm text-emerald-400 font-medium">Hyperliquid Network</span>
             </div>
 
             {/* Amount Input */}
@@ -807,9 +807,9 @@ const FutureTrading = () => {
           </button>
           <div className="flex items-center gap-2">
             {/* Connection Status - Always connected */}
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium bg-green-500/20 text-green-500">
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium bg-emerald-500/20 text-emerald-400">
               <Link2 className="w-3 h-3" />
-              ARB Connected
+              Hyperliquid
             </div>
             <button className="p-2 hover:bg-muted rounded-lg">
               <Calculator className="w-5 h-5 text-muted-foreground" />
@@ -1183,12 +1183,12 @@ const FutureTrading = () => {
 
             <TabsContent value="assets" className="mt-0">
               <div className="p-4 space-y-4">
-                {/* ARB Network Badge */}
-                <div className="flex items-center justify-center gap-2 py-2 bg-blue-500/10 rounded-lg">
-                  <div className="w-5 h-5 bg-blue-500/30 rounded-full flex items-center justify-center">
-                    <span className="text-xs font-bold text-blue-400">A</span>
+                {/* Hyperliquid Network Badge */}
+                <div className="flex items-center justify-center gap-2 py-2 bg-emerald-500/10 rounded-lg">
+                  <div className="w-5 h-5 bg-emerald-500/30 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-emerald-400">HL</span>
                   </div>
-                  <span className="text-sm text-blue-400 font-medium">Arbitrum One Network</span>
+                  <span className="text-sm text-emerald-400 font-medium">Hyperliquid Network</span>
                 </div>
 
                 {/* Main Wallet Balance */}
@@ -1262,7 +1262,7 @@ const FutureTrading = () => {
                   <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 text-yellow-500 flex-shrink-0" />
                     <p className="text-xs text-muted-foreground">
-                      Connect to ARB network to deposit/withdraw USDC
+                      Connect to Hyperliquid network to deposit/withdraw USDC
                     </p>
                   </div>
                 )}
