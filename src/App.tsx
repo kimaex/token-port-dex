@@ -19,6 +19,7 @@ import Settings from "./pages/Settings";
 import StakeEarn from "./pages/StakeEarn";
 import GovernmentBonds from "./pages/GovernmentBonds";
 import SpinWin from "./pages/SpinWin";
+import CopyTrading from "./pages/CopyTrading";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 
