@@ -760,8 +760,6 @@ export default function Swap() {
           >
             {!fromAmount || parseFloat(fromAmount) <= 0 ? "Enter amount" : "Scan & Proceed"}
           </Button>
-            {!fromAmount || parseFloat(fromAmount) <= 0 ? "Enter amount" : "Proceed"}
-          </Button>
         </div>
 
         {/* Recent Swaps */}
@@ -791,6 +789,14 @@ export default function Swap() {
       {showFromSelector && <TokenSelector isFrom={true} />}
       {showToSelector && <TokenSelector isFrom={false} />}
       {showSettings && <SettingsModal />}
+      {swapStep === "shield" && (
+        <KimaexShield
+          tokenSymbol={toToken.symbol}
+          tokenName={toToken.name}
+          onClose={() => setSwapStep("input")}
+          onProceed={handleShieldProceed}
+        />
+      )}
       {swapStep === "confirm" && <ConfirmationModal />}
       {swapStep === "finalConfirm" && <FinalConfirmationModal />}
     </div>
