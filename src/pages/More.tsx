@@ -49,6 +49,13 @@ export default function More() {
       description: "Try your luck and win USDT",
       path: "/spin-win",
     },
+    {
+      id: "copy-trading",
+      icon: Users,
+      label: "Copy Trading",
+      description: "Replicate top trader strategies",
+      path: "/copy-trading",
+    },
   ];
 
   return (
