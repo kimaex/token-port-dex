@@ -107,6 +107,10 @@ export default function Swap() {
       toast.error("Please enter an amount");
       return;
     }
+    setSwapStep("shield");
+  };
+
+  const handleShieldProceed = () => {
     setSwapStep("confirm");
   };
 
