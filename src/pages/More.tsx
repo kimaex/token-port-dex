@@ -1,4 +1,4 @@
-import { CreditCard, Plane, Receipt, TrendingUp, Landmark, Sparkles } from "lucide-react";
+import { CreditCard, Plane, Receipt, TrendingUp, Landmark, Sparkles, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
@@ -48,6 +48,13 @@ export default function More() {
       label: "Spin and Win USDT",
       description: "Try your luck and win USDT",
       path: "/spin-win",
+    },
+    {
+      id: "copy-trading",
+      icon: Users,
+      label: "Copy Trading",
+      description: "Replicate top trader strategies",
+      path: "/copy-trading",
     },
   ];
 
