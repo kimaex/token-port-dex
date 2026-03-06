@@ -28,7 +28,7 @@ const tokens: Token[] = [
   { symbol: "MATIC", name: "Polygon", balance: "500.00", price: 0.92, icon: "⬡", network: "Polygon" },
 ];
 
-type SwapStep = "input" | "confirm" | "finalConfirm";
+type SwapStep = "input" | "shield" | "confirm" | "finalConfirm";
 type OrderType = "market" | "limit";
 
 export default function Swap() {
