@@ -1,4 +1,4 @@
-import { CreditCard, Plane, Receipt, TrendingUp, Landmark, Sparkles } from "lucide-react";
+import { CreditCard, Plane, Receipt, TrendingUp, Landmark, Sparkles, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
