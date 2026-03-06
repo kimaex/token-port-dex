@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowDownUp, ChevronDown, Search, Settings, X, Zap, Info } from "lucide-react";
+import { ArrowDownUp, ChevronDown, Search, Settings, X, Zap, Info, Shield } from "lucide-react";
+import KimaexShield from "@/components/KimaexShield";
 import { toast } from "sonner";
 import { useCurrency } from "@/contexts/CurrencyContext";
 
@@ -27,7 +28,7 @@ const tokens: Token[] = [
   { symbol: "MATIC", name: "Polygon", balance: "500.00", price: 0.92, icon: "⬡", network: "Polygon" },
 ];
 
-type SwapStep = "input" | "confirm" | "finalConfirm";
+type SwapStep = "input" | "shield" | "confirm" | "finalConfirm";
 type OrderType = "market" | "limit";
 
 export default function Swap() {
@@ -106,6 +107,10 @@ export default function Swap() {
       toast.error("Please enter an amount");
       return;
     }
+    setSwapStep("shield");
+  };
+
+  const handleShieldProceed = () => {
     setSwapStep("confirm");
   };
 
@@ -741,13 +746,19 @@ export default function Swap() {
             </div>
           )}
 
+          {/* Kimaex Shield Badge */}
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-lg border border-primary/20 mt-2">
+            <Shield className="h-4 w-4 text-primary" />
+            <span className="text-xs font-medium text-primary">Kimaex Shield 🛡️ — Auto-scans tokens before every swap</span>
+          </div>
+
           {/* Proceed Button */}
           <Button
             onClick={handleProceedToConfirm}
             className="w-full h-14 text-lg font-semibold"
             disabled={!fromAmount || parseFloat(fromAmount) <= 0}
           >
-            {!fromAmount || parseFloat(fromAmount) <= 0 ? "Enter amount" : "Proceed"}
+            {!fromAmount || parseFloat(fromAmount) <= 0 ? "Enter amount" : "Scan & Proceed"}
           </Button>
         </div>
 
@@ -778,6 +789,14 @@ export default function Swap() {
       {showFromSelector && <TokenSelector isFrom={true} />}
       {showToSelector && <TokenSelector isFrom={false} />}
       {showSettings && <SettingsModal />}
+      {swapStep === "shield" && (
+        <KimaexShield
+          tokenSymbol={toToken.symbol}
+          tokenName={toToken.name}
+          onClose={() => setSwapStep("input")}
+          onProceed={handleShieldProceed}
+        />
+      )}
       {swapStep === "confirm" && <ConfirmationModal />}
       {swapStep === "finalConfirm" && <FinalConfirmationModal />}
     </div>
