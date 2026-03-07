@@ -58,6 +58,7 @@ export default function CopyTrading() {
   const [stopLoss, setStopLoss] = useState("15");
   const [maxTrade, setMaxTrade] = useState("40");
   const [takeProfit, setTakeProfit] = useState("50");
+  const [maxDailyLoss, setMaxDailyLoss] = useState("10");
 
   const getRiskColor = (risk: string) => {
     switch (risk) {
@@ -159,55 +160,82 @@ export default function CopyTrading() {
               <div className="space-y-4">
                 <div>
                   <label className="text-sm text-muted-foreground flex items-center gap-1 mb-1.5">
-                    <DollarSign className="w-3 h-3" /> Amount to Invest
+                    <DollarSign className="w-3 h-3" /> Investment Amount
                   </label>
-                  <Input
-                    type="number"
-                    value={investAmount}
-                    onChange={(e) => setInvestAmount(e.target.value)}
-                    className="bg-muted border-border"
-                    placeholder="200"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-sm text-muted-foreground flex items-center gap-1 mb-1.5">
-                      <Percent className="w-3 h-3" /> Stop Loss
-                    </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
                     <Input
                       type="number"
-                      value={stopLoss}
-                      onChange={(e) => setStopLoss(e.target.value)}
-                      className="bg-muted border-border"
-                      placeholder="15%"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-muted-foreground flex items-center gap-1 mb-1.5">
-                      <Target className="w-3 h-3" /> Take Profit
-                    </label>
-                    <Input
-                      type="number"
-                      value={takeProfit}
-                      onChange={(e) => setTakeProfit(e.target.value)}
-                      className="bg-muted border-border"
-                      placeholder="50%"
+                      value={investAmount}
+                      onChange={(e) => setInvestAmount(e.target.value)}
+                      className="bg-muted border-border pl-7"
+                      placeholder="200"
                     />
                   </div>
                 </div>
 
                 <div>
                   <label className="text-sm text-muted-foreground flex items-center gap-1 mb-1.5">
-                    <Settings2 className="w-3 h-3" /> Max Trade per Token
+                    <Settings2 className="w-3 h-3" /> Maximum Trade Size per Token
                   </label>
-                  <Input
-                    type="number"
-                    value={maxTrade}
-                    onChange={(e) => setMaxTrade(e.target.value)}
-                    className="bg-muted border-border"
-                    placeholder="$40"
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                    <Input
+                      type="number"
+                      value={maxTrade}
+                      onChange={(e) => setMaxTrade(e.target.value)}
+                      className="bg-muted border-border pl-7"
+                      placeholder="40"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-sm text-muted-foreground flex items-center gap-1 mb-1.5">
+                      <Percent className="w-3 h-3" /> Stop Loss
+                    </label>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        value={stopLoss}
+                        onChange={(e) => setStopLoss(e.target.value)}
+                        className="bg-muted border-border pr-7"
+                        placeholder="15"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground flex items-center gap-1 mb-1.5">
+                      <Target className="w-3 h-3" /> Take Profit
+                    </label>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        value={takeProfit}
+                        onChange={(e) => setTakeProfit(e.target.value)}
+                        className="bg-muted border-border pr-7"
+                        placeholder="50"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground flex items-center gap-1 mb-1.5">
+                      <Shield className="w-3 h-3" /> Max Daily
+                    </label>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        value={maxDailyLoss}
+                        onChange={(e) => setMaxDailyLoss(e.target.value)}
+                        className="bg-muted border-border pr-7"
+                        placeholder="10"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Summary */}
@@ -217,16 +245,20 @@ export default function CopyTrading() {
                     <span className="text-foreground font-medium">{formatPrice(parseFloat(investAmount || "0"))}</span>
                   </div>
                   <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Max per Token</span>
+                    <span className="text-foreground font-medium">{formatPrice(parseFloat(maxTrade || "0"))}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Stop Loss</span>
-                    <span className="text-red-400">{stopLoss}%</span>
+                    <span className="text-destructive">{stopLoss}%</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Take Profit</span>
                     <span className="text-green-400">{takeProfit}%</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Max per Token</span>
-                    <span className="text-foreground">{formatPrice(parseFloat(maxTrade || "0"))}</span>
+                    <span className="text-muted-foreground">Max Daily Loss</span>
+                    <span className="text-destructive">{maxDailyLoss}%</span>
                   </div>
                   <div className="border-t border-border pt-2 flex justify-between text-sm">
                     <span className="text-muted-foreground">Platform Fee (2%)</span>
