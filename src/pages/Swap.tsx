@@ -34,6 +34,7 @@ type OrderType = "market" | "limit";
 
 export default function Swap() {
   const { formatPrice, currency } = useCurrency();
+  const navigate = useNavigate();
   const [fromToken, setFromToken] = useState<Token>(tokens[0]);
   const [toToken, setToToken] = useState<Token>(tokens[2]);
   const [fromAmount, setFromAmount] = useState("");
