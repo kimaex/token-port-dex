@@ -58,6 +58,7 @@ export default function CopyTrading() {
   const [stopLoss, setStopLoss] = useState("15");
   const [maxTrade, setMaxTrade] = useState("40");
   const [takeProfit, setTakeProfit] = useState("50");
+  const [maxDailyLoss, setMaxDailyLoss] = useState("10");
 
   const getRiskColor = (risk: string) => {
     switch (risk) {
