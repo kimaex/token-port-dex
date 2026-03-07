@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowDownUp, ChevronDown, Search, Settings, X, Zap, Info, Shield } from "lucide-react";
+import { ArrowDownUp, ChevronDown, Search, Settings, X, Zap, Info, Shield, Users } from "lucide-react";
 import KimaexShield from "@/components/KimaexShield";
 import { toast } from "sonner";
 import { useCurrency } from "@/contexts/CurrencyContext";
