@@ -631,9 +631,15 @@ export default function Swap() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Swap</h1>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/copy-trading')} title="Copy Trading">
-              <Users className="h-5 w-5" />
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/copy-trading')} 
+              className="flex items-center gap-1.5 border-primary/50 text-primary hover:bg-primary/10"
+            >
+              <Users className="h-4 w-4" />
+              <span className="text-xs font-semibold">Copy Trade</span>
             </Button>
             <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)}>
               <Settings className="h-5 w-5" />
