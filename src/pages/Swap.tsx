@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowDownUp, ChevronDown, Search, Settings, X, Zap, Info, Shield } from "lucide-react";
+import { ArrowDownUp, ChevronDown, Search, Settings, X, Zap, Info, Shield, Users } from "lucide-react";
 import KimaexShield from "@/components/KimaexShield";
 import { toast } from "sonner";
 import { useCurrency } from "@/contexts/CurrencyContext";
@@ -33,6 +34,7 @@ type OrderType = "market" | "limit";
 
 export default function Swap() {
   const { formatPrice, currency } = useCurrency();
+  const navigate = useNavigate();
   const [fromToken, setFromToken] = useState<Token>(tokens[0]);
   const [toToken, setToToken] = useState<Token>(tokens[2]);
   const [fromAmount, setFromAmount] = useState("");
@@ -629,9 +631,14 @@ export default function Swap() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Swap</h1>
-          <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)}>
-            <Settings className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/copy-trading')} title="Copy Trading">
+              <Users className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)}>
+              <Settings className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Swap Card */}
