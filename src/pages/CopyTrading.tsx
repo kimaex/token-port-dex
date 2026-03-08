@@ -106,7 +106,7 @@ export default function CopyTrading() {
             </button>
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-foreground">Copy Trading</h1>
-              <p className="text-sm text-muted-foreground">Replicate top trader strategies</p>
+              <p className="text-sm text-muted-foreground">Solana Meme Tokens Only</p>
             </div>
             <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10">
               <Users className="w-3 h-3 text-primary" />
