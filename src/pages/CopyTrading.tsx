@@ -35,12 +35,12 @@ interface ActiveCopy {
 }
 
 const traders: Trader[] = [
-  { id: "1", name: "Trader Alpha", avatar: "🦁", profit: 120, winRate: 78, followers: 4200, trades: 892, riskLevel: "low", assets: ["SOL", "ETH", "BTC"], pnl7d: 18.5 },
-  { id: "2", name: "Meme Hunter", avatar: "🐸", profit: 300, winRate: 65, followers: 8500, trades: 2341, riskLevel: "high", assets: ["PEPE", "DOGE", "BONK"], pnl7d: 45.2 },
-  { id: "3", name: "DeFi Whale", avatar: "🐋", profit: 85, winRate: 82, followers: 3100, trades: 567, riskLevel: "low", assets: ["ETH", "AAVE", "UNI"], pnl7d: 8.3 },
-  { id: "4", name: "Gem Finder", avatar: "💎", profit: 210, winRate: 71, followers: 6700, trades: 1450, riskLevel: "medium", assets: ["SOL", "ARB", "OP"], pnl7d: 32.1 },
-  { id: "5", name: "Steady Earner", avatar: "🎯", profit: 55, winRate: 88, followers: 2800, trades: 345, riskLevel: "low", assets: ["BTC", "ETH", "USDC"], pnl7d: 5.7 },
-  { id: "6", name: "Moon Caller", avatar: "🚀", profit: 450, winRate: 58, followers: 12000, trades: 3200, riskLevel: "high", assets: ["SHIB", "WIF", "FLOKI"], pnl7d: 67.8 },
+  { id: "1", name: "Trader Alpha", avatar: "🦁", profit: 120, winRate: 78, followers: 4200, trades: 892, riskLevel: "low", assets: ["BONK", "WIF", "POPCAT"], pnl7d: 18.5 },
+  { id: "2", name: "Meme Hunter", avatar: "🐸", profit: 300, winRate: 65, followers: 8500, trades: 2341, riskLevel: "high", assets: ["WIF", "BONK", "BOME"], pnl7d: 45.2 },
+  { id: "3", name: "Degen Lord", avatar: "🐋", profit: 85, winRate: 82, followers: 3100, trades: 567, riskLevel: "low", assets: ["MYRO", "WEN", "MEW"], pnl7d: 8.3 },
+  { id: "4", name: "Gem Finder", avatar: "💎", profit: 210, winRate: 71, followers: 6700, trades: 1450, riskLevel: "medium", assets: ["POPCAT", "SLERF", "JTO"], pnl7d: 32.1 },
+  { id: "5", name: "SOL Sniper", avatar: "🎯", profit: 55, winRate: 88, followers: 2800, trades: 345, riskLevel: "low", assets: ["SAMO", "BONK", "WIF"], pnl7d: 5.7 },
+  { id: "6", name: "Moon Caller", avatar: "🚀", profit: 450, winRate: 58, followers: 12000, trades: 3200, riskLevel: "high", assets: ["WIF", "BOME", "FLOKI"], pnl7d: 67.8 },
 ];
 
 const activeCopies: ActiveCopy[] = [
@@ -106,7 +106,7 @@ export default function CopyTrading() {
             </button>
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-foreground">Copy Trading</h1>
-              <p className="text-sm text-muted-foreground">Replicate top trader strategies</p>
+              <p className="text-sm text-muted-foreground">Solana Meme Tokens Only</p>
             </div>
             <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10">
               <Users className="w-3 h-3 text-primary" />
