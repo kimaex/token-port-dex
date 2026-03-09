@@ -216,6 +216,10 @@ const FutureTrading = () => {
       toast.error('Please enter amount');
       return;
     }
+    if (parseFloat(amount) < 0.5) {
+      toast.error('Minimum trade amount is $0.50');
+      return;
+    }
     
     if (orderType === 'limit' && !price) {
       toast.error('Please enter price');
