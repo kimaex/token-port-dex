@@ -123,6 +123,10 @@ export default function CopyTrading() {
 
   const handleCopyTrader = () => {
     if (!selectedTrader) return;
+    if (!investAmount || parseFloat(investAmount) < 0.5) {
+      toast({ title: "Minimum amount is $0.50", variant: "destructive" });
+      return;
+    }
     const fee = parseFloat(investAmount) * 0.02;
     toast({
       title: "Copy Trading Started! 🎉",
