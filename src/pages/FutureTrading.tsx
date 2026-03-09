@@ -183,6 +183,10 @@ const FutureTrading = () => {
       toast.error('Please enter a valid amount');
       return;
     }
+    if (transferValue < 0.5) {
+      toast.error('Minimum transfer amount is $0.50');
+      return;
+    }
     
     if (transferType === 'deposit') {
       if (transferValue > mainWalletUSDC) {
@@ -214,6 +218,10 @@ const FutureTrading = () => {
   const handleOpenPosition = () => {
     if (!amount) {
       toast.error('Please enter amount');
+      return;
+    }
+    if (parseFloat(amount) < 0.5) {
+      toast.error('Minimum trade amount is $0.50');
       return;
     }
     

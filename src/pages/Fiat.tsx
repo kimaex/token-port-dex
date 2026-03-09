@@ -245,6 +245,10 @@ const Fiat = () => {
       toast.error("Please enter a valid amount");
       return;
     }
+    if (parseFloat(usdcAmount) < 0.5) {
+      toast.error("Minimum amount is $0.50");
+      return;
+    }
     setBuyStep("paymentMethod");
   };
 
@@ -270,6 +274,10 @@ const Fiat = () => {
   const handleSellAmountProceed = () => {
     if (!sellAmount || parseFloat(sellAmount) <= 0) {
       toast.error("Please enter a valid amount");
+      return;
+    }
+    if (parseFloat(sellAmount) < 0.5) {
+      toast.error("Minimum amount is $0.50");
       return;
     }
     setSellStep("paymentMethod");
