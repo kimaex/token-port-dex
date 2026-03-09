@@ -109,6 +109,10 @@ export default function Swap() {
       toast.error("Please enter an amount");
       return;
     }
+    if (parseFloat(fromAmount) < 0.5) {
+      toast.error("Minimum swap amount is $0.50");
+      return;
+    }
     setSwapStep("shield");
   };
 

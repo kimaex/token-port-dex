@@ -137,6 +137,10 @@ export default function CopyTrading() {
 
   const handleCopyPump = () => {
     if (!selectedPump) return;
+    if (!investAmount || parseFloat(investAmount) < 0.5) {
+      toast({ title: "Minimum amount is $0.50", variant: "destructive" });
+      return;
+    }
     toast({
       title: copyMode === "auto" ? "Auto-Copy Activated! 🚀" : "Alert Set! 🔔",
       description: copyMode === "auto"
