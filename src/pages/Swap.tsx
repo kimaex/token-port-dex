@@ -643,7 +643,7 @@ export default function Swap() {
               className="flex items-center gap-1.5 border-primary/50 text-primary hover:bg-primary/10"
             >
               <Users className="h-4 w-4" />
-              <span className="text-xs font-semibold">Copy Trade</span>
+              <span className="text-xs font-semibold">Pump Detector</span>
             </Button>
             <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)}>
               <Settings className="h-5 w-5" />

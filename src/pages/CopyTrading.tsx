@@ -130,7 +130,7 @@ export default function CopyTrading() {
     }
     const fee = parseFloat(investAmount) * 0.02;
     toast({
-      title: "Copy Trading Started! 🎉",
+      title: "Pump Detector Started! 🎉",
       description: `Now copying ${selectedTrader.name} with ${formatPrice(parseFloat(investAmount))}. Platform fee: ${formatPrice(fee)} (2%)`,
     });
     setSelectedTrader(null);
@@ -168,8 +168,8 @@ export default function CopyTrading() {
               <ArrowLeft className="h-5 w-5 text-foreground" />
             </button>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-foreground">Copy Trading</h1>
-              <p className="text-sm text-muted-foreground">Solana Meme Tokens • Early Pump Detector</p>
+              <h1 className="text-2xl font-bold text-foreground">Pump Detector</h1>
+              <p className="text-sm text-muted-foreground">Solana Meme Tokens • Early Pump Detection</p>
             </div>
             <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10">
               <Users className="w-3 h-3 text-primary" />
