@@ -5,7 +5,7 @@ import {
   Link2, AlertCircle, Shield, Check, X, Info, Wallet, RefreshCw, Minus, Plus,
   ChevronRight, Calculator, Clock, ArrowDownUp, ArrowUpRight, ArrowDownRight, Copy
 } from 'lucide-react';
-import MiniPriceChart from "@/components/MiniPriceChart";
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
