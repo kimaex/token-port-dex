@@ -8,7 +8,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useToast } from "@/hooks/use-toast";
 
-type Tab = "leaderboard" | "pumps" | "active" | "settings";
+type Tab = "pumps" | "active" | "settings";
 
 interface Trader {
   id: string;
