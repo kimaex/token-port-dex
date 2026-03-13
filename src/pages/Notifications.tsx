@@ -90,6 +90,7 @@ const Notifications = () => {
       </div>
 
       <div className="p-4 space-y-3">
+        <MiniPriceChart />
         {notifications.length === 0 ? (
           <div className="text-center py-12">
             <Bell className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
