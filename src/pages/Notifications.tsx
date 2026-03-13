@@ -2,6 +2,7 @@ import { ArrowLeft, Bell, CheckCircle, AlertCircle, Info, Trash2 } from "lucide-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import MiniPriceChart from "@/components/MiniPriceChart";
 
 interface Notification {
   id: string;
@@ -89,6 +90,7 @@ const Notifications = () => {
       </div>
 
       <div className="p-4 space-y-3">
+        <MiniPriceChart />
         {notifications.length === 0 ? (
           <div className="text-center py-12">
             <Bell className="w-12 h-12 text-muted-foreground mx-auto mb-4" />

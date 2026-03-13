@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ArrowLeft, Users, Trophy, Shield, TrendingUp, Star, Copy, AlertTriangle, CheckCircle, Settings2, DollarSign, Percent, Target, XCircle, Zap, Droplets, Eye, Activity, Flame, Bell, BarChart3, Waves } from "lucide-react";
+import { ArrowLeft, Users, Shield, TrendingUp, Star, Copy, AlertTriangle, CheckCircle, Settings2, DollarSign, Percent, Target, XCircle, Zap, Droplets, Eye, Activity, Flame, Bell, BarChart3, Waves } from "lucide-react";
+import MiniPriceChart from "@/components/MiniPriceChart";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useToast } from "@/hooks/use-toast";
 
-type Tab = "leaderboard" | "pumps" | "active" | "settings";
+type Tab = "pumps" | "active" | "settings";
 
 interface Trader {
   id: string;
@@ -81,7 +82,7 @@ export default function CopyTrading() {
   const navigate = useNavigate();
   const { formatPrice } = useCurrency();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<Tab>("leaderboard");
+  const [activeTab, setActiveTab] = useState<Tab>("pumps");
   const [selectedTrader, setSelectedTrader] = useState<Trader | null>(null);
   const [selectedPump, setSelectedPump] = useState<PumpToken | null>(null);
   const [investAmount, setInvestAmount] = useState("200");
@@ -179,7 +180,6 @@ export default function CopyTrading() {
           {/* Tabs */}
           <div className="flex gap-1.5 mb-4">
             {([
-              { key: "leaderboard" as Tab, label: "Leaders", icon: Trophy },
               { key: "pumps" as Tab, label: "Pumps", icon: Flame },
               { key: "active" as Tab, label: "Active", icon: Copy },
               { key: "settings" as Tab, label: "Risk", icon: Shield },
@@ -453,95 +453,10 @@ export default function CopyTrading() {
           </div>
         )}
 
-        {/* Leaderboard Tab */}
-        {activeTab === "leaderboard" && (
-          <div className="px-6 space-y-3">
-            {/* Stats Banner */}
-            <Card className="p-4 bg-card border-border">
-              <div className="grid grid-cols-4 gap-3 text-center">
-                <div>
-                  <p className="text-sm font-bold text-foreground">$12.4M</p>
-                  <p className="text-[10px] text-muted-foreground">Total Copied</p>
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-green-400">+89%</p>
-                  <p className="text-[10px] text-muted-foreground">Avg. Return</p>
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-foreground">6.2K</p>
-                  <p className="text-[10px] text-muted-foreground">Active Copiers</p>
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-primary">265</p>
-                  <p className="text-[10px] text-muted-foreground">Pumps Found</p>
-                </div>
-              </div>
-            </Card>
-
-            {/* Trader Cards */}
-            {traders.map((trader, index) => (
-              <Card key={trader.id} className="p-4 bg-card border-border">
-                <div className="flex items-start gap-3">
-                  <div className="relative">
-                    <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center text-2xl">
-                      {trader.avatar}
-                    </div>
-                    {index < 3 && (
-                      <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                        <span className="text-[10px] font-bold text-primary-foreground">{index + 1}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-foreground">{trader.name}</h3>
-                      <span className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 ${getRiskColor(trader.riskLevel)}`}>
-                        {getRiskIcon(trader.riskLevel)}
-                        {trader.riskLevel}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-3 mt-1.5">
-                      <div>
-                        <span className="text-green-400 font-bold text-sm">+{trader.profit}%</span>
-                        <p className="text-[10px] text-muted-foreground">Profit</p>
-                      </div>
-                      <div>
-                        <span className="text-foreground font-medium text-sm">{trader.winRate}%</span>
-                        <p className="text-[10px] text-muted-foreground">Win Rate</p>
-                      </div>
-                      <div>
-                        <span className="text-foreground font-medium text-sm">{trader.followers.toLocaleString()}</span>
-                        <p className="text-[10px] text-muted-foreground">Followers</p>
-                      </div>
-                      <div>
-                        <span className="text-primary font-bold text-sm">{trader.earlyPumps}</span>
-                        <p className="text-[10px] text-muted-foreground">Pumps 🔥</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 mt-2">
-                      {trader.assets.map(asset => (
-                        <span key={asset} className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{asset}</span>
-                      ))}
-                      <span className="text-[10px] text-primary ml-auto">🎯 {trader.pumpSuccessRate}% pump rate</span>
-                    </div>
-                  </div>
-                </div>
-
-                <Button
-                  onClick={() => setSelectedTrader(trader)}
-                  className="w-full mt-3 bg-primary/10 text-primary hover:bg-primary/20 border-0"
-                  variant="outline"
-                >
-                  <Copy className="w-4 h-4 mr-1" />
-                  Copy Trader
-                </Button>
-              </Card>
-            ))}
-          </div>
-        )}
+        {/* Price Chart */}
+        <div className="px-6 mb-3">
+          <MiniPriceChart />
+        </div>
 
         {/* Early Pump Detection Tab */}
         {activeTab === "pumps" && (
@@ -662,8 +577,8 @@ export default function CopyTrading() {
               <Card className="p-8 bg-card border-border text-center">
                 <Copy className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
                 <p className="text-muted-foreground">No active copies yet</p>
-                <Button onClick={() => setActiveTab("leaderboard")} className="mt-3 bg-primary text-primary-foreground">
-                  Browse Traders
+                <Button onClick={() => setActiveTab("pumps")} className="mt-3 bg-primary text-primary-foreground">
+                  Browse Pumps
                 </Button>
               </Card>
             ) : (

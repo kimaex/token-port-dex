@@ -5,6 +5,7 @@ import {
   Link2, AlertCircle, Shield, Check, X, Info, Wallet, RefreshCw, Minus, Plus,
   ChevronRight, Calculator, Clock, ArrowDownUp, ArrowUpRight, ArrowDownRight, Copy
 } from 'lucide-react';
+import MiniPriceChart from "@/components/MiniPriceChart";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -800,6 +801,7 @@ const FutureTrading = () => {
     <div className="min-h-screen bg-background pb-24">
       <div className="max-w-md mx-auto">
         {/* Header with pair selector */}
+        <MiniPriceChart />
         <div className="flex items-center justify-between p-3 border-b border-border bg-card">
           <button 
             onClick={() => setShowPairSelector(true)}

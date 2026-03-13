@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowDownToLine, ArrowUpFromLine, Copy, Check, Clock, Building2, User, CreditCard, DollarSign, Smartphone, ChevronDown, Globe } from "lucide-react";
+import MiniPriceChart from "@/components/MiniPriceChart";
 import { toast } from "sonner";
 
 type BuyStep = "amount" | "paymentMethod" | "payment" | "processing" | "complete";
@@ -521,6 +522,12 @@ const Fiat = () => {
             <p className="text-sm text-muted-foreground">Convert between fiat and crypto</p>
           </div>
         </div>
+
+        <Card className="shadow-card border-border/50 mb-4">
+          <CardContent className="pt-4 pb-2">
+            <MiniPriceChart />
+          </CardContent>
+        </Card>
 
         <Card className="shadow-card border-border/50">
           <CardContent className="pt-6">
