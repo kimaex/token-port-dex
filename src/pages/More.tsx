@@ -52,8 +52,8 @@ export default function More() {
     {
       id: "copy-trading",
       icon: Users,
-      label: "Copy Trading",
-      description: "Replicate top trader strategies",
+      label: "Pump Detector",
+      description: "Detect early meme token pumps",
       path: "/copy-trading",
     },
   ];

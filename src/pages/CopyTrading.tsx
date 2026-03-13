@@ -130,7 +130,7 @@ export default function CopyTrading() {
     }
     const fee = parseFloat(investAmount) * 0.02;
     toast({
-      title: "Copy Trading Started! 🎉",
+      title: "Pump Detector Started! 🎉",
       description: `Now copying ${selectedTrader.name} with ${formatPrice(parseFloat(investAmount))}. Platform fee: ${formatPrice(fee)} (2%)`,
     });
     setSelectedTrader(null);
