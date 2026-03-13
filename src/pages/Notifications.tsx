@@ -2,7 +2,7 @@ import { ArrowLeft, Bell, CheckCircle, AlertCircle, Info, Trash2 } from "lucide-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import MiniPriceChart from "@/components/MiniPriceChart";
+
 
 interface Notification {
   id: string;
