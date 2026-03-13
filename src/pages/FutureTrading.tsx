@@ -801,6 +801,7 @@ const FutureTrading = () => {
     <div className="min-h-screen bg-background pb-24">
       <div className="max-w-md mx-auto">
         {/* Header with pair selector */}
+        <MiniPriceChart />
         <div className="flex items-center justify-between p-3 border-b border-border bg-card">
           <button 
             onClick={() => setShowPairSelector(true)}

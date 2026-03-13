@@ -652,8 +652,11 @@ export default function Swap() {
           </div>
         </div>
 
+        {/* Price Chart */}
+        <MiniPriceChart />
+
         {/* Swap Card */}
-        <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+        <div className="bg-card border border-border rounded-2xl p-4 space-y-3 mt-3">
           {/* From Token */}
           <div className="bg-secondary/30 rounded-xl p-4 space-y-3">
             <div className="flex items-center justify-between">
