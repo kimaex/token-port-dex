@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ArrowLeft, Users, Trophy, Shield, TrendingUp, Star, Copy, AlertTriangle, CheckCircle, Settings2, DollarSign, Percent, Target, XCircle, Zap, Droplets, Eye, Activity, Flame, Bell, BarChart3, Waves } from "lucide-react";
+import { ArrowLeft, Users, Shield, TrendingUp, Star, Copy, AlertTriangle, CheckCircle, Settings2, DollarSign, Percent, Target, XCircle, Zap, Droplets, Eye, Activity, Flame, Bell, BarChart3, Waves } from "lucide-react";
+import MiniPriceChart from "@/components/MiniPriceChart";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
