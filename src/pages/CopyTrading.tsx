@@ -179,7 +179,6 @@ export default function CopyTrading() {
           {/* Tabs */}
           <div className="flex gap-1.5 mb-4">
             {([
-              { key: "leaderboard" as Tab, label: "Leaders", icon: Trophy },
               { key: "pumps" as Tab, label: "Pumps", icon: Flame },
               { key: "active" as Tab, label: "Active", icon: Copy },
               { key: "settings" as Tab, label: "Risk", icon: Shield },
