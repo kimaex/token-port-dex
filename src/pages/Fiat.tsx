@@ -523,11 +523,6 @@ const Fiat = () => {
           </div>
         </div>
 
-        <Card className="shadow-card border-border/50 mb-4">
-          <CardContent className="pt-4 pb-2">
-            <MiniPriceChart />
-          </CardContent>
-        </Card>
 
         <Card className="shadow-card border-border/50">
           <CardContent className="pt-6">

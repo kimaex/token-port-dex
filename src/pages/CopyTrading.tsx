@@ -453,10 +453,6 @@ export default function CopyTrading() {
           </div>
         )}
 
-        {/* Price Chart */}
-        <div className="px-6 mb-3">
-          <MiniPriceChart />
-        </div>
 
         {/* Early Pump Detection Tab */}
         {activeTab === "pumps" && (
