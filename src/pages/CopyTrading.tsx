@@ -81,7 +81,7 @@ export default function CopyTrading() {
   const navigate = useNavigate();
   const { formatPrice } = useCurrency();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<Tab>("leaderboard");
+  const [activeTab, setActiveTab] = useState<Tab>("pumps");
   const [selectedTrader, setSelectedTrader] = useState<Trader | null>(null);
   const [selectedPump, setSelectedPump] = useState<PumpToken | null>(null);
   const [investAmount, setInvestAmount] = useState("200");
