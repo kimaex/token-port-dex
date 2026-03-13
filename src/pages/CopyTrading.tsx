@@ -571,8 +571,8 @@ export default function CopyTrading() {
               <Card className="p-8 bg-card border-border text-center">
                 <Copy className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
                 <p className="text-muted-foreground">No active copies yet</p>
-                <Button onClick={() => setActiveTab("leaderboard")} className="mt-3 bg-primary text-primary-foreground">
-                  Browse Traders
+                <Button onClick={() => setActiveTab("pumps")} className="mt-3 bg-primary text-primary-foreground">
+                  Browse Pumps
                 </Button>
               </Card>
             ) : (
