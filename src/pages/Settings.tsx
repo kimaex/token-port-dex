@@ -598,7 +598,7 @@ export default function Settings() {
                         <TableRow key={e.id} className="border-border">
                           <TableCell className="text-xs text-foreground py-2">{e.date}</TableCell>
                           <TableCell className="text-xs py-2">
-                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${e.source === "Futures" ? "bg-primary/15 text-primary" : "bg-muted text-foreground"}`}>
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${e.source === "Futures" ? "bg-primary/15 text-primary" : e.source === "Swap" ? "bg-green-500/15 text-green-500" : "bg-muted text-foreground"}`}>
                               {e.source} • {e.pct}%
                             </span>
                           </TableCell>
