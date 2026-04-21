@@ -417,171 +417,227 @@ export default function Settings() {
         </DialogContent>
       </Dialog>
 
-      {/* Referral Modal - Ravenbank Style */}
+      {/* Referral Modal — FXPro IB Style */}
       <Dialog open={showReferralModal} onOpenChange={setShowReferralModal}>
-        <DialogContent className="max-w-md bg-background border-border p-0 overflow-hidden">
-          {/* Header with gradient */}
-          <div className="bg-gradient-primary p-6 text-center">
-            <div className="h-16 w-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
-              <Gift className="h-8 w-8 text-primary-foreground" />
+        <DialogContent className="max-w-md bg-background border-border p-0 overflow-hidden max-h-[92vh]">
+          {/* Header */}
+          <div className="bg-gradient-primary p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+                  <Award className="h-6 w-6 text-primary-foreground" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-primary-foreground">Introducing Broker</h2>
+                  <p className="text-primary-foreground/80 text-xs">IB ID: {referralData.ibId}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="px-3 py-1 rounded-full bg-white/20 text-xs font-semibold text-primary-foreground">
+                  {referralData.tier} Tier
+                </div>
+              </div>
             </div>
-            <h2 className="text-2xl font-bold text-primary-foreground">
-              Invite Friends & Earn
-            </h2>
-            <p className="text-primary-foreground/80 mt-2 text-sm">
-              Earn USDC for every friend that signs up and trades
-            </p>
+
+            {/* Tier progress */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs text-primary-foreground/90">
+                <span>Progress to {referralData.nextTier}</span>
+                <span>{referralData.progressToNext}%</span>
+              </div>
+              <div className="h-2 rounded-full bg-white/20 overflow-hidden">
+                <div
+                  className="h-full bg-primary-foreground rounded-full transition-all"
+                  style={{ width: `${referralData.progressToNext}%` }}
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="p-6 space-y-6">
-            {/* Referral Code */}
-            <div className="space-y-2">
-              <label className="text-sm text-muted-foreground">Your Referral Code</label>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 p-4 rounded-xl bg-muted border-2 border-dashed border-primary/30 text-center">
-                  <span className="text-xl font-bold text-primary tracking-wider">
-                    {referralData.code}
-                  </span>
+          <ScrollArea className="max-h-[68vh]">
+            <div className="p-5 space-y-5">
+              {/* IB Link */}
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                  <Link2 className="h-3.5 w-3.5" /> Your IB Link
+                </label>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 p-3 rounded-lg bg-muted border border-border">
+                    <p className="text-xs text-foreground truncate font-mono">{referralData.referralLink}</p>
+                  </div>
+                  <Button variant="outline" size="icon" className="h-11 w-11 border-border flex-shrink-0" onClick={copyReferralLink}>
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                  <Button size="icon" className="h-11 w-11 bg-gradient-primary flex-shrink-0" onClick={shareReferral}>
+                    <Share2 className="h-4 w-4" />
+                  </Button>
                 </div>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-14 w-14 border-border"
-                  onClick={copyReferralCode}
-                >
-                  <Copy className="h-5 w-5" />
-                </Button>
+                <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/50">
+                  <span className="text-xs text-muted-foreground">Referral code</span>
+                  <button onClick={copyReferralCode} className="flex items-center gap-2 text-sm font-bold text-primary tracking-wider">
+                    {referralData.code} <Copy className="h-3 w-3" />
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="p-4 rounded-xl bg-card border border-border text-center">
-                <p className="text-2xl font-bold text-foreground">{referralData.totalReferrals}</p>
-                <p className="text-xs text-muted-foreground mt-1">Referrals</p>
+              {/* IB Dashboard Stats — 2x2 grid */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="p-3 rounded-lg bg-card border border-border">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                    <BarChart3 className="h-3 w-3" /> Clicks
+                  </div>
+                  <p className="text-lg font-bold text-foreground">{referralData.totalClicks.toLocaleString()}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-card border border-border">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                    <Users className="h-3 w-3" /> Sign-ups
+                  </div>
+                  <p className="text-lg font-bold text-foreground">{referralData.totalSignups}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-card border border-border">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                    <UserCheck className="h-3 w-3" /> Active Traders
+                  </div>
+                  <p className="text-lg font-bold text-foreground">{referralData.activeTraders}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-card border border-border">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                    <TrendingUp className="h-3 w-3" /> This Month
+                  </div>
+                  <p className="text-lg font-bold text-green-500">${referralData.thisMonthEarnings.toFixed(2)}</p>
+                </div>
               </div>
-              <div className="p-4 rounded-xl bg-card border border-border text-center">
-                <p className="text-2xl font-bold text-primary">${referralData.pendingRewards.toFixed(2)}</p>
-                <p className="text-xs text-muted-foreground mt-1">Pending</p>
-              </div>
-              <div className="p-4 rounded-xl bg-card border border-border text-center">
-                <p className="text-2xl font-bold text-green-500">${referralData.totalEarnings.toFixed(2)}</p>
-                <p className="text-xs text-muted-foreground mt-1">Earned</p>
-              </div>
-            </div>
 
-            {/* Referral Earnings Table */}
-            <div className="space-y-3">
-              <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
-                <p className="text-sm text-center font-medium text-foreground">
-                  Refer your families and friends to Kimaex and earn <span className="text-primary font-bold">30% fees</span> when they trade
+              {/* Volume cards by source */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                    <TrendingUp className="h-3 w-3" /> Futures Volume
+                  </div>
+                  <p className="text-base font-bold text-foreground">${referralData.futuresVolume.toLocaleString()}</p>
+                  <p className="text-xs text-primary mt-0.5">25% commission</p>
+                </div>
+                <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                    <Banknote className="h-3 w-3" /> Fiat Volume
+                  </div>
+                  <p className="text-base font-bold text-foreground">${referralData.fiatVolume.toLocaleString()}</p>
+                  <p className="text-xs text-primary mt-0.5">15% commission</p>
+                </div>
+              </div>
+
+              {/* Commission Tier Table — FXPro style */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                  <Award className="h-4 w-4 text-primary" /> Commission Tiers
+                </h3>
+                <div className="rounded-lg border border-border overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-border bg-muted/50 hover:bg-muted/50">
+                        <TableHead className="text-muted-foreground text-xs h-9">Tier</TableHead>
+                        <TableHead className="text-muted-foreground text-xs h-9">Clients</TableHead>
+                        <TableHead className="text-right text-muted-foreground text-xs h-9">Futures</TableHead>
+                        <TableHead className="text-right text-muted-foreground text-xs h-9">Fiat</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {ibTiers.map((t) => (
+                        <TableRow
+                          key={t.tier}
+                          className={`border-border ${t.current ? "bg-primary/10 hover:bg-primary/15" : ""}`}
+                        >
+                          <TableCell className="text-xs font-medium text-foreground py-2">
+                            <div className="flex items-center gap-1.5">
+                              {t.tier}
+                              {t.current && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">YOU</span>}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground py-2">{t.clients}</TableCell>
+                          <TableCell className="text-right text-xs font-semibold text-primary py-2">{t.futuresPct}%</TableCell>
+                          <TableCell className="text-right text-xs font-semibold text-primary py-2">{t.fiatPct}%</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                <p className="text-[10px] text-muted-foreground leading-relaxed">
+                  Earn % of trading fees from every client you refer — paid in USDC. Tier upgrades unlock automatically.
                 </p>
               </div>
 
-              <ScrollArea className="h-[200px]">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-border">
-                      <TableHead className="text-muted-foreground">Date</TableHead>
-                      <TableHead className="text-muted-foreground">User</TableHead>
-                      <TableHead className="text-right text-muted-foreground">Earned</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {referralEarnings.map((earning) => (
-                      <TableRow key={earning.id} className="border-border">
-                        <TableCell className="text-foreground text-xs">{earning.date}</TableCell>
-                        <TableCell className="text-foreground text-xs">{earning.username}</TableCell>
-                        <TableCell className="text-right text-green-500 font-medium text-xs">${earning.amount.toFixed(2)}</TableCell>
+              {/* Earnings History */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-foreground">Recent Earnings</h3>
+                  <span className="text-xs text-muted-foreground">Total: <span className="text-green-500 font-bold">${referralData.totalEarnings.toFixed(2)}</span></span>
+                </div>
+                <div className="rounded-lg border border-border overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-border bg-muted/50 hover:bg-muted/50">
+                        <TableHead className="text-muted-foreground text-xs h-9">Date</TableHead>
+                        <TableHead className="text-muted-foreground text-xs h-9">Source</TableHead>
+                        <TableHead className="text-right text-muted-foreground text-xs h-9">Earned</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </ScrollArea>
-
-              {/* Total Earnings */}
-              <div className="p-4 rounded-xl bg-card border border-border">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Total Earnings</span>
-                  <span className="text-xl font-bold text-green-500">${referralData.totalEarnings.toFixed(2)}</span>
+                    </TableHeader>
+                    <TableBody>
+                      {referralEarnings.map((e) => (
+                        <TableRow key={e.id} className="border-border">
+                          <TableCell className="text-xs text-foreground py-2">{e.date}</TableCell>
+                          <TableCell className="text-xs py-2">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${e.source === "Futures" ? "bg-primary/15 text-primary" : "bg-muted text-foreground"}`}>
+                              {e.source} • {e.pct}%
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right text-xs font-semibold text-green-500 py-2">${e.amount.toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               </div>
 
-              {/* Smart Contract Addresses */}
+              {/* Promo Materials */}
               <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-xs font-medium text-muted-foreground">Smart Contract Addresses</span>
-                </div>
-                <ScrollArea className="h-[100px]">
-                  <div className="space-y-2">
-                    {referralEarnings.map((earning) => (
-                      <div key={earning.id} className="p-2 rounded-lg bg-muted/50 flex items-center justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-muted-foreground truncate">{earning.contractAddress}</p>
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                  <Download className="h-4 w-4 text-primary" /> Promo Materials
+                </h3>
+                <div className="space-y-1.5">
+                  {promoMaterials.map((m) => (
+                    <div key={m.id} className="flex items-center justify-between p-2.5 rounded-lg bg-card border border-border">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="h-8 w-8 rounded-md bg-primary/15 flex items-center justify-center flex-shrink-0">
+                          <FileText className="h-4 w-4 text-primary" />
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 flex-shrink-0"
-                          onClick={() => {
-                            navigator.clipboard.writeText(earning.contractAddress);
-                            toast.success("Contract address copied!");
-                          }}
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium text-foreground truncate">{m.name}</p>
+                          <p className="text-[10px] text-muted-foreground">{m.type} • {m.size}</p>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </div>
-            </div>
-
-            {/* How it works */}
-            <div className="space-y-3">
-              <h3 className="font-semibold text-foreground">How it works</h3>
-              <div className="space-y-2">
-                <div className="flex items-start gap-3">
-                  <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                    <span className="text-xs font-bold text-primary">1</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">Share your referral code with friends</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                    <span className="text-xs font-bold text-primary">2</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">They sign up and complete first trade</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                    <span className="text-xs font-bold text-primary">3</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">You both earn $5 USDC bonus!</p>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 flex-shrink-0"
+                        onClick={() => toast.success(`${m.name} downloaded`)}
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
 
-            {/* Share Buttons */}
-            <div className="grid grid-cols-2 gap-3">
+              {/* Withdraw button */}
               <Button
-                variant="outline"
-                className="h-12 border-border"
-                onClick={copyReferralLink}
+                className="w-full h-12 bg-gradient-primary hover:opacity-90 font-semibold"
+                onClick={() => toast.success(`Requesting withdrawal of $${referralData.pendingRewards.toFixed(2)}`)}
               >
-                <Copy className="h-4 w-4 mr-2" />
-                Copy Link
-              </Button>
-              <Button
-                className="h-12 bg-gradient-primary hover:opacity-90"
-                onClick={shareReferral}
-              >
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
+                <Wallet2 className="h-4 w-4 mr-2" />
+                Withdraw ${referralData.pendingRewards.toFixed(2)} USDC
               </Button>
             </div>
-          </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 
