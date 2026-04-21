@@ -512,20 +512,27 @@ export default function Settings() {
               </div>
 
               {/* Volume cards by source */}
-              <div className="grid grid-cols-2 gap-2.5">
-                <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
-                    <TrendingUp className="h-3 w-3" /> Futures Volume
+              <div className="grid grid-cols-3 gap-2">
+                <div className="p-2.5 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-1">
+                    <TrendingUp className="h-3 w-3" /> Futures
                   </div>
-                  <p className="text-base font-bold text-foreground">${referralData.futuresVolume.toLocaleString()}</p>
-                  <p className="text-xs text-primary mt-0.5">25% commission</p>
+                  <p className="text-sm font-bold text-foreground">${(referralData.futuresVolume / 1000).toFixed(1)}K</p>
+                  <p className="text-[10px] text-primary mt-0.5">25% comm.</p>
                 </div>
-                <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
-                    <Banknote className="h-3 w-3" /> Fiat Volume
+                <div className="p-2.5 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-1">
+                    <Banknote className="h-3 w-3" /> Fiat
                   </div>
-                  <p className="text-base font-bold text-foreground">${referralData.fiatVolume.toLocaleString()}</p>
-                  <p className="text-xs text-primary mt-0.5">15% commission</p>
+                  <p className="text-sm font-bold text-foreground">${(referralData.fiatVolume / 1000).toFixed(1)}K</p>
+                  <p className="text-[10px] text-primary mt-0.5">15% comm.</p>
+                </div>
+                <div className="p-2.5 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-1">
+                    <ArrowRightLeft className="h-3 w-3" /> Swap
+                  </div>
+                  <p className="text-sm font-bold text-foreground">${(referralData.swapVolume / 1000).toFixed(1)}K</p>
+                  <p className="text-[10px] text-primary mt-0.5">18% comm.</p>
                 </div>
               </div>
 
@@ -538,10 +545,11 @@ export default function Settings() {
                   <Table>
                     <TableHeader>
                       <TableRow className="border-border bg-muted/50 hover:bg-muted/50">
-                        <TableHead className="text-muted-foreground text-xs h-9">Tier</TableHead>
-                        <TableHead className="text-muted-foreground text-xs h-9">Clients</TableHead>
-                        <TableHead className="text-right text-muted-foreground text-xs h-9">Futures</TableHead>
-                        <TableHead className="text-right text-muted-foreground text-xs h-9">Fiat</TableHead>
+                        <TableHead className="text-muted-foreground text-[10px] h-9 px-2">Tier</TableHead>
+                        <TableHead className="text-muted-foreground text-[10px] h-9 px-2">Clients</TableHead>
+                        <TableHead className="text-right text-muted-foreground text-[10px] h-9 px-2">Futures</TableHead>
+                        <TableHead className="text-right text-muted-foreground text-[10px] h-9 px-2">Fiat</TableHead>
+                        <TableHead className="text-right text-muted-foreground text-[10px] h-9 px-2">Swap</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -550,15 +558,16 @@ export default function Settings() {
                           key={t.tier}
                           className={`border-border ${t.current ? "bg-primary/10 hover:bg-primary/15" : ""}`}
                         >
-                          <TableCell className="text-xs font-medium text-foreground py-2">
-                            <div className="flex items-center gap-1.5">
+                          <TableCell className="text-[11px] font-medium text-foreground py-2 px-2">
+                            <div className="flex items-center gap-1">
                               {t.tier}
-                              {t.current && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">YOU</span>}
+                              {t.current && <span className="text-[8px] px-1 py-0.5 rounded-full bg-primary text-primary-foreground">YOU</span>}
                             </div>
                           </TableCell>
-                          <TableCell className="text-xs text-muted-foreground py-2">{t.clients}</TableCell>
-                          <TableCell className="text-right text-xs font-semibold text-primary py-2">{t.futuresPct}%</TableCell>
-                          <TableCell className="text-right text-xs font-semibold text-primary py-2">{t.fiatPct}%</TableCell>
+                          <TableCell className="text-[11px] text-muted-foreground py-2 px-2">{t.clients}</TableCell>
+                          <TableCell className="text-right text-[11px] font-semibold text-primary py-2 px-2">{t.futuresPct}%</TableCell>
+                          <TableCell className="text-right text-[11px] font-semibold text-primary py-2 px-2">{t.fiatPct}%</TableCell>
+                          <TableCell className="text-right text-[11px] font-semibold text-primary py-2 px-2">{t.swapPct}%</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
