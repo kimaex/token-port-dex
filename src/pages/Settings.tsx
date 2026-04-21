@@ -46,24 +46,27 @@ const referralData = {
   thisMonthEarnings: 412.30,
   futuresVolume: 184250.75,
   fiatVolume: 92480.20,
+  swapVolume: 67890.45,
   referralLink: "https://kimaex.app/ref/KIMAEX2024",
 };
 
-// FXPro-style IB tier table — % commission on Crypto Futures & Fiat
+// FXPro-style IB tier table — % commission on Futures, Fiat & Swap
 const ibTiers = [
-  { tier: "Bronze", clients: "1-10", futuresPct: 15, fiatPct: 10 },
-  { tier: "Silver", clients: "11-50", futuresPct: 25, fiatPct: 15, current: true },
-  { tier: "Gold", clients: "51-100", futuresPct: 35, fiatPct: 20 },
-  { tier: "Platinum", clients: "100+", futuresPct: 50, fiatPct: 30 },
+  { tier: "Bronze", clients: "1-10", futuresPct: 15, fiatPct: 10, swapPct: 10 },
+  { tier: "Silver", clients: "11-50", futuresPct: 25, fiatPct: 15, swapPct: 18, current: true },
+  { tier: "Gold", clients: "51-100", futuresPct: 35, fiatPct: 20, swapPct: 25 },
+  { tier: "Platinum", clients: "100+", futuresPct: 50, fiatPct: 30, swapPct: 35 },
 ];
 
-// Earnings history with source (Futures / Fiat) and commission %
+// Earnings history with source (Futures / Fiat / Swap) and commission %
 const referralEarnings = [
   { id: 1, date: "2024-01-15", username: "user***42", amount: 45.20, source: "Futures", pct: 25, contractAddress: "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD35" },
   { id: 2, date: "2024-01-12", username: "trad***89", amount: 32.50, source: "Fiat", pct: 15, contractAddress: "0x8Ba1f109551bD432803012645Ac136ddd64DBA72" },
-  { id: 3, date: "2024-01-10", username: "cry***21", amount: 28.75, source: "Futures", pct: 25, contractAddress: "0xdD2FD4581271e230360230F9337D5c0430Bf44C0" },
-  { id: 4, date: "2024-01-08", username: "dex***55", amount: 52.30, source: "Futures", pct: 25, contractAddress: "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec" },
-  { id: 5, date: "2024-01-05", username: "kim***33", amount: 76.00, source: "Fiat", pct: 15, contractAddress: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB" },
+  { id: 3, date: "2024-01-11", username: "swp***07", amount: 18.40, source: "Swap", pct: 18, contractAddress: "0x9F8e6b51A2e09F4d3c2A8C4b21fE99e3D9aA1b22" },
+  { id: 4, date: "2024-01-10", username: "cry***21", amount: 28.75, source: "Futures", pct: 25, contractAddress: "0xdD2FD4581271e230360230F9337D5c0430Bf44C0" },
+  { id: 5, date: "2024-01-08", username: "dex***55", amount: 52.30, source: "Futures", pct: 25, contractAddress: "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec" },
+  { id: 6, date: "2024-01-06", username: "swp***14", amount: 22.10, source: "Swap", pct: 18, contractAddress: "0x3aE5c1B8f7Da4e0917b6c8FfE1aD5bC30E22dE91" },
+  { id: 7, date: "2024-01-05", username: "kim***33", amount: 76.00, source: "Fiat", pct: 15, contractAddress: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB" },
 ];
 
 // FXPro IB-style promo materials
