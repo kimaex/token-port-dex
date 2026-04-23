@@ -69,6 +69,25 @@ const referralEarnings = [
   { id: 7, date: "2024-01-05", username: "kim***33", amount: 76.00, source: "Fiat", pct: 15, contractAddress: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB" },
 ];
 
+// Kimaex Partners Benefit Program — volume milestones & rewards
+const benefitMilestones = [
+  { volume: "200K", reward: "Partner badge & merchandise", icon: "🎖️" },
+  { volume: "200M", reward: "Digital gift cards for $200", icon: "🎁" },
+  { volume: "500M", reward: "$700 in Cash", icon: "💵" },
+  { volume: "1B", reward: "Top Model Phone", icon: "📱" },
+  { volume: "2B", reward: "$2,000 in Cash", icon: "💰" },
+  { volume: "5B", reward: "$4,000 in Cash", icon: "💰" },
+  { volume: "10B", reward: "Luxury trip for 2 people", icon: "✈️" },
+  { volume: "20B", reward: "$15,000 in Cash", icon: "💎" },
+  { volume: "50B", reward: "Luxury Watch", icon: "⌚" },
+  { volume: "100B", reward: "$40,000 in Cash", icon: "🏆" },
+  { volume: "200B", reward: "$80,000 in Cash", icon: "👑" },
+  { volume: "400B", reward: "Premium Sports Car", icon: "🏎️" },
+];
+
+// Current achieved milestone index (mock — Silver tier user just joined)
+const currentMilestoneIndex = 0;
+
 // FXPro IB-style promo materials
 const promoMaterials = [
   { id: 1, name: "Banner 728x90", type: "Image", size: "45 KB" },
