@@ -270,6 +270,21 @@ const Auth = () => {
             </Button>
           </div>
 
+          {/* Inline referral code */}
+          <div className="mt-4 space-y-1.5">
+            <Label htmlFor="referral-create" className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Users className="h-3 w-3" /> Referral Code (Optional)
+            </Label>
+            <Input
+              id="referral-create"
+              type="text"
+              placeholder="Enter referrer's username"
+              value={referralUsername}
+              onChange={(e) => setReferralUsername(e.target.value)}
+              className="rounded-xl h-11"
+            />
+          </div>
+
           <Button onClick={handleProceedToVerify} className="w-full mt-4 h-13 rounded-xl font-semibold" size="lg" disabled={!showSeedPhrase}>
             I've Saved It <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
@@ -347,6 +362,21 @@ const Auth = () => {
                 />
               </div>
             ))}
+          </div>
+
+          {/* Inline referral code */}
+          <div className="mt-4 space-y-1.5">
+            <Label htmlFor="referral-import" className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Users className="h-3 w-3" /> Referral Code (Optional)
+            </Label>
+            <Input
+              id="referral-import"
+              type="text"
+              placeholder="Enter referrer's username"
+              value={referralUsername}
+              onChange={(e) => setReferralUsername(e.target.value)}
+              className="rounded-xl h-11"
+            />
           </div>
 
           <Button onClick={handleImportWallet} className="w-full mt-4 h-13 rounded-xl font-semibold" size="lg" disabled={importSeedPhrase.filter(w => w.length > 0).length !== 12}>
