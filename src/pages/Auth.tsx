@@ -84,6 +84,9 @@ const Auth = () => {
     );
     if (isValid) {
       localStorage.setItem("walletSeedPhrase", generatedSeedPhrase.join(" "));
+      if (referralUsername.trim()) {
+        localStorage.setItem("referredBy", referralUsername.trim());
+      }
       toast.success("Wallet created successfully!");
       setCurrentStep("referral");
     } else {
@@ -99,6 +102,9 @@ const Auth = () => {
       return;
     }
     localStorage.setItem("walletSeedPhrase", phrase);
+    if (referralUsername.trim()) {
+      localStorage.setItem("referredBy", referralUsername.trim());
+    }
     toast.success("Wallet imported successfully!");
     setCurrentStep("referral");
   };
