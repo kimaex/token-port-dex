@@ -21,6 +21,8 @@ import GovernmentBonds from "./pages/GovernmentBonds";
 import SpinWin from "./pages/SpinWin";
 import CopyTrading from "./pages/CopyTrading";
 import Notifications from "./pages/Notifications";
+import Send from "./pages/Send";
+import Receive from "./pages/Receive";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -50,6 +52,8 @@ const App = () => (
             <Route path="/spin-win" element={<SpinWin />} />
             <Route path="/copy-trading" element={<CopyTrading />} />
             <Route path="/notifications" element={<Notifications />} />
+            <Route path="/send" element={<Send />} />
+            <Route path="/receive" element={<Receive />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

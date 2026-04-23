@@ -156,8 +156,8 @@ const Receive = () => {
           </Button>
         </div>
 
-        <div className="rounded-lg bg-yellow-500/10 border border-yellow-500/30 p-3">
-          <p className="text-xs text-yellow-600 dark:text-yellow-400">
+        <div className="rounded-lg bg-primary/10 border border-primary/30 p-3">
+          <p className="text-xs text-primary">
             ⚠ Only send {selectedAsset.symbol} via {selectedNetwork.name} to this address. Other assets or networks will be lost permanently.
           </p>
         </div>
