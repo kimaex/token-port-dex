@@ -306,7 +306,7 @@ const DCATrading = () => {
                 <span className="text-xs text-muted-foreground">To buy</span>
               </div>
               <button
-                onClick={() => setPickerOpen("to")}
+                onClick={() => setPickerOpen(true)}
                 className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-muted/60 transition-colors"
               >
                 <div className="flex items-center gap-3">
