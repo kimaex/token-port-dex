@@ -429,32 +429,56 @@ const DCATrading = () => {
       </div>
 
       {/* Token picker */}
-      <Dialog open={pickerOpen !== null} onOpenChange={(o) => !o && setPickerOpen(null)}>
-        <DialogContent className="max-w-md">
+      <Dialog open={pickerOpen} onOpenChange={(o) => { setPickerOpen(o); if (!o) setSearch(""); }}>
+        <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>Select token</DialogTitle>
+            <DialogTitle>Select token to buy</DialogTitle>
           </DialogHeader>
-          <div className="space-y-1 pt-2">
-            {TOKENS.map((t) => (
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              autoFocus
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search name, symbol or paste address"
+              className="pl-9 pr-9 h-11"
+            />
+            {search && (
               <button
-                key={t.symbol}
-                onClick={() => selectToken(t.symbol)}
-                className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors"
+                onClick={() => setSearch("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
               >
-                <div className="flex items-center gap-3">
-                  <div className={`h-9 w-9 rounded-full ${t.color} flex items-center justify-center text-white text-sm font-bold`}>
-                    {t.symbol.slice(0, 1)}
-                  </div>
-                  <div className="text-left">
-                    <p className="text-sm font-semibold">{t.symbol}</p>
-                    <p className="text-[11px] text-muted-foreground">{t.name}</p>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t.balance.toLocaleString(undefined, { maximumFractionDigits: 4 })}
-                </p>
+                <X className="h-3.5 w-3.5 text-muted-foreground" />
               </button>
-            ))}
+            )}
+          </div>
+          <div className="space-y-1 pt-2 overflow-y-auto flex-1 -mx-2 px-2">
+            {filteredTokens.length === 0 ? (
+              <div className="py-8 text-center text-xs text-muted-foreground">
+                No tokens found for "{search}"
+              </div>
+            ) : (
+              filteredTokens.map((t) => (
+                <button
+                  key={t.symbol}
+                  onClick={() => selectToken(t.symbol)}
+                  className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={`h-9 w-9 rounded-full ${t.color} flex items-center justify-center text-white text-sm font-bold shrink-0`}>
+                      {t.symbol.slice(0, 1)}
+                    </div>
+                    <div className="text-left min-w-0">
+                      <p className="text-sm font-semibold">{t.symbol}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{t.name}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground shrink-0 ml-2">
+                    ${t.price < 0.01 ? t.price.toExponential(2) : t.price.toLocaleString()}
+                  </p>
+                </button>
+              ))
+            )}
           </div>
         </DialogContent>
       </Dialog>
