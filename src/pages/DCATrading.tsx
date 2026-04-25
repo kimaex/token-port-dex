@@ -84,17 +84,18 @@ const DCATrading = () => {
 
   const [tab, setTab] = useState<"create" | "active" | "history">("create");
 
-  // Create form state
-  const [from, setFrom] = useState("USDC");
+  // Create form state — spending is always USDC
+  const from = "USDC";
   const [to, setTo] = useState("SOL");
   const [amount, setAmount] = useState("");
   const [orders, setOrders] = useState("10");
   const [every, setEvery] = useState("1");
   const [freq, setFreq] = useState<Frequency>("day");
-  const [pickerOpen, setPickerOpen] = useState<null | "from" | "to">(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
-  const fromToken = TOKENS.find((t) => t.symbol === from)!;
-  const toToken = TOKENS.find((t) => t.symbol === to)!;
+  const fromToken = USDC;
+  const toToken = ALL_TOKENS.find((t) => t.symbol === to) ?? BUY_TOKENS[0];
 
   const totalAmount = parseFloat(amount) || 0;
   const orderCount = Math.max(1, parseInt(orders) || 1);
