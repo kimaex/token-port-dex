@@ -280,16 +280,12 @@ const DCATrading = () => {
                   onChange={(e) => setAmount(e.target.value)}
                   className="border-0 bg-transparent text-2xl font-bold p-0 h-auto focus-visible:ring-0 shadow-none"
                 />
-                <button
-                  onClick={() => setPickerOpen("from")}
-                  className="flex items-center gap-2 px-3 py-2 rounded-full bg-muted hover:bg-muted/80 transition-colors shrink-0"
-                >
+                <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-muted shrink-0">
                   <div className={`h-6 w-6 rounded-full ${fromToken.color} flex items-center justify-center text-white text-[10px] font-bold`}>
-                    {from.slice(0, 1)}
+                    $
                   </div>
                   <span className="text-sm font-semibold">{from}</span>
-                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-                </button>
+                </div>
               </div>
               <div className="flex gap-1.5 pt-1">
                 {[25, 50, 75, 100].map((pct) => (
