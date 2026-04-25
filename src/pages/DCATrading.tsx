@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ChevronDown, Info, Pause, Play, Trash2, Settings2, Wallet, TrendingUp } from "lucide-react";
+import { ArrowLeft, ChevronDown, Info, Pause, Play, Trash2, Settings2, Wallet, TrendingUp, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,15 +18,32 @@ interface Token {
   price: number;
   color: string;
   balance: number;
+  address?: string;
 }
 
-const TOKENS: Token[] = [
-  { symbol: "USDC", name: "USD Coin", price: 1, color: "bg-sky-500", balance: 1250.45 },
-  { symbol: "USDT", name: "Tether", price: 1, color: "bg-emerald-500", balance: 320.10 },
-  { symbol: "SOL", name: "Solana", price: 168, color: "bg-purple-500", balance: 4.21 },
-  { symbol: "BTC", name: "Bitcoin", price: 67500, color: "bg-orange-500", balance: 0.012 },
-  { symbol: "ETH", name: "Ethereum", price: 3450, color: "bg-blue-500", balance: 0.45 },
+// USDC is the only spending token
+const USDC: Token = { symbol: "USDC", name: "USD Coin", price: 1, color: "bg-sky-500", balance: 1250.45 };
+
+// Buyable tokens (searchable by name, symbol, or contract address)
+const BUY_TOKENS: Token[] = [
+  { symbol: "SOL", name: "Solana", price: 168, color: "bg-purple-500", balance: 4.21, address: "So11111111111111111111111111111111111111112" },
+  { symbol: "BTC", name: "Bitcoin", price: 67500, color: "bg-orange-500", balance: 0.012, address: "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599" },
+  { symbol: "ETH", name: "Ethereum", price: 3450, color: "bg-blue-500", balance: 0.45, address: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" },
+  { symbol: "USDT", name: "Tether", price: 1, color: "bg-emerald-500", balance: 320.10, address: "0xdac17f958d2ee523a2206206994597c13d831ec7" },
+  { symbol: "BNB", name: "BNB", price: 615, color: "bg-yellow-500", balance: 0, address: "0xb8c77482e45f1f44de1745f52c74426c631bdd52" },
+  { symbol: "XRP", name: "XRP", price: 0.62, color: "bg-slate-500", balance: 0, address: "rXRPxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" },
+  { symbol: "DOGE", name: "Dogecoin", price: 0.16, color: "bg-amber-500", balance: 0, address: "DOGExxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" },
+  { symbol: "ADA", name: "Cardano", price: 0.48, color: "bg-indigo-500", balance: 0, address: "ADAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" },
+  { symbol: "AVAX", name: "Avalanche", price: 38.5, color: "bg-red-500", balance: 0, address: "0x85f138bfee4ef8e540890cfb48f620571d67eda3" },
+  { symbol: "LINK", name: "Chainlink", price: 18.2, color: "bg-blue-600", balance: 0, address: "0x514910771af9ca656af840dff83e8264ecf986ca" },
+  { symbol: "MATIC", name: "Polygon", price: 0.72, color: "bg-violet-500", balance: 0, address: "0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0" },
+  { symbol: "JUP", name: "Jupiter", price: 1.05, color: "bg-pink-500", balance: 0, address: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN" },
+  { symbol: "WIF", name: "dogwifhat", price: 2.85, color: "bg-rose-500", balance: 0, address: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm" },
+  { symbol: "PEPE", name: "Pepe", price: 0.0000095, color: "bg-green-500", balance: 0, address: "0x6982508145454ce325ddbe47a25d4ec3d2311933" },
+  { symbol: "BONK", name: "Bonk", price: 0.0000218, color: "bg-orange-600", balance: 0, address: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263" },
 ];
+
+const ALL_TOKENS: Token[] = [USDC, ...BUY_TOKENS];
 
 const FREQUENCY_LABEL: Record<Frequency, string> = {
   minute: "Minute",
@@ -67,17 +84,18 @@ const DCATrading = () => {
 
   const [tab, setTab] = useState<"create" | "active" | "history">("create");
 
-  // Create form state
-  const [from, setFrom] = useState("USDC");
+  // Create form state — spending is always USDC
+  const from = "USDC";
   const [to, setTo] = useState("SOL");
   const [amount, setAmount] = useState("");
   const [orders, setOrders] = useState("10");
   const [every, setEvery] = useState("1");
   const [freq, setFreq] = useState<Frequency>("day");
-  const [pickerOpen, setPickerOpen] = useState<null | "from" | "to">(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
-  const fromToken = TOKENS.find((t) => t.symbol === from)!;
-  const toToken = TOKENS.find((t) => t.symbol === to)!;
+  const fromToken = USDC;
+  const toToken = ALL_TOKENS.find((t) => t.symbol === to) ?? BUY_TOKENS[0];
 
   const totalAmount = parseFloat(amount) || 0;
   const orderCount = Math.max(1, parseInt(orders) || 1);
@@ -188,10 +206,21 @@ const DCATrading = () => {
   };
 
   const selectToken = (sym: string) => {
-    if (pickerOpen === "from") setFrom(sym);
-    if (pickerOpen === "to") setTo(sym);
-    setPickerOpen(null);
+    setTo(sym);
+    setPickerOpen(false);
+    setSearch("");
   };
+
+  const filteredTokens = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return BUY_TOKENS;
+    return BUY_TOKENS.filter(
+      (t) =>
+        t.symbol.toLowerCase().includes(q) ||
+        t.name.toLowerCase().includes(q) ||
+        (t.address?.toLowerCase().includes(q) ?? false)
+    );
+  }, [search]);
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -251,16 +280,12 @@ const DCATrading = () => {
                   onChange={(e) => setAmount(e.target.value)}
                   className="border-0 bg-transparent text-2xl font-bold p-0 h-auto focus-visible:ring-0 shadow-none"
                 />
-                <button
-                  onClick={() => setPickerOpen("from")}
-                  className="flex items-center gap-2 px-3 py-2 rounded-full bg-muted hover:bg-muted/80 transition-colors shrink-0"
-                >
+                <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-muted shrink-0">
                   <div className={`h-6 w-6 rounded-full ${fromToken.color} flex items-center justify-center text-white text-[10px] font-bold`}>
-                    {from.slice(0, 1)}
+                    $
                   </div>
                   <span className="text-sm font-semibold">{from}</span>
-                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-                </button>
+                </div>
               </div>
               <div className="flex gap-1.5 pt-1">
                 {[25, 50, 75, 100].map((pct) => (
@@ -281,7 +306,7 @@ const DCATrading = () => {
                 <span className="text-xs text-muted-foreground">To buy</span>
               </div>
               <button
-                onClick={() => setPickerOpen("to")}
+                onClick={() => setPickerOpen(true)}
                 className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-muted/60 transition-colors"
               >
                 <div className="flex items-center gap-3">
@@ -404,32 +429,56 @@ const DCATrading = () => {
       </div>
 
       {/* Token picker */}
-      <Dialog open={pickerOpen !== null} onOpenChange={(o) => !o && setPickerOpen(null)}>
-        <DialogContent className="max-w-md">
+      <Dialog open={pickerOpen} onOpenChange={(o) => { setPickerOpen(o); if (!o) setSearch(""); }}>
+        <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>Select token</DialogTitle>
+            <DialogTitle>Select token to buy</DialogTitle>
           </DialogHeader>
-          <div className="space-y-1 pt-2">
-            {TOKENS.map((t) => (
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              autoFocus
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search name, symbol or paste address"
+              className="pl-9 pr-9 h-11"
+            />
+            {search && (
               <button
-                key={t.symbol}
-                onClick={() => selectToken(t.symbol)}
-                className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors"
+                onClick={() => setSearch("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
               >
-                <div className="flex items-center gap-3">
-                  <div className={`h-9 w-9 rounded-full ${t.color} flex items-center justify-center text-white text-sm font-bold`}>
-                    {t.symbol.slice(0, 1)}
-                  </div>
-                  <div className="text-left">
-                    <p className="text-sm font-semibold">{t.symbol}</p>
-                    <p className="text-[11px] text-muted-foreground">{t.name}</p>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t.balance.toLocaleString(undefined, { maximumFractionDigits: 4 })}
-                </p>
+                <X className="h-3.5 w-3.5 text-muted-foreground" />
               </button>
-            ))}
+            )}
+          </div>
+          <div className="space-y-1 pt-2 overflow-y-auto flex-1 -mx-2 px-2">
+            {filteredTokens.length === 0 ? (
+              <div className="py-8 text-center text-xs text-muted-foreground">
+                No tokens found for "{search}"
+              </div>
+            ) : (
+              filteredTokens.map((t) => (
+                <button
+                  key={t.symbol}
+                  onClick={() => selectToken(t.symbol)}
+                  className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={`h-9 w-9 rounded-full ${t.color} flex items-center justify-center text-white text-sm font-bold shrink-0`}>
+                      {t.symbol.slice(0, 1)}
+                    </div>
+                    <div className="text-left min-w-0">
+                      <p className="text-sm font-semibold">{t.symbol}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{t.name}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground shrink-0 ml-2">
+                    ${t.price < 0.01 ? t.price.toExponential(2) : t.price.toLocaleString()}
+                  </p>
+                </button>
+              ))
+            )}
           </div>
         </DialogContent>
       </Dialog>
@@ -448,8 +497,8 @@ interface PlanCardProps {
 }
 
 const PlanCard = ({ plan, onToggle, onDelete, formatPrice, readOnly }: PlanCardProps) => {
-  const fromToken = TOKENS.find((t) => t.symbol === plan.from)!;
-  const toToken = TOKENS.find((t) => t.symbol === plan.to)!;
+  const fromToken = ALL_TOKENS.find((t) => t.symbol === plan.from) ?? USDC;
+  const toToken = ALL_TOKENS.find((t) => t.symbol === plan.to) ?? BUY_TOKENS[0];
   const progress = (plan.ordersDone / plan.ordersTotal) * 100;
 
   return (
