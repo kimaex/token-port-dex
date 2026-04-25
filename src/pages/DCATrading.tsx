@@ -206,10 +206,21 @@ const DCATrading = () => {
   };
 
   const selectToken = (sym: string) => {
-    if (pickerOpen === "from") setFrom(sym);
-    if (pickerOpen === "to") setTo(sym);
-    setPickerOpen(null);
+    setTo(sym);
+    setPickerOpen(false);
+    setSearch("");
   };
+
+  const filteredTokens = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return BUY_TOKENS;
+    return BUY_TOKENS.filter(
+      (t) =>
+        t.symbol.toLowerCase().includes(q) ||
+        t.name.toLowerCase().includes(q) ||
+        (t.address?.toLowerCase().includes(q) ?? false)
+    );
+  }, [search]);
 
   return (
     <div className="min-h-screen bg-background pb-24">
