@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ChevronDown, Info, Pause, Play, Trash2, Settings2, Wallet, TrendingUp } from "lucide-react";
+import { ArrowLeft, ChevronDown, Info, Pause, Play, Trash2, Settings2, Wallet, TrendingUp, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
