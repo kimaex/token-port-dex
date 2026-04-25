@@ -497,8 +497,8 @@ interface PlanCardProps {
 }
 
 const PlanCard = ({ plan, onToggle, onDelete, formatPrice, readOnly }: PlanCardProps) => {
-  const fromToken = TOKENS.find((t) => t.symbol === plan.from)!;
-  const toToken = TOKENS.find((t) => t.symbol === plan.to)!;
+  const fromToken = ALL_TOKENS.find((t) => t.symbol === plan.from) ?? USDC;
+  const toToken = ALL_TOKENS.find((t) => t.symbol === plan.to) ?? BUY_TOKENS[0];
   const progress = (plan.ordersDone / plan.ordersTotal) * 100;
 
   return (
