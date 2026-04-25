@@ -18,15 +18,32 @@ interface Token {
   price: number;
   color: string;
   balance: number;
+  address?: string;
 }
 
-const TOKENS: Token[] = [
-  { symbol: "USDC", name: "USD Coin", price: 1, color: "bg-sky-500", balance: 1250.45 },
-  { symbol: "USDT", name: "Tether", price: 1, color: "bg-emerald-500", balance: 320.10 },
-  { symbol: "SOL", name: "Solana", price: 168, color: "bg-purple-500", balance: 4.21 },
-  { symbol: "BTC", name: "Bitcoin", price: 67500, color: "bg-orange-500", balance: 0.012 },
-  { symbol: "ETH", name: "Ethereum", price: 3450, color: "bg-blue-500", balance: 0.45 },
+// USDC is the only spending token
+const USDC: Token = { symbol: "USDC", name: "USD Coin", price: 1, color: "bg-sky-500", balance: 1250.45 };
+
+// Buyable tokens (searchable by name, symbol, or contract address)
+const BUY_TOKENS: Token[] = [
+  { symbol: "SOL", name: "Solana", price: 168, color: "bg-purple-500", balance: 4.21, address: "So11111111111111111111111111111111111111112" },
+  { symbol: "BTC", name: "Bitcoin", price: 67500, color: "bg-orange-500", balance: 0.012, address: "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599" },
+  { symbol: "ETH", name: "Ethereum", price: 3450, color: "bg-blue-500", balance: 0.45, address: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" },
+  { symbol: "USDT", name: "Tether", price: 1, color: "bg-emerald-500", balance: 320.10, address: "0xdac17f958d2ee523a2206206994597c13d831ec7" },
+  { symbol: "BNB", name: "BNB", price: 615, color: "bg-yellow-500", balance: 0, address: "0xb8c77482e45f1f44de1745f52c74426c631bdd52" },
+  { symbol: "XRP", name: "XRP", price: 0.62, color: "bg-slate-500", balance: 0, address: "rXRPxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" },
+  { symbol: "DOGE", name: "Dogecoin", price: 0.16, color: "bg-amber-500", balance: 0, address: "DOGExxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" },
+  { symbol: "ADA", name: "Cardano", price: 0.48, color: "bg-indigo-500", balance: 0, address: "ADAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" },
+  { symbol: "AVAX", name: "Avalanche", price: 38.5, color: "bg-red-500", balance: 0, address: "0x85f138bfee4ef8e540890cfb48f620571d67eda3" },
+  { symbol: "LINK", name: "Chainlink", price: 18.2, color: "bg-blue-600", balance: 0, address: "0x514910771af9ca656af840dff83e8264ecf986ca" },
+  { symbol: "MATIC", name: "Polygon", price: 0.72, color: "bg-violet-500", balance: 0, address: "0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0" },
+  { symbol: "JUP", name: "Jupiter", price: 1.05, color: "bg-pink-500", balance: 0, address: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN" },
+  { symbol: "WIF", name: "dogwifhat", price: 2.85, color: "bg-rose-500", balance: 0, address: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm" },
+  { symbol: "PEPE", name: "Pepe", price: 0.0000095, color: "bg-green-500", balance: 0, address: "0x6982508145454ce325ddbe47a25d4ec3d2311933" },
+  { symbol: "BONK", name: "Bonk", price: 0.0000218, color: "bg-orange-600", balance: 0, address: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263" },
 ];
+
+const ALL_TOKENS: Token[] = [USDC, ...BUY_TOKENS];
 
 const FREQUENCY_LABEL: Record<Frequency, string> = {
   minute: "Minute",
