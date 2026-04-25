@@ -41,7 +41,8 @@ const FREQUENCY_LABEL: Record<Frequency, string> = {
 
 const DCATrading = () => {
   const navigate = useNavigate();
-  const { formatAmount } = useCurrency();
+  const { formatPrice } = useCurrency();
+  const formatAmount = (n: number) => formatPrice(n);
 
   const [plans, setPlans] = useState<DCAPlan[]>([
     {
