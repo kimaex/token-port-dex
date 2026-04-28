@@ -408,15 +408,41 @@ const Auth = () => {
     navigate("/");
   };
 
-  // After auth: if wallet already exists on this device, go to home;
-  // otherwise prompt to create or import a non-custodial wallet.
-  const handleAuthenticated = () => {
+  // After auth: show referral prompt for new accounts (only once),
+  // then route to wallet setup or home.
+  const routeAfterAuth = () => {
     const hasWallet = !!localStorage.getItem("walletSeedPhrase");
     if (hasWallet) {
       navigate("/");
     } else {
       setCurrentStep("walletChoice");
     }
+  };
+
+  const handleAuthenticated = async (opts?: { isNewAccount?: boolean }) => {
+    const referralAlreadyAsked = localStorage.getItem("referralPromptShown") === "true";
+    let isNew = opts?.isNewAccount ?? false;
+
+    // For OAuth/session resume, infer "new" from Supabase metadata
+    if (!isNew) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.created_at && user.last_sign_in_at) {
+          const created = new Date(user.created_at).getTime();
+          const lastSignIn = new Date(user.last_sign_in_at).getTime();
+          // Within 60s of account creation = first sign-in
+          isNew = Math.abs(lastSignIn - created) < 60_000;
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    if (isNew && !referralAlreadyAsked) {
+      setCurrentStep("referralPrompt");
+      return;
+    }
+    routeAfterAuth();
   };
 
   // Detect OAuth redirect / existing session and route accordingly
@@ -429,9 +455,68 @@ const Auth = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleSubmitReferralPrompt = () => {
+    const code = referralUsername.trim();
+    if (code) {
+      localStorage.setItem("referredBy", code);
+      toast.success("Referral code applied!");
+    }
+    localStorage.setItem("referralPromptShown", "true");
+    routeAfterAuth();
+  };
+
+  const handleSkipReferralPrompt = () => {
+    localStorage.setItem("referralPromptShown", "true");
+    routeAfterAuth();
+  };
+
   // Welcome Step - Binance-style Login / Register tabs
   if (currentStep === "welcome") {
     return <BinanceWelcome onAuthenticated={handleAuthenticated} />;
+  }
+
+  // Referral prompt — shown once after first successful registration
+  if (currentStep === "referralPrompt") {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative">
+        <div className="absolute top-[-10%] left-[20%] w-[40%] h-[40%] rounded-full bg-primary/8 blur-[100px]" />
+        <div className="max-w-md w-full space-y-6 relative z-10">
+          <div className="text-center">
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <Users className="w-7 h-7 text-primary" />
+            </div>
+            <h1 className="text-xl font-bold text-foreground">Got a referral code?</h1>
+            <p className="text-sm text-muted-foreground mt-1.5 max-w-xs mx-auto">
+              Enter a friend's username to unlock bonus rewards on your trades and swaps.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="referral-prompt" className="text-xs text-muted-foreground">
+              Referral Username (Optional)
+            </Label>
+            <Input
+              id="referral-prompt"
+              type="text"
+              placeholder="Enter referrer's username"
+              value={referralUsername}
+              onChange={(e) => setReferralUsername(e.target.value.slice(0, 50))}
+              maxLength={50}
+              className="rounded-xl h-12"
+            />
+          </div>
+
+          <div className="space-y-3">
+            <Button onClick={handleSubmitReferralPrompt} className="w-full h-12 rounded-xl font-semibold" size="lg">
+              Apply & Continue <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+            <Button onClick={handleSkipReferralPrompt} variant="ghost" className="w-full">
+              Skip for now
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // After login with no wallet — choose Create or Import
