@@ -36,35 +36,109 @@ const WORD_LIST = [
 
 // ============ Binance-style Welcome (Login / Register) ============
 type WelcomeTab = "login" | "register";
-type WelcomeMethod = "email" | "phone";
 
-const BinanceWelcome = ({ onLogin, onRegister }: { onLogin: () => void; onRegister: () => void }) => {
+const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: () => void }) => {
   const [tab, setTab] = useState<WelcomeTab>("login");
-  const [method, setMethod] = useState<WelcomeMethod>("email");
-  const [identifier, setIdentifier] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [agreed, setAgreed] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [pendingVerification, setPendingVerification] = useState<string | null>(null);
 
-  const handleSubmit = () => {
-    if (!identifier.trim()) {
-      toast.error(method === "email" ? "Please enter your email" : "Please enter your phone");
+  const handleSubmit = async () => {
+    if (!email.trim()) {
+      toast.error("Please enter your email");
       return;
     }
     if (!password || password.length < 6) {
       toast.error("Password must be at least 6 characters");
       return;
     }
-    // Decentralized: credentials are stored locally only as a UX label/lock.
-    // The actual wallet is controlled by the seed phrase — never sent to a server.
-    localStorage.setItem("kimaexAccountId", identifier.trim());
-    localStorage.setItem("kimaexAccountMethod", method);
-    if (tab === "login") {
-      onLogin();
-    } else {
-      onRegister();
+    setLoading(true);
+    try {
+      if (tab === "register") {
+        const { error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: { emailRedirectTo: `${window.location.origin}/auth` },
+        });
+        if (error) {
+          if (error.message.toLowerCase().includes("registered")) {
+            toast.error("Email already registered. Try logging in.");
+          } else {
+            toast.error(error.message);
+          }
+          return;
+        }
+        setPendingVerification(email.trim());
+        toast.success("Check your email to verify your account");
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+        if (error) {
+          if (error.message.toLowerCase().includes("email not confirmed")) {
+            toast.error("Please verify your email first");
+            setPendingVerification(email.trim());
+          } else {
+            toast.error("Invalid email or password");
+          }
+          return;
+        }
+        toast.success("Welcome back!");
+        onAuthenticated();
+      }
+    } catch (e) {
+      toast.error("Something went wrong. Try again.");
+    } finally {
+      setLoading(false);
     }
   };
+
+  const handleGoogle = async () => {
+    setLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/auth`,
+      });
+      if (result.error) {
+        toast.error("Google sign-in failed");
+        setLoading(false);
+        return;
+      }
+      if (result.redirected) return; // browser navigates away
+      onAuthenticated();
+    } catch {
+      toast.error("Google sign-in failed");
+      setLoading(false);
+    }
+  };
+
+  // Email verification waiting screen
+  if (pendingVerification) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
+          <Mail className="w-8 h-8 text-primary" />
+        </div>
+        <h1 className="text-xl font-bold text-foreground mb-2">Verify your email</h1>
+        <p className="text-sm text-muted-foreground text-center max-w-xs mb-6">
+          We sent a confirmation link to <span className="text-foreground font-medium">{pendingVerification}</span>. Click it to activate your account, then log in.
+        </p>
+        <Button
+          onClick={() => {
+            setPendingVerification(null);
+            setTab("login");
+          }}
+          className="w-full max-w-xs h-12 rounded-lg"
+        >
+          Back to Log In
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -81,7 +155,6 @@ const BinanceWelcome = ({ onLogin, onRegister }: { onLogin: () => void; onRegist
         </button>
       </div>
 
-      {/* Tabs */}
       <div className="px-5">
         <h1 className="text-2xl font-bold text-foreground mb-1">
           {tab === "login" ? "Welcome back" : "Create account"}
@@ -92,6 +165,7 @@ const BinanceWelcome = ({ onLogin, onRegister }: { onLogin: () => void; onRegist
             : "Sign up — your keys, your crypto"}
         </p>
 
+        {/* Tabs */}
         <div className="flex border-b border-border mb-5">
           {(["login", "register"] as WelcomeTab[]).map((t) => (
             <button
@@ -109,41 +183,15 @@ const BinanceWelcome = ({ onLogin, onRegister }: { onLogin: () => void; onRegist
           ))}
         </div>
 
-        {/* Method switcher */}
-        <div className="flex gap-2 mb-4">
-          <button
-            onClick={() => setMethod("email")}
-            className={`flex-1 h-10 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 border transition-colors ${
-              method === "email"
-                ? "bg-primary/10 border-primary text-foreground"
-                : "bg-secondary border-border text-muted-foreground"
-            }`}
-          >
-            <Mail className="w-3.5 h-3.5" /> Email
-          </button>
-          <button
-            onClick={() => setMethod("phone")}
-            className={`flex-1 h-10 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 border transition-colors ${
-              method === "phone"
-                ? "bg-primary/10 border-primary text-foreground"
-                : "bg-secondary border-border text-muted-foreground"
-            }`}
-          >
-            <Smartphone className="w-3.5 h-3.5" /> Phone
-          </button>
-        </div>
-
         {/* Inputs */}
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">
-              {method === "email" ? "Email" : "Phone Number"}
-            </Label>
+            <Label className="text-xs text-muted-foreground">Email</Label>
             <Input
-              type={method === "email" ? "email" : "tel"}
-              placeholder={method === "email" ? "you@example.com" : "+234 800 000 0000"}
-              value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="h-12 rounded-lg bg-secondary border-border"
             />
           </div>
@@ -153,7 +201,7 @@ const BinanceWelcome = ({ onLogin, onRegister }: { onLogin: () => void; onRegist
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
-                placeholder="Enter password"
+                placeholder={tab === "register" ? "At least 6 characters" : "Enter password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="h-12 rounded-lg bg-secondary border-border pr-11"
@@ -167,12 +215,6 @@ const BinanceWelcome = ({ onLogin, onRegister }: { onLogin: () => void; onRegist
               </button>
             </div>
           </div>
-
-          {tab === "login" && (
-            <div className="flex justify-end">
-              <button className="text-xs text-primary font-medium">Forgot password?</button>
-            </div>
-          )}
 
           {tab === "register" && (
             <label className="flex items-start gap-2 pt-1">
@@ -192,10 +234,10 @@ const BinanceWelcome = ({ onLogin, onRegister }: { onLogin: () => void; onRegist
 
         <Button
           onClick={handleSubmit}
-          disabled={tab === "register" && !agreed}
+          disabled={loading || (tab === "register" && !agreed)}
           className="w-full h-12 mt-5 rounded-lg font-semibold text-base"
         >
-          {tab === "login" ? "Log In" : "Continue"}
+          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : tab === "login" ? "Log In" : "Create Account"}
         </Button>
 
         {/* Divider */}
@@ -205,29 +247,31 @@ const BinanceWelcome = ({ onLogin, onRegister }: { onLogin: () => void; onRegist
           <div className="flex-1 h-px bg-border" />
         </div>
 
-        {/* Social / quick options */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          <button className="h-11 rounded-lg bg-secondary border border-border flex items-center justify-center text-foreground text-sm font-medium">
-            G
-          </button>
-          <button className="h-11 rounded-lg bg-secondary border border-border flex items-center justify-center text-foreground">
-            <ScanFace className="w-4 h-4" />
-          </button>
-          <button className="h-11 rounded-lg bg-secondary border border-border flex items-center justify-center text-foreground">
-            <Fingerprint className="w-4 h-4" />
-          </button>
-        </div>
+        {/* Google sign-in */}
+        <button
+          onClick={handleGoogle}
+          disabled={loading}
+          className="w-full h-12 rounded-lg bg-secondary border border-border flex items-center justify-center gap-3 text-foreground font-medium text-sm hover:bg-secondary/80 transition-colors disabled:opacity-50"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Continue with Google
+        </button>
 
         {/* Decentralized notice */}
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 mb-4 flex gap-2">
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 mt-4 mb-4 flex gap-2">
           <Shield className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
           <p className="text-[11px] text-muted-foreground leading-relaxed">
-            <span className="text-foreground font-medium">Non-custodial wallet.</span> Your funds are secured by your own seed phrase — Kimaex never holds your keys.
+            <span className="text-foreground font-medium">Non-custodial wallet.</span> Your account secures app access — your seed phrase stays on your device. Kimaex never holds your keys.
           </p>
         </div>
 
         <p className="text-center text-xs text-muted-foreground pb-6">
-          {tab === "login" ? "New to Kimaex? " : "Already have a wallet? "}
+          {tab === "login" ? "New to Kimaex? " : "Already have an account? "}
           <button
             onClick={() => setTab(tab === "login" ? "register" : "login")}
             className="text-primary font-semibold"
