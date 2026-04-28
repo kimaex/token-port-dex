@@ -156,71 +156,9 @@ const Auth = () => {
     navigate("/");
   };
 
-  // Welcome Step - Modern Wallet Login
+  // Welcome Step - Binance-style Login / Register tabs
   if (currentStep === "welcome") {
-    return (
-      <div className="min-h-screen bg-background relative overflow-hidden flex flex-col">
-        {/* Background glow effects */}
-        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-primary/10 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-primary/5 blur-[100px]" />
-        
-        {/* Top section */}
-        <div className="flex-1 flex flex-col items-center justify-center px-6 pt-16 pb-8 relative z-10">
-          {/* Logo */}
-          <div className="w-20 h-20 rounded-[1.25rem] bg-[image:var(--gradient-primary)] flex items-center justify-center mb-6 shadow-[var(--shadow-glow)]">
-            <Wallet className="w-10 h-10 text-primary-foreground" />
-          </div>
-          
-          <h1 className="text-3xl font-bold text-foreground tracking-tight mb-2">Kimaex</h1>
-          <p className="text-muted-foreground text-center max-w-[280px] text-sm leading-relaxed">
-            Your secure gateway to decentralized finance across Africa
-          </p>
-
-          {/* Feature pills */}
-          <div className="flex flex-wrap justify-center gap-2 mt-8">
-            {[
-              { icon: Shield, label: "Non-custodial" },
-              { icon: Globe, label: "Multi-chain" },
-              { icon: Lock, label: "Encrypted" },
-            ].map(({ icon: Icon, label }) => (
-              <div
-                key={label}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary border border-border text-xs text-muted-foreground"
-              >
-                <Icon className="w-3 h-3 text-primary" />
-                {label}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Bottom action section */}
-        <div className="relative z-10 px-6 pb-10 space-y-3">
-          <Button
-            onClick={handleCreateWallet}
-            className="w-full h-14 text-base font-semibold rounded-xl gap-3"
-            size="lg"
-          >
-            <Plus className="h-5 w-5" />
-            Create New Wallet
-          </Button>
-          
-          <Button
-            onClick={() => setCurrentStep("import")}
-            variant="outline"
-            className="w-full h-14 text-base font-semibold rounded-xl gap-3 border-border/60"
-            size="lg"
-          >
-            <Download className="h-5 w-5" />
-            Import Wallet
-          </Button>
-
-          <p className="text-[11px] text-center text-muted-foreground pt-3 leading-relaxed">
-            By continuing, you agree to our <span className="text-foreground underline underline-offset-2">Terms</span> and <span className="text-foreground underline underline-offset-2">Privacy Policy</span>
-          </p>
-        </div>
-      </div>
-    );
+    return <BinanceWelcome onLogin={() => setCurrentStep("import")} onRegister={handleCreateWallet} />;
   }
 
   // Create Wallet - Show Seed Phrase
