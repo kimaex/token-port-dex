@@ -408,9 +408,53 @@ const Auth = () => {
     navigate("/");
   };
 
+  // After auth: if wallet already exists on this device, go to home;
+  // otherwise prompt to create or import a non-custodial wallet.
+  const handleAuthenticated = () => {
+    const hasWallet = !!localStorage.getItem("walletSeedPhrase");
+    if (hasWallet) {
+      navigate("/");
+    } else {
+      setCurrentStep("walletChoice");
+    }
+  };
+
+  // Detect OAuth redirect / existing session and route accordingly
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session && currentStep === "welcome") {
+        handleAuthenticated();
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Welcome Step - Binance-style Login / Register tabs
   if (currentStep === "welcome") {
-    return <BinanceWelcome onLogin={() => setCurrentStep("import")} onRegister={handleCreateWallet} />;
+    return <BinanceWelcome onAuthenticated={handleAuthenticated} />;
+  }
+
+  // After login with no wallet — choose Create or Import
+  if (currentStep === "walletChoice") {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
+          <Wallet className="w-8 h-8 text-primary" />
+        </div>
+        <h1 className="text-xl font-bold text-foreground mb-2 text-center">Set up your wallet</h1>
+        <p className="text-sm text-muted-foreground text-center max-w-xs mb-6">
+          Your account is ready. Now create a new non-custodial wallet or import an existing one. The seed phrase stays on this device only.
+        </p>
+        <div className="w-full max-w-xs space-y-3">
+          <Button onClick={handleCreateWallet} className="w-full h-12 rounded-lg gap-2">
+            <Plus className="h-4 w-4" /> Create New Wallet
+          </Button>
+          <Button onClick={() => setCurrentStep("import")} variant="outline" className="w-full h-12 rounded-lg gap-2">
+            <Download className="h-4 w-4" /> Import Wallet
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   // Create Wallet - Show Seed Phrase
