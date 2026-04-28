@@ -37,7 +37,7 @@ const WORD_LIST = [
 // ============ Binance-style Welcome (Login / Register) ============
 type WelcomeTab = "login" | "register";
 
-const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: () => void }) => {
+const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewAccount?: boolean }) => void }) => {
   const [tab, setTab] = useState<WelcomeTab>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
