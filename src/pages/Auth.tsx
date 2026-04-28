@@ -32,6 +32,212 @@ const WORD_LIST = [
   "blind", "blood", "blossom", "blouse", "blue", "blur", "blush", "board", "boat", "body"
 ];
 
+// ============ Binance-style Welcome (Login / Register) ============
+type WelcomeTab = "login" | "register";
+type WelcomeMethod = "email" | "phone";
+
+const BinanceWelcome = ({ onLogin, onRegister }: { onLogin: () => void; onRegister: () => void }) => {
+  const [tab, setTab] = useState<WelcomeTab>("login");
+  const [method, setMethod] = useState<WelcomeMethod>("email");
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [agreed, setAgreed] = useState(true);
+
+  const handleSubmit = () => {
+    if (!identifier.trim()) {
+      toast.error(method === "email" ? "Please enter your email" : "Please enter your phone");
+      return;
+    }
+    if (!password || password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    // Decentralized: credentials are stored locally only as a UX label/lock.
+    // The actual wallet is controlled by the seed phrase — never sent to a server.
+    localStorage.setItem("kimaexAccountId", identifier.trim());
+    localStorage.setItem("kimaexAccountMethod", method);
+    if (tab === "login") {
+      onLogin();
+    } else {
+      onRegister();
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
+      <div className="px-5 pt-12 pb-6 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
+            <Wallet className="w-5 h-5 text-primary-foreground" />
+          </div>
+          <span className="text-lg font-bold tracking-tight text-foreground">Kimaex</span>
+        </div>
+        <button className="text-xs text-muted-foreground flex items-center gap-1">
+          <Globe className="w-3.5 h-3.5" /> EN
+        </button>
+      </div>
+
+      {/* Tabs */}
+      <div className="px-5">
+        <h1 className="text-2xl font-bold text-foreground mb-1">
+          {tab === "login" ? "Welcome back" : "Create account"}
+        </h1>
+        <p className="text-sm text-muted-foreground mb-6">
+          {tab === "login"
+            ? "Log in to access your decentralized wallet"
+            : "Sign up — your keys, your crypto"}
+        </p>
+
+        <div className="flex border-b border-border mb-5">
+          {(["login", "register"] as WelcomeTab[]).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`flex-1 pb-3 text-sm font-semibold transition-colors relative ${
+                tab === t ? "text-foreground" : "text-muted-foreground"
+              }`}
+            >
+              {t === "login" ? "Log In" : "Register"}
+              {tab === t && (
+                <span className="absolute bottom-[-1px] left-1/4 right-1/4 h-[3px] rounded-full bg-primary" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Method switcher */}
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => setMethod("email")}
+            className={`flex-1 h-10 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 border transition-colors ${
+              method === "email"
+                ? "bg-primary/10 border-primary text-foreground"
+                : "bg-secondary border-border text-muted-foreground"
+            }`}
+          >
+            <Mail className="w-3.5 h-3.5" /> Email
+          </button>
+          <button
+            onClick={() => setMethod("phone")}
+            className={`flex-1 h-10 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 border transition-colors ${
+              method === "phone"
+                ? "bg-primary/10 border-primary text-foreground"
+                : "bg-secondary border-border text-muted-foreground"
+            }`}
+          >
+            <Smartphone className="w-3.5 h-3.5" /> Phone
+          </button>
+        </div>
+
+        {/* Inputs */}
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">
+              {method === "email" ? "Email" : "Phone Number"}
+            </Label>
+            <Input
+              type={method === "email" ? "email" : "tel"}
+              placeholder={method === "email" ? "you@example.com" : "+234 800 000 0000"}
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              className="h-12 rounded-lg bg-secondary border-border"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Password</Label>
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="h-12 rounded-lg bg-secondary border-border pr-11"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+
+          {tab === "login" && (
+            <div className="flex justify-end">
+              <button className="text-xs text-primary font-medium">Forgot password?</button>
+            </div>
+          )}
+
+          {tab === "register" && (
+            <label className="flex items-start gap-2 pt-1">
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                className="mt-0.5 accent-primary"
+              />
+              <span className="text-[11px] text-muted-foreground leading-relaxed">
+                I agree to the <span className="text-foreground underline">Terms of Service</span> and{" "}
+                <span className="text-foreground underline">Privacy Policy</span>
+              </span>
+            </label>
+          )}
+        </div>
+
+        <Button
+          onClick={handleSubmit}
+          disabled={tab === "register" && !agreed}
+          className="w-full h-12 mt-5 rounded-lg font-semibold text-base"
+        >
+          {tab === "login" ? "Log In" : "Continue"}
+        </Button>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 my-5">
+          <div className="flex-1 h-px bg-border" />
+          <span className="text-[11px] text-muted-foreground uppercase tracking-wider">or</span>
+          <div className="flex-1 h-px bg-border" />
+        </div>
+
+        {/* Social / quick options */}
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          <button className="h-11 rounded-lg bg-secondary border border-border flex items-center justify-center text-foreground text-sm font-medium">
+            G
+          </button>
+          <button className="h-11 rounded-lg bg-secondary border border-border flex items-center justify-center text-foreground">
+            <ScanFace className="w-4 h-4" />
+          </button>
+          <button className="h-11 rounded-lg bg-secondary border border-border flex items-center justify-center text-foreground">
+            <Fingerprint className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Decentralized notice */}
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 mb-4 flex gap-2">
+          <Shield className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            <span className="text-foreground font-medium">Non-custodial wallet.</span> Your funds are secured by your own seed phrase — Kimaex never holds your keys.
+          </p>
+        </div>
+
+        <p className="text-center text-xs text-muted-foreground pb-6">
+          {tab === "login" ? "New to Kimaex? " : "Already have a wallet? "}
+          <button
+            onClick={() => setTab(tab === "login" ? "register" : "login")}
+            className="text-primary font-semibold"
+          >
+            {tab === "login" ? "Create account" : "Log in"}
+          </button>
+        </p>
+      </div>
+    </div>
+  );
+};
+
 const Auth = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
