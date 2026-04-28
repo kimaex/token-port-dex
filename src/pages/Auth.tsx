@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 
-type AuthStep = "welcome" | "create" | "verify" | "import" | "referral" | "security";
+type AuthStep = "welcome" | "walletChoice" | "create" | "verify" | "import" | "referral" | "security";
 
 const WORD_LIST = [
   "abandon", "ability", "able", "about", "above", "absent", "absorb", "abstract", "absurd", "abuse",
