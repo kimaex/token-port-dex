@@ -499,8 +499,16 @@ const Auth = () => {
             </div>
             <h1 className="text-xl font-bold text-foreground">Got a referral code?</h1>
             <p className="text-sm text-muted-foreground mt-1.5 max-w-xs mx-auto">
-              Enter a friend's username to unlock bonus rewards on your trades and swaps.
+              Enter a friend's username to claim your <span className="text-primary font-semibold">trading bonus</span> — extra rewards on every swap and trade.
             </p>
+          </div>
+
+          <div className="rounded-xl bg-primary/5 border border-primary/20 p-3 flex items-start gap-2">
+            <span className="text-lg">🎁</span>
+            <div>
+              <p className="text-xs font-semibold text-foreground">Trading Bonus Unlocked</p>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">Get reduced fees and reward boosts when you apply a valid referral code.</p>
+            </div>
           </div>
 
           <div className="space-y-2">
