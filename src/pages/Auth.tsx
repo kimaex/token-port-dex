@@ -97,21 +97,21 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
     }
   };
 
-  const handleGoogle = async () => {
+  const handleSocial = async (provider: "google" | "apple") => {
     setLoading(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
+      const result = await lovable.auth.signInWithOAuth(provider, {
         redirect_uri: `${window.location.origin}/auth`,
       });
       if (result.error) {
-        toast.error("Google sign-in failed");
+        toast.error(`${provider === "google" ? "Google" : "Apple"} sign-in failed`);
         setLoading(false);
         return;
       }
       if (result.redirected) return; // browser navigates away
       onAuthenticated();
     } catch {
-      toast.error("Google sign-in failed");
+      toast.error("Sign-in failed");
       setLoading(false);
     }
   };
