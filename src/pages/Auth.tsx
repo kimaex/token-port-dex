@@ -385,6 +385,13 @@ const Auth = () => {
     }
   };
 
+  const handleCopySeedPhrase = () => {
+    navigator.clipboard.writeText(generatedSeedPhrase.join(" "));
+    setSeedPhraseCopied(true);
+    toast.success("Seed phrase copied to clipboard");
+    setTimeout(() => setSeedPhraseCopied(false), 3000);
+  };
+
   const handleProceedToVerify = () => {
     setCurrentStep("verify");
   };
