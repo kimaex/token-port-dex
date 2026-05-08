@@ -405,8 +405,8 @@ const Auth = () => {
       if (referralUsername.trim()) {
         localStorage.setItem("referredBy", referralUsername.trim());
       }
-      toast.success("Wallet created successfully!");
-      setCurrentStep("referral");
+      toast.success("Recovery phrase verified!");
+      setCurrentStep("security");
     } else {
       toast.error("Verification failed. Please check your seed phrase.");
     }
