@@ -335,11 +335,54 @@ const Auth = () => {
     setCurrentStep("create");
   };
 
-  const handleCopySeedPhrase = () => {
-    navigator.clipboard.writeText(generatedSeedPhrase.join(" "));
-    setSeedPhraseCopied(true);
-    toast.success("Seed phrase copied to clipboard");
-    setTimeout(() => setSeedPhraseCopied(false), 3000);
+  const handleCreateSmartWallet = () => {
+    // Generate keys silently behind the scenes (MPC-style invisible setup)
+    const newPhrase = generateSeedPhrase();
+    setGeneratedSeedPhrase(newPhrase);
+    const indices = [2, 5, 9];
+    setVerificationWords(indices.map(i => ({ index: i, word: newPhrase[i] })));
+    setProvisioningProgress(0);
+    setCurrentStep("provisioning");
+  };
+
+  // Animate provisioning then move to recovery setup
+  useEffect(() => {
+    if (currentStep !== "provisioning") return;
+    let p = 0;
+    const id = setInterval(() => {
+      p += 8 + Math.random() * 12;
+      if (p >= 100) {
+        p = 100;
+        clearInterval(id);
+        // Persist wallet — keys are managed for the user (smart wallet)
+        localStorage.setItem("walletSeedPhrase", generatedSeedPhrase.join(" "));
+        localStorage.setItem("walletType", "smart");
+        if (referralUsername.trim()) {
+          localStorage.setItem("referredBy", referralUsername.trim());
+        }
+        setTimeout(() => setCurrentStep("recovery"), 400);
+      }
+      setProvisioningProgress(Math.min(p, 100));
+    }, 220);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep]);
+
+  const handleRecoveryContinue = () => {
+    if (!recoveryEmail && !recoveryCloud && !recoverySeed) {
+      toast.error("Choose at least one recovery method");
+      return;
+    }
+    localStorage.setItem("recoveryEmail", String(recoveryEmail));
+    localStorage.setItem("recoveryCloud", String(recoveryCloud));
+    localStorage.setItem("recoverySeed", String(recoverySeed));
+    if (recoverySeed) {
+      // Advanced users: show seed phrase + verify
+      setCurrentStep("create");
+    } else {
+      toast.success("Recovery configured");
+      setCurrentStep("security");
+    }
   };
 
   const handleProceedToVerify = () => {
