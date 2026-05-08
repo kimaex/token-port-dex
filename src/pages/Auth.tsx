@@ -312,6 +312,10 @@ const Auth = () => {
   const [confirmPin, setConfirmPin] = useState("");
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState(true);
+  const [recoveryCloud, setRecoveryCloud] = useState(true);
+  const [recoverySeed, setRecoverySeed] = useState(false);
+  const [provisioningProgress, setProvisioningProgress] = useState(0);
 
   const generateSeedPhrase = () => {
     const phrase: string[] = [];
