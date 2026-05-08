@@ -596,20 +596,178 @@ const Auth = () => {
   // After login with no wallet — choose Create or Import
   if (currentStep === "walletChoice") {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
-        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
-          <Wallet className="w-8 h-8 text-primary" />
+      <div className="min-h-screen bg-background flex flex-col p-6">
+        <div className="flex-1 flex flex-col items-center justify-center max-w-md mx-auto w-full">
+          <div className="w-16 h-16 rounded-2xl bg-[image:var(--gradient-primary)] flex items-center justify-center mb-5 shadow-[var(--shadow-glow)]">
+            <Sparkles className="w-8 h-8 text-primary-foreground" />
+          </div>
+          <h1 className="text-2xl font-bold text-foreground mb-2 text-center">Set up your wallet</h1>
+          <p className="text-sm text-muted-foreground text-center max-w-xs mb-8">
+            Get a smart wallet in seconds — no seed phrase, no friction. Or import an existing wallet.
+          </p>
+
+          <button
+            onClick={handleCreateSmartWallet}
+            className="w-full rounded-2xl border border-primary/30 bg-primary/5 p-4 text-left mb-3 hover:bg-primary/10 transition-colors"
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+                <Cpu className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-foreground text-sm">Create Smart Wallet</p>
+                  <span className="text-[10px] font-bold text-primary bg-primary/15 px-1.5 py-0.5 rounded">RECOMMENDED</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  Secured with multi-party computation. Recover with your email — no seed phrase to lose.
+                </p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground mt-3" />
+            </div>
+          </button>
+
+          <button
+            onClick={() => setCurrentStep("import")}
+            className="w-full rounded-2xl border border-border bg-secondary p-4 text-left hover:bg-secondary/80 transition-colors"
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+                <Download className="w-5 h-5 text-foreground" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-foreground text-sm">Import Existing Wallet</p>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  Already have a 12-word recovery phrase? Restore it here.
+                </p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground mt-3" />
+            </div>
+          </button>
+
+          <div className="bg-secondary/50 border border-border rounded-xl p-3 mt-6 flex gap-2">
+            <Shield className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Kimaex never holds your keys. Smart wallets use encrypted device keys + recovery — you stay in control.
+            </p>
+          </div>
         </div>
-        <h1 className="text-xl font-bold text-foreground mb-2 text-center">Set up your wallet</h1>
-        <p className="text-sm text-muted-foreground text-center max-w-xs mb-6">
-          Your account is ready. Now create a new non-custodial wallet or import an existing one. The seed phrase stays on this device only.
-        </p>
-        <div className="w-full max-w-xs space-y-3">
-          <Button onClick={handleCreateWallet} className="w-full h-12 rounded-lg gap-2">
-            <Plus className="h-4 w-4" /> Create New Wallet
-          </Button>
-          <Button onClick={() => setCurrentStep("import")} variant="outline" className="w-full h-12 rounded-lg gap-2">
-            <Download className="h-4 w-4" /> Import Wallet
+      </div>
+    );
+  }
+
+  // Provisioning — invisible Web3 setup
+  if (currentStep === "provisioning") {
+    const steps = [
+      { label: "Generating secure keys", threshold: 30 },
+      { label: "Deploying smart wallet", threshold: 65 },
+      { label: "Linking to your account", threshold: 95 },
+    ];
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative">
+        <div className="absolute top-[-10%] left-[10%] w-[60%] h-[40%] rounded-full bg-primary/10 blur-[120px]" />
+        <div className="relative z-10 w-full max-w-xs">
+          <div className="w-20 h-20 rounded-3xl bg-[image:var(--gradient-primary)] flex items-center justify-center mx-auto mb-6 shadow-[var(--shadow-glow)] animate-pulse">
+            <Cpu className="w-10 h-10 text-primary-foreground" />
+          </div>
+          <h1 className="text-xl font-bold text-foreground text-center mb-2">Creating your wallet</h1>
+          <p className="text-sm text-muted-foreground text-center mb-6">
+            Setting up your secure smart wallet…
+          </p>
+
+          <div className="h-1.5 rounded-full bg-secondary overflow-hidden mb-5">
+            <div
+              className="h-full bg-primary transition-all duration-200"
+              style={{ width: `${provisioningProgress}%` }}
+            />
+          </div>
+
+          <div className="space-y-2.5">
+            {steps.map((s) => {
+              const done = provisioningProgress >= s.threshold;
+              const active = !done && provisioningProgress >= (s.threshold - 35);
+              return (
+                <div key={s.label} className="flex items-center gap-3 text-sm">
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${done ? "bg-primary" : active ? "bg-primary/30" : "bg-secondary border border-border"}`}>
+                    {done ? <Check className="w-3 h-3 text-primary-foreground" /> : active ? <Loader2 className="w-3 h-3 text-primary animate-spin" /> : null}
+                  </div>
+                  <span className={done || active ? "text-foreground" : "text-muted-foreground"}>{s.label}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Recovery setup — choose how to recover the wallet
+  if (currentStep === "recovery") {
+    const RecoveryOption = ({
+      icon, title, desc, badge, checked, onChange,
+    }: { icon: React.ReactNode; title: string; desc: string; badge?: string; checked: boolean; onChange: (v: boolean) => void }) => (
+      <button
+        onClick={() => onChange(!checked)}
+        className={`w-full text-left rounded-2xl border p-4 transition-colors ${checked ? "border-primary bg-primary/5" : "border-border bg-secondary"}`}
+      >
+        <div className="flex items-start gap-3">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${checked ? "bg-primary/15" : "bg-muted"}`}>
+            {icon}
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <p className="font-semibold text-sm text-foreground">{title}</p>
+              {badge && <span className="text-[10px] font-bold text-primary bg-primary/15 px-1.5 py-0.5 rounded">{badge}</span>}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{desc}</p>
+          </div>
+          <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${checked ? "bg-primary border-primary" : "border-border"}`}>
+            {checked && <Check className="w-3 h-3 text-primary-foreground" />}
+          </div>
+        </div>
+      </button>
+    );
+
+    return (
+      <div className="min-h-screen bg-background flex flex-col p-6">
+        <div className="flex-1 max-w-md mx-auto w-full">
+          <div className="text-center pt-8 mb-6">
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-7 h-7 text-primary" />
+            </div>
+            <h1 className="text-xl font-bold text-foreground">Set up recovery</h1>
+            <p className="text-sm text-muted-foreground mt-1.5 max-w-xs mx-auto">
+              Choose how to restore your wallet if you lose access. Pick at least one.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <RecoveryOption
+              icon={<Mail className={`w-5 h-5 ${recoveryEmail ? "text-primary" : "text-foreground"}`} />}
+              title="Email recovery"
+              desc="Restore using the email tied to your account. Easiest for most users."
+              badge="RECOMMENDED"
+              checked={recoveryEmail}
+              onChange={setRecoveryEmail}
+            />
+            <RecoveryOption
+              icon={<Cloud className={`w-5 h-5 ${recoveryCloud ? "text-primary" : "text-foreground"}`} />}
+              title="Encrypted cloud backup"
+              desc="Backup an encrypted key to your device cloud (iCloud / Google). Only you can decrypt it."
+              checked={recoveryCloud}
+              onChange={setRecoveryCloud}
+            />
+            <RecoveryOption
+              icon={<KeyRound className={`w-5 h-5 ${recoverySeed ? "text-primary" : "text-foreground"}`} />}
+              title="Seed phrase (advanced)"
+              desc="Show me my 12-word recovery phrase. For advanced users — never share it."
+              checked={recoverySeed}
+              onChange={setRecoverySeed}
+            />
+          </div>
+
+          <Button onClick={handleRecoveryContinue} className="w-full h-12 mt-6 rounded-xl font-semibold" size="lg">
+            Continue <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
       </div>
