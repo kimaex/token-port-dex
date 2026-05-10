@@ -120,7 +120,7 @@ const formatVolume = (n: number) => {
 
 const Kimapre = () => {
   const navigate = useNavigate();
-  const { formatAmount } = useCurrency();
+  const { formatPrice } = useCurrency();
   const [activeCategory, setActiveCategory] = useState<Category>("All");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Market | null>(null);
@@ -154,7 +154,7 @@ const Kimapre = () => {
     const shares = amt / price;
     const potential = shares * 1; // payout per share at resolution = $1
     toast.success(
-      `${side} bet placed on "${selected.title.slice(0, 24)}..." — potential payout ${formatAmount(potential)}`
+      `${side} bet placed on "${selected.title.slice(0, 24)}..." — potential payout ${formatPrice(potential)}`
     );
     setSelected(null);
     setAmount("");
@@ -460,7 +460,7 @@ const Kimapre = () => {
                   <div className="flex justify-between text-sm pt-1 border-t border-border/50">
                     <span className="font-semibold">Potential payout</span>
                     <span className="font-bold text-primary">
-                      {formatAmount(
+                      {formatPrice(
                         parseFloat(amount) /
                           (side === "YES" ? selected.yesPrice : 1 - selected.yesPrice)
                       )}
