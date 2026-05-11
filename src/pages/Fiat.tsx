@@ -988,8 +988,13 @@ const Fiat = () => {
                 {sellStep === "confirm" && (
                   <>
                     <div className="text-center mb-4">
-                      <p className="text-muted-foreground">You are selling</p>
-                      <p className="text-3xl font-bold text-primary">{sellAmount} USDC</p>
+                      <p className="text-muted-foreground">Withdraw to your bank</p>
+                      <p className="text-3xl font-bold text-primary">
+                        {selectedCountry.currencySymbol}{sellFiatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {sellUsdcAmount.toLocaleString(undefined, { maximumFractionDigits: 4 })} USDC will be deducted
+                      </p>
                     </div>
 
                     <div className="bg-secondary/30 rounded-xl p-4 space-y-4">
