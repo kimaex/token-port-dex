@@ -149,6 +149,17 @@ export default function Settings() {
 
   const settingsSections = [
     {
+      id: "profile",
+      icon: UserIcon,
+      label: "Profile & KYC",
+      description: profile.kycStatus === "verified"
+        ? `Verified • ${profile.firstName || "You"}`
+        : profile.firstName
+          ? "Complete identity verification"
+          : "Add your name, DOB & verify ID",
+      hasSwitch: false,
+    },
+    {
       id: "dark-mode",
       icon: Moon,
       label: "Dark Mode",
@@ -170,24 +181,10 @@ export default function Settings() {
       hasSwitch: false,
     },
     {
-      id: "preference",
-      icon: SlidersHorizontal,
-      label: "Preference",
-      description: "Manage your preferences",
-      hasSwitch: false,
-    },
-    {
       id: "security",
       icon: Shield,
       label: "Security",
       description: "Security settings and 2FA",
-      hasSwitch: false,
-    },
-    {
-      id: "show-seed-phrase",
-      icon: Key,
-      label: "Show Seed Phrase",
-      description: "View your recovery seed phrase",
       hasSwitch: false,
     },
     {
@@ -209,11 +206,8 @@ export default function Settings() {
   const handleSettingClick = (id: string) => {
     if (id === "dark-mode") {
       toggleDarkMode(!darkMode);
-    } else if (id === "show-seed-phrase") {
-      setShowSeedPhraseModal(true);
-      setSeedPhraseStep('password');
-      setPassword('');
-      setSeedPhraseRevealed(false);
+    } else if (id === "profile") {
+      setShowProfileModal(true);
     } else if (id === "currency") {
       setShowCurrencyModal(true);
     } else if (id === "connect-wallet") {
@@ -236,27 +230,47 @@ export default function Settings() {
     toast.info(`Opening ${categoryId} support...`);
   };
 
-  const handlePasswordSubmit = () => {
-    // Mock password validation - in real app would verify against stored password
-    if (password.length >= 6) {
-      setSeedPhraseStep('reveal');
-      toast.success("Password verified");
-    } else {
-      toast.error("Invalid password. Please try again.");
+  const handleProfilePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Photo must be under 5MB");
+      return;
     }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setProfile({ ...profile, photo: reader.result as string });
+    };
+    reader.readAsDataURL(file);
   };
 
-  const handleCopySeedPhrase = () => {
-    navigator.clipboard.writeText(mockSeedPhrase);
-    toast.success("Seed phrase copied to clipboard");
-  };
-
-  const handleCloseSeedPhraseModal = () => {
-    setShowSeedPhraseModal(false);
-    setSeedPhraseStep('password');
-    setPassword('');
-    setSeedPhraseRevealed(false);
-    setShowPassword(false);
+  const handleSaveProfile = () => {
+    if (!profile.firstName.trim() || !profile.lastName.trim()) {
+      toast.error("Please enter your first and last name");
+      return;
+    }
+    if (!profile.dob) {
+      toast.error("Please enter your date of birth");
+      return;
+    }
+    const idDigits = (profile.idNumber || "").replace(/\D/g, "");
+    if (profile.idType === "NIN" && idDigits.length !== 11) {
+      toast.error("NIN must be 11 digits");
+      return;
+    }
+    if (profile.idType === "BVN" && idDigits.length !== 11) {
+      toast.error("BVN must be 11 digits");
+      return;
+    }
+    if (!profile.photo) {
+      toast.error("Please take or upload a profile photo");
+      return;
+    }
+    const updated = { ...profile, kycStatus: "pending" };
+    setProfile(updated);
+    localStorage.setItem("userProfile", JSON.stringify(updated));
+    toast.success("KYC submitted — verification in progress");
+    setShowProfileModal(false);
   };
 
   const handleCurrencySelect = (curr: typeof africanCurrencies[0]) => {
