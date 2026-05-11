@@ -860,10 +860,12 @@ const Fiat = () => {
                 {sellStep === "paymentMethod" && (
                   <>
                     <div className="text-center mb-4">
-                      <p className="text-muted-foreground">Selling</p>
-                      <p className="text-3xl font-bold text-primary">{sellAmount} USDC</p>
+                      <p className="text-muted-foreground">Withdrawing to bank</p>
+                      <p className="text-3xl font-bold text-primary">
+                        {selectedCountry.currencySymbol}{sellFiatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                      </p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        ≈ {selectedCountry.currencySymbol}{sellFiatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                        ≈ {sellUsdcAmount.toLocaleString(undefined, { maximumFractionDigits: 4 })} USDC deducted
                       </p>
                     </div>
 
