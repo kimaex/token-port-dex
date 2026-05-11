@@ -45,6 +45,7 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
   const [agreed, setAgreed] = useState(true);
   const [loading, setLoading] = useState(false);
   const [pendingVerification, setPendingVerification] = useState<string | null>(null);
+  const [referralCode, setReferralCode] = useState("");
 
   const handleSubmit = async () => {
     if (!email.trim()) {
