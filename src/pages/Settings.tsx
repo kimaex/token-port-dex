@@ -1,4 +1,4 @@
-import { Moon, Wallet, SlidersHorizontal, Shield, MessageCircle, Users, DollarSign, Key, ChevronRight, Check, Copy, Share2, Gift, X, ExternalLink, Eye, EyeOff, Lock, FileText, HelpCircle, Clock, CheckCircle, Send, Headphones, CreditCard, UserCheck, ShieldAlert, ArrowRight, TrendingUp, Award, Download, Link2, BarChart3, Wallet2, Banknote, ArrowRightLeft } from "lucide-react";
+import { Moon, Wallet, Shield, MessageCircle, Users, DollarSign, ChevronRight, Check, Copy, Share2, Gift, X, ExternalLink, Eye, EyeOff, Lock, FileText, HelpCircle, Clock, CheckCircle, Send, Headphones, CreditCard, UserCheck, ShieldAlert, ArrowRight, TrendingUp, Award, Download, Link2, BarChart3, Wallet2, Banknote, ArrowRightLeft, User as UserIcon, Camera, IdCard } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -104,13 +104,19 @@ export default function Settings() {
   const [showCurrencyModal, setShowCurrencyModal] = useState(false);
   const [showConnectedWallets, setShowConnectedWallets] = useState(false);
   const [showReferralModal, setShowReferralModal] = useState(false);
-  const [showSeedPhraseModal, setShowSeedPhraseModal] = useState(false);
-  const [seedPhraseStep, setSeedPhraseStep] = useState<'password' | 'reveal'>('password');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [seedPhraseRevealed, setSeedPhraseRevealed] = useState(false);
   const [connectedApps, setConnectedApps] = useState(connectedDApps);
   const [showCustomerCareModal, setShowCustomerCareModal] = useState(false);
+
+  // Profile / KYC state
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profile, setProfile] = useState(() => {
+    try {
+      const saved = localStorage.getItem("userProfile");
+      return saved ? JSON.parse(saved) : { firstName: "", lastName: "", dob: "", idType: "NIN", idNumber: "", photo: "", kycStatus: "unverified" };
+    } catch {
+      return { firstName: "", lastName: "", dob: "", idType: "NIN", idNumber: "", photo: "", kycStatus: "unverified" };
+    }
+  });
 
   // Customer care help categories
   const helpCategories = [
@@ -128,8 +134,6 @@ export default function Settings() {
     { id: 4, title: "Trading fees explained", views: "1.2k" },
   ];
 
-  // Mock seed phrase - in real app this would be retrieved from secure storage
-  const mockSeedPhrase = "abandon ability able about above absent absorb abstract absurd abuse access accident";
 
   const toggleDarkMode = (enabled: boolean) => {
     setDarkMode(enabled);
