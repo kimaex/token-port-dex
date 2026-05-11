@@ -279,8 +279,8 @@ const Fiat = () => {
       toast.error("Please enter a valid amount");
       return;
     }
-    if (parseFloat(sellAmount) < 0.5) {
-      toast.error("Minimum amount is $0.50");
+    if (sellUsdcAmount < 0.5) {
+      toast.error(`Minimum withdrawal is $0.50 (≈ ${selectedCountry.currencySymbol}${(0.5 * selectedCountry.exchangeRate).toLocaleString()})`);
       return;
     }
     setSellStep("paymentMethod");
