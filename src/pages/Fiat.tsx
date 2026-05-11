@@ -224,7 +224,9 @@ const Fiat = () => {
   const [accountName, setAccountName] = useState("");
 
   const fiatAmount = parseFloat(usdcAmount || "0") * selectedCountry.exchangeRate;
-  const sellFiatAmount = parseFloat(sellAmount || "0") * selectedCountry.exchangeRate;
+  // Sell: user enters local currency amount they want to withdraw; we compute USDC to deduct
+  const sellFiatAmount = parseFloat(sellAmount || "0");
+  const sellUsdcAmount = sellFiatAmount / selectedCountry.exchangeRate;
 
   // Bank details for payment (for buying)
   const bankDetails = {
@@ -277,8 +279,8 @@ const Fiat = () => {
       toast.error("Please enter a valid amount");
       return;
     }
-    if (parseFloat(sellAmount) < 0.5) {
-      toast.error("Minimum amount is $0.50");
+    if (sellUsdcAmount < 0.5) {
+      toast.error(`Minimum withdrawal is $0.50 (≈ ${selectedCountry.currencySymbol}${(0.5 * selectedCountry.exchangeRate).toLocaleString()})`);
       return;
     }
     setSellStep("paymentMethod");
@@ -801,7 +803,7 @@ const Fiat = () => {
                   <>
                     <div className="bg-secondary/30 rounded-xl p-4 space-y-4">
                       <div className="space-y-2">
-                        <Label className="text-muted-foreground">Amount to sell</Label>
+                        <Label className="text-muted-foreground">You want to withdraw to bank</Label>
                         <div className="flex items-center gap-2">
                           <Input
                             type="number"
@@ -811,22 +813,24 @@ const Fiat = () => {
                             className="text-2xl font-semibold bg-transparent border-none p-0 h-auto focus-visible:ring-0"
                           />
                           <div className="flex items-center gap-2 bg-secondary px-3 py-2 rounded-xl">
-                            <span className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-xs">
-                              ◈
-                            </span>
-                            <span className="font-semibold">USDC</span>
+                            <span className="text-base font-bold">{selectedCountry.currencySymbol}</span>
+                            <span className="font-semibold">{selectedCountry.currency}</span>
                           </div>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          Balance: 5,234.56 USDC
-                        </p>
                       </div>
 
                       <div className="border-t border-border/50 pt-4 space-y-2">
-                        <Label className="text-muted-foreground">You will receive</Label>
-                        <p className="text-2xl font-semibold">
-                          {selectedCountry.currencySymbol}{sellFiatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                        </p>
+                        <Label className="text-muted-foreground">USDC to deduct from wallet</Label>
+                        <div className="flex items-center justify-between">
+                          <span className="text-2xl font-semibold">
+                            {sellUsdcAmount.toLocaleString(undefined, { maximumFractionDigits: 4 })}
+                          </span>
+                          <div className="flex items-center gap-2 bg-secondary px-2 py-1 rounded-xl">
+                            <span className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-[10px]">◈</span>
+                            <span className="text-sm font-semibold">USDC</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Balance: 5,234.56 USDC</p>
                       </div>
                     </div>
 
@@ -839,6 +843,12 @@ const Fiat = () => {
                         <span className="text-muted-foreground">Service Fee (2%)</span>
                         <span>{selectedCountry.currencySymbol}{(sellFiatAmount * 0.02).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                       </div>
+                      <div className="flex items-center justify-between text-sm border-t border-border/50 pt-2">
+                        <span className="text-muted-foreground">You'll receive in bank</span>
+                        <span className="font-semibold">
+                          {selectedCountry.currencySymbol}{(sellFiatAmount * 0.98).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
                     </div>
 
                     <Button onClick={handleSellAmountProceed} className="w-full h-14 text-lg font-semibold">
@@ -850,10 +860,12 @@ const Fiat = () => {
                 {sellStep === "paymentMethod" && (
                   <>
                     <div className="text-center mb-4">
-                      <p className="text-muted-foreground">Selling</p>
-                      <p className="text-3xl font-bold text-primary">{sellAmount} USDC</p>
+                      <p className="text-muted-foreground">Withdrawing to bank</p>
+                      <p className="text-3xl font-bold text-primary">
+                        {selectedCountry.currencySymbol}{sellFiatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                      </p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        ≈ {selectedCountry.currencySymbol}{sellFiatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                        ≈ {sellUsdcAmount.toLocaleString(undefined, { maximumFractionDigits: 4 })} USDC deducted
                       </p>
                     </div>
 
@@ -976,8 +988,13 @@ const Fiat = () => {
                 {sellStep === "confirm" && (
                   <>
                     <div className="text-center mb-4">
-                      <p className="text-muted-foreground">You are selling</p>
-                      <p className="text-3xl font-bold text-primary">{sellAmount} USDC</p>
+                      <p className="text-muted-foreground">Withdraw to your bank</p>
+                      <p className="text-3xl font-bold text-primary">
+                        {selectedCountry.currencySymbol}{sellFiatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {sellUsdcAmount.toLocaleString(undefined, { maximumFractionDigits: 4 })} USDC will be deducted
+                      </p>
                     </div>
 
                     <div className="bg-secondary/30 rounded-xl p-4 space-y-4">
