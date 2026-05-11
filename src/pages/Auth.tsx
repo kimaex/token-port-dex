@@ -45,6 +45,7 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
   const [agreed, setAgreed] = useState(true);
   const [loading, setLoading] = useState(false);
   const [pendingVerification, setPendingVerification] = useState<string | null>(null);
+  const [referralCode, setReferralCode] = useState("");
 
   const handleSubmit = async () => {
     if (!email.trim()) {
@@ -70,6 +71,9 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
             toast.error(error.message);
           }
           return;
+        }
+        if (referralCode.trim()) {
+          localStorage.setItem("referredBy", referralCode.trim());
         }
         setPendingVerification(email.trim());
         toast.success("Check your email to verify your account");
@@ -217,18 +221,37 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
           </div>
 
           {tab === "register" && (
-            <label className="flex items-start gap-2 pt-1">
-              <input
-                type="checkbox"
-                checked={agreed}
-                onChange={(e) => setAgreed(e.target.checked)}
-                className="mt-0.5 accent-primary"
-              />
-              <span className="text-[11px] text-muted-foreground leading-relaxed">
-                I agree to the <span className="text-foreground underline">Terms of Service</span> and{" "}
-                <span className="text-foreground underline">Privacy Policy</span>
-              </span>
-            </label>
+            <>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5" />
+                  Referral Code <span className="text-muted-foreground/60">(Optional)</span>
+                </Label>
+                <Input
+                  type="text"
+                  placeholder="Enter referrer's code or username"
+                  value={referralCode}
+                  onChange={(e) => setReferralCode(e.target.value.slice(0, 50))}
+                  maxLength={50}
+                  className="h-12 rounded-lg bg-secondary border-border"
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Get a trading bonus when you sign up with a referral code
+                </p>
+              </div>
+              <label className="flex items-start gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                  className="mt-0.5 accent-primary"
+                />
+                <span className="text-[11px] text-muted-foreground leading-relaxed">
+                  I agree to the <span className="text-foreground underline">Terms of Service</span> and{" "}
+                  <span className="text-foreground underline">Privacy Policy</span>
+                </span>
+              </label>
+            </>
           )}
         </div>
 
@@ -474,15 +497,14 @@ const Auth = () => {
     navigate("/");
   };
 
-  // After auth: show referral prompt for new accounts (only once),
-  // then route to wallet setup or home.
+  // Centralized app: after auth, go straight to home — no wallet provisioning.
   const routeAfterAuth = () => {
-    const hasWallet = !!localStorage.getItem("walletSeedPhrase");
-    if (hasWallet) {
-      navigate("/");
-    } else {
-      setCurrentStep("walletChoice");
+    // Mark account as centralized so any legacy checks pass.
+    if (!localStorage.getItem("walletSeedPhrase")) {
+      localStorage.setItem("walletType", "centralized");
+      localStorage.setItem("walletSeedPhrase", "centralized");
     }
+    navigate("/");
   };
 
   const handleAuthenticated = async (opts?: { isNewAccount?: boolean }) => {
