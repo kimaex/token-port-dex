@@ -72,6 +72,9 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
           }
           return;
         }
+        if (referralCode.trim()) {
+          localStorage.setItem("referredBy", referralCode.trim());
+        }
         setPendingVerification(email.trim());
         toast.success("Check your email to verify your account");
       } else {
