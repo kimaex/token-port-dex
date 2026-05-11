@@ -497,15 +497,14 @@ const Auth = () => {
     navigate("/");
   };
 
-  // After auth: show referral prompt for new accounts (only once),
-  // then route to wallet setup or home.
+  // Centralized app: after auth, go straight to home — no wallet provisioning.
   const routeAfterAuth = () => {
-    const hasWallet = !!localStorage.getItem("walletSeedPhrase");
-    if (hasWallet) {
-      navigate("/");
-    } else {
-      setCurrentStep("walletChoice");
+    // Mark account as centralized so any legacy checks pass.
+    if (!localStorage.getItem("walletSeedPhrase")) {
+      localStorage.setItem("walletType", "centralized");
+      localStorage.setItem("walletSeedPhrase", "centralized");
     }
+    navigate("/");
   };
 
   const handleAuthenticated = async (opts?: { isNewAccount?: boolean }) => {
