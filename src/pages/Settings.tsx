@@ -866,128 +866,144 @@ export default function Settings() {
         </DialogContent>
       </Dialog>
 
-      {/* Seed Phrase Modal - Phantom Style */}
-      <Dialog open={showSeedPhraseModal} onOpenChange={handleCloseSeedPhraseModal}>
-        <DialogContent className="max-w-md bg-background border-border p-0 overflow-hidden">
-          {seedPhraseStep === 'password' ? (
-            <>
-              {/* Password Verification Step */}
-              <div className="p-6 text-center">
-                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <Lock className="h-8 w-8 text-primary" />
-                </div>
-                <h2 className="text-xl font-bold text-foreground mb-2">
-                  Enter Your Password
-                </h2>
-                <p className="text-sm text-muted-foreground mb-6">
-                  To protect your wallet, please enter your password to view your seed phrase
-                </p>
-
-                <div className="relative mb-6">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="h-14 text-center text-lg bg-muted border-border pr-12"
-                    onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-
-                <Button
-                  className="w-full h-12 bg-gradient-primary hover:opacity-90"
-                  onClick={handlePasswordSubmit}
-                  disabled={password.length < 1}
-                >
-                  Unlock
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              {/* Seed Phrase Reveal Step */}
-              <div className="bg-gradient-to-br from-red-500/10 to-orange-500/10 p-4 border-b border-border">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
-                    <Shield className="h-5 w-5 text-red-500" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-foreground text-sm">Warning</p>
-                    <p className="text-xs text-muted-foreground">
-                      Never share your seed phrase with anyone. Store it securely.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6 space-y-4">
-                <div className="text-center mb-4">
-                  <h2 className="text-xl font-bold text-foreground">
-                    Your Seed Phrase
-                  </h2>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Write down these 12 words in order and store them safely
-                  </p>
-                </div>
-
-                {/* Seed Phrase Grid with Blur Effect */}
-                <div className="relative">
-                  <div className={`grid grid-cols-3 gap-2 p-4 rounded-xl bg-muted border border-border transition-all duration-300 ${!seedPhraseRevealed ? 'blur-md select-none' : ''}`}>
-                    {mockSeedPhrase.split(' ').map((word, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-2 p-2 rounded-lg bg-card border border-border"
-                      >
-                        <span className="text-xs text-muted-foreground font-medium w-5">{index + 1}.</span>
-                        <span className="text-sm font-medium text-foreground">{word}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Reveal Overlay */}
-                  {!seedPhraseRevealed && (
-                    <div 
-                      className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer"
-                      onClick={() => setSeedPhraseRevealed(true)}
-                    >
-                      <div className="h-14 w-14 rounded-full bg-primary/20 flex items-center justify-center mb-3">
-                        <Eye className="h-7 w-7 text-primary" />
-                      </div>
-                      <p className="text-sm font-medium text-foreground">Tap to reveal</p>
-                      <p className="text-xs text-muted-foreground mt-1">Make sure no one is watching</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Actions */}
-                {seedPhraseRevealed && (
-                  <div className="space-y-3 mt-4">
-                    <Button
-                      variant="outline"
-                      className="w-full h-12 border-border"
-                      onClick={handleCopySeedPhrase}
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy to Clipboard
-                    </Button>
-                    <Button
-                      className="w-full h-12 bg-gradient-primary hover:opacity-90"
-                      onClick={handleCloseSeedPhraseModal}
-                    >
-                      Done
-                    </Button>
-                  </div>
+      {/* Profile & KYC Modal */}
+      <Dialog open={showProfileModal} onOpenChange={setShowProfileModal}>
+        <DialogContent className="max-w-md bg-background border-border p-0 overflow-hidden max-h-[92vh]">
+          <div className="bg-gradient-primary p-5">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center overflow-hidden">
+                {profile.photo ? (
+                  <img src={profile.photo} alt="Profile" className="h-full w-full object-cover" />
+                ) : (
+                  <UserIcon className="h-6 w-6 text-primary-foreground" />
                 )}
               </div>
-            </>
-          )}
+              <div>
+                <h2 className="text-lg font-bold text-primary-foreground">Profile & KYC</h2>
+                <p className="text-primary-foreground/80 text-xs">
+                  Status: <span className="font-semibold capitalize">{profile.kycStatus}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <ScrollArea className="max-h-[72vh]">
+            <div className="p-5 space-y-4">
+              {/* Photo capture */}
+              <div className="flex flex-col items-center gap-3 p-4 rounded-xl bg-muted/40 border border-border">
+                <div className="relative h-24 w-24 rounded-full bg-card border-2 border-dashed border-border flex items-center justify-center overflow-hidden">
+                  {profile.photo ? (
+                    <img src={profile.photo} alt="ID selfie" className="h-full w-full object-cover" />
+                  ) : (
+                    <Camera className="h-8 w-8 text-muted-foreground" />
+                  )}
+                </div>
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="user"
+                    className="hidden"
+                    onChange={handleProfilePhoto}
+                  />
+                  <span className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold inline-flex items-center gap-2">
+                    <Camera className="h-4 w-4" />
+                    {profile.photo ? "Retake Selfie" : "Snap Selfie"}
+                  </span>
+                </label>
+                <p className="text-[11px] text-muted-foreground text-center">
+                  Take a clear, front-facing photo for identity verification
+                </p>
+              </div>
+
+              {/* Names */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-muted-foreground">First Name</label>
+                  <Input
+                    value={profile.firstName}
+                    onChange={(e) => setProfile({ ...profile, firstName: e.target.value.slice(0, 50) })}
+                    placeholder="John"
+                    className="h-11 mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Last Name</label>
+                  <Input
+                    value={profile.lastName}
+                    onChange={(e) => setProfile({ ...profile, lastName: e.target.value.slice(0, 50) })}
+                    placeholder="Doe"
+                    className="h-11 mt-1"
+                  />
+                </div>
+              </div>
+
+              {/* DOB */}
+              <div>
+                <label className="text-xs text-muted-foreground">Date of Birth</label>
+                <Input
+                  type="date"
+                  value={profile.dob}
+                  onChange={(e) => setProfile({ ...profile, dob: e.target.value })}
+                  className="h-11 mt-1"
+                />
+              </div>
+
+              {/* ID Type toggle */}
+              <div>
+                <label className="text-xs text-muted-foreground">ID Type</label>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  {(["NIN", "BVN"] as const).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setProfile({ ...profile, idType: t })}
+                      className={`h-11 rounded-lg border text-sm font-semibold transition-colors ${
+                        profile.idType === t
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-muted text-foreground border-border"
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* ID Number */}
+              <div>
+                <label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <IdCard className="h-3.5 w-3.5" />
+                  {profile.idType} Number
+                </label>
+                <Input
+                  inputMode="numeric"
+                  value={profile.idNumber}
+                  onChange={(e) =>
+                    setProfile({ ...profile, idNumber: e.target.value.replace(/\D/g, "").slice(0, 11) })
+                  }
+                  placeholder={`Enter your 11-digit ${profile.idType}`}
+                  className="h-11 mt-1 font-mono tracking-wider"
+                />
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Used to verify your identity with the National Identity authority
+                </p>
+              </div>
+
+              <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 flex gap-2">
+                <Shield className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Your data is encrypted and only used to comply with KYC/AML regulations.
+                </p>
+              </div>
+
+              <Button
+                onClick={handleSaveProfile}
+                className="w-full h-12 bg-gradient-primary font-semibold"
+              >
+                Submit for Verification
+              </Button>
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 
