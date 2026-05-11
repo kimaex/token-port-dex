@@ -221,18 +221,37 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
           </div>
 
           {tab === "register" && (
-            <label className="flex items-start gap-2 pt-1">
-              <input
-                type="checkbox"
-                checked={agreed}
-                onChange={(e) => setAgreed(e.target.checked)}
-                className="mt-0.5 accent-primary"
-              />
-              <span className="text-[11px] text-muted-foreground leading-relaxed">
-                I agree to the <span className="text-foreground underline">Terms of Service</span> and{" "}
-                <span className="text-foreground underline">Privacy Policy</span>
-              </span>
-            </label>
+            <>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5" />
+                  Referral Code <span className="text-muted-foreground/60">(Optional)</span>
+                </Label>
+                <Input
+                  type="text"
+                  placeholder="Enter referrer's code or username"
+                  value={referralCode}
+                  onChange={(e) => setReferralCode(e.target.value.slice(0, 50))}
+                  maxLength={50}
+                  className="h-12 rounded-lg bg-secondary border-border"
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Get a trading bonus when you sign up with a referral code
+                </p>
+              </div>
+              <label className="flex items-start gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                  className="mt-0.5 accent-primary"
+                />
+                <span className="text-[11px] text-muted-foreground leading-relaxed">
+                  I agree to the <span className="text-foreground underline">Terms of Service</span> and{" "}
+                  <span className="text-foreground underline">Privacy Policy</span>
+                </span>
+              </label>
+            </>
           )}
         </div>
 
