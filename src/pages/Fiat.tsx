@@ -803,7 +803,7 @@ const Fiat = () => {
                   <>
                     <div className="bg-secondary/30 rounded-xl p-4 space-y-4">
                       <div className="space-y-2">
-                        <Label className="text-muted-foreground">Amount to sell</Label>
+                        <Label className="text-muted-foreground">You want to withdraw to bank</Label>
                         <div className="flex items-center gap-2">
                           <Input
                             type="number"
@@ -813,22 +813,24 @@ const Fiat = () => {
                             className="text-2xl font-semibold bg-transparent border-none p-0 h-auto focus-visible:ring-0"
                           />
                           <div className="flex items-center gap-2 bg-secondary px-3 py-2 rounded-xl">
-                            <span className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-xs">
-                              ◈
-                            </span>
-                            <span className="font-semibold">USDC</span>
+                            <span className="text-base font-bold">{selectedCountry.currencySymbol}</span>
+                            <span className="font-semibold">{selectedCountry.currency}</span>
                           </div>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          Balance: 5,234.56 USDC
-                        </p>
                       </div>
 
                       <div className="border-t border-border/50 pt-4 space-y-2">
-                        <Label className="text-muted-foreground">You will receive</Label>
-                        <p className="text-2xl font-semibold">
-                          {selectedCountry.currencySymbol}{sellFiatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                        </p>
+                        <Label className="text-muted-foreground">USDC to deduct from wallet</Label>
+                        <div className="flex items-center justify-between">
+                          <span className="text-2xl font-semibold">
+                            {sellUsdcAmount.toLocaleString(undefined, { maximumFractionDigits: 4 })}
+                          </span>
+                          <div className="flex items-center gap-2 bg-secondary px-2 py-1 rounded-xl">
+                            <span className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-[10px]">◈</span>
+                            <span className="text-sm font-semibold">USDC</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Balance: 5,234.56 USDC</p>
                       </div>
                     </div>
 
@@ -840,6 +842,12 @@ const Fiat = () => {
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Service Fee (2%)</span>
                         <span>{selectedCountry.currencySymbol}{(sellFiatAmount * 0.02).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm border-t border-border/50 pt-2">
+                        <span className="text-muted-foreground">You'll receive in bank</span>
+                        <span className="font-semibold">
+                          {selectedCountry.currencySymbol}{(sellFiatAmount * 0.98).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                        </span>
                       </div>
                     </div>
 
