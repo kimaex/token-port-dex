@@ -278,7 +278,7 @@ const Kimapre = () => {
                             <p className="text-sm font-semibold truncate">{m.title}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-lg font-bold text-primary">
+                            <p className="text-lg font-bold tabular-nums text-emerald-500">
                               {Math.round(m.yesPrice * 100)}%
                             </p>
                           </div>
