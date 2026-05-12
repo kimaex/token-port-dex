@@ -696,7 +696,7 @@ const KimapreMarket = () => {
                           {formatVolume(m.volume)} vol
                         </p>
                       </div>
-                      <p className="text-sm font-bold text-primary">
+                      <p className="text-sm font-bold tabular-nums text-emerald-500">
                         {Math.round(m.yesPrice * 100)}%
                       </p>
                       <ChevronRight className="h-4 w-4 text-muted-foreground" />
