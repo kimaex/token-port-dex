@@ -278,8 +278,8 @@ const KimapreMarket = () => {
           <svg viewBox="0 0 320 120" className="w-full h-28">
             <defs>
               <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
-                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+                <stop offset="0%" stopColor={priceChange >= 0 ? "#10b981" : "#f43f5e"} stopOpacity="0.35" />
+                <stop offset="100%" stopColor={priceChange >= 0 ? "#10b981" : "#f43f5e"} stopOpacity="0" />
               </linearGradient>
             </defs>
             <path
@@ -289,7 +289,7 @@ const KimapreMarket = () => {
             <path
               d={chartPath}
               fill="none"
-              stroke="hsl(var(--primary))"
+              stroke={priceChange >= 0 ? "#10b981" : "#f43f5e"}
               strokeWidth="2"
             />
           </svg>
