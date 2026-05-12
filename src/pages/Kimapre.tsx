@@ -553,19 +553,19 @@ const Kimapre = () => {
         {/* PORTFOLIO TAB */}
         {tab === "portfolio" && (
           <div>
-            <Card className="p-4 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 mb-4">
-              <p className="text-xs text-muted-foreground">Portfolio Value</p>
-              <p className="text-3xl font-bold">{formatPrice(portfolioValue)}</p>
-              <div className="flex items-center gap-3 mt-2 pt-2 border-t border-border/50">
+            <Card className="p-4 bg-zinc-900 text-zinc-100 border-zinc-800 rounded-xl mb-4">
+              <p className="text-[10px] text-zinc-400 uppercase tracking-wider">Portfolio Value</p>
+              <p className="text-3xl font-bold tabular-nums">{formatPrice(portfolioValue)}</p>
+              <div className="flex items-center gap-3 mt-2 pt-2 border-t border-zinc-800">
                 <div>
-                  <p className="text-[10px] text-muted-foreground">Cost Basis</p>
-                  <p className="text-sm font-semibold">{formatPrice(portfolioCost)}</p>
+                  <p className="text-[10px] text-zinc-400 uppercase tracking-wider">Cost Basis</p>
+                  <p className="text-sm font-semibold tabular-nums">{formatPrice(portfolioCost)}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-muted-foreground">P&L</p>
+                  <p className="text-[10px] text-zinc-400 uppercase tracking-wider">P&L</p>
                   <p
-                    className={`text-sm font-semibold ${
-                      portfolioPnL >= 0 ? "text-emerald-500" : "text-rose-500"
+                    className={`text-sm font-semibold tabular-nums ${
+                      portfolioPnL >= 0 ? "text-emerald-400" : "text-rose-400"
                     }`}
                   >
                     {portfolioPnL >= 0 ? "+" : ""}
@@ -573,8 +573,8 @@ const Kimapre = () => {
                   </p>
                 </div>
                 <div className="ml-auto">
-                  <p className="text-[10px] text-muted-foreground">Positions</p>
-                  <p className="text-sm font-semibold">{positions.length}</p>
+                  <p className="text-[10px] text-zinc-400 uppercase tracking-wider">Positions</p>
+                  <p className="text-sm font-semibold tabular-nums">{positions.length}</p>
                 </div>
               </div>
             </Card>
