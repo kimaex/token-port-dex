@@ -248,20 +248,20 @@ const KimapreMarket = () => {
           </div>
         </Card>
 
-        {/* Price chart */}
-        <Card className="p-4">
+        {/* Price chart — Blofin trader hero */}
+        <Card className="p-4 bg-zinc-900 text-zinc-100 border-zinc-800">
           <div className="flex items-center justify-between mb-2">
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase">
+              <p className="text-[10px] text-zinc-400 uppercase tracking-wider">
                 {market.type === "multi" ? selectedOutcome.label : "Yes"} chance
               </p>
               <div className="flex items-center gap-2">
-                <p className="text-3xl font-bold text-primary">
+                <p className={`text-3xl font-bold tabular-nums ${priceChange >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                   {Math.round(currentPrice * 100)}%
                 </p>
                 <span
-                  className={`text-xs font-semibold ${
-                    priceChange >= 0 ? "text-emerald-500" : "text-rose-500"
+                  className={`text-xs font-semibold tabular-nums ${
+                    priceChange >= 0 ? "text-emerald-400" : "text-rose-400"
                   }`}
                 >
                   {priceChange >= 0 ? "+" : ""}
@@ -271,15 +271,15 @@ const KimapreMarket = () => {
             </div>
             <TrendingUp
               className={`h-5 w-5 ${
-                priceChange >= 0 ? "text-emerald-500" : "text-rose-500"
+                priceChange >= 0 ? "text-emerald-400" : "text-rose-400"
               }`}
             />
           </div>
           <svg viewBox="0 0 320 120" className="w-full h-28">
             <defs>
               <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
-                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+                <stop offset="0%" stopColor={priceChange >= 0 ? "#10b981" : "#f43f5e"} stopOpacity="0.35" />
+                <stop offset="100%" stopColor={priceChange >= 0 ? "#10b981" : "#f43f5e"} stopOpacity="0" />
               </linearGradient>
             </defs>
             <path
@@ -289,7 +289,7 @@ const KimapreMarket = () => {
             <path
               d={chartPath}
               fill="none"
-              stroke="hsl(var(--primary))"
+              stroke={priceChange >= 0 ? "#10b981" : "#f43f5e"}
               strokeWidth="2"
             />
           </svg>
@@ -298,8 +298,8 @@ const KimapreMarket = () => {
               <button
                 key={r}
                 onClick={() => setRange(r)}
-                className={`flex-1 py-1 text-[10px] font-semibold rounded ${
-                  range === r ? "bg-foreground text-background" : "bg-muted text-muted-foreground"
+                className={`flex-1 py-1 text-[10px] font-semibold rounded tabular-nums ${
+                  range === r ? "bg-emerald-500 text-white" : "bg-zinc-800 text-zinc-400"
                 }`}
               >
                 {r}
@@ -696,7 +696,7 @@ const KimapreMarket = () => {
                           {formatVolume(m.volume)} vol
                         </p>
                       </div>
-                      <p className="text-sm font-bold text-primary">
+                      <p className="text-sm font-bold tabular-nums text-emerald-500">
                         {Math.round(m.yesPrice * 100)}%
                       </p>
                       <ChevronRight className="h-4 w-4 text-muted-foreground" />

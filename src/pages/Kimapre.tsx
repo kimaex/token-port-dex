@@ -129,9 +129,9 @@ const Kimapre = () => {
   const portfolioPnL = portfolioValue - portfolioCost;
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border">
+    <div className="min-h-screen bg-background pb-24 [&_.font-bold]:tracking-tight">
+      {/* Header — Blofin style */}
+      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/60">
         <div className="max-w-md mx-auto px-4 py-3">
           <div className="flex items-center gap-3 mb-3">
             <button
@@ -142,11 +142,11 @@ const Kimapre = () => {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div className="flex-1">
-              <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
+              <h1 className="text-xl font-bold tracking-tight flex items-center gap-2 uppercase">
                 Kimapre
-                <Badge className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0">BETA</Badge>
+                <Badge className="bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 text-[10px] px-1.5 py-0 rounded-sm">PREDICT</Badge>
               </h1>
-              <p className="text-xs text-muted-foreground">Prediction markets · Trade on outcomes</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Trade outcomes · Settled in USDC</p>
             </div>
             <button
               onClick={() => toast.info("Filters coming soon")}
@@ -195,29 +195,29 @@ const Kimapre = () => {
               />
             </div>
 
-            {/* Stats banner */}
-            <Card className="p-4 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+            {/* Stats banner — Blofin trader panel */}
+            <Card className="p-4 bg-zinc-900 dark:bg-zinc-900 text-zinc-100 border-zinc-800 rounded-xl">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground">Total Volume</p>
-                  <p className="text-2xl font-bold">{formatVolume(totalVolume)}</p>
+                  <p className="text-[10px] text-zinc-400 uppercase tracking-wider">Total Volume</p>
+                  <p className="text-2xl font-bold tabular-nums text-emerald-400">{formatVolume(totalVolume)}</p>
                 </div>
-                <div className="flex items-center gap-1 text-primary">
+                <div className="flex items-center gap-1 text-emerald-400">
                   <TrendingUp className="h-5 w-5" />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-border/50">
+              <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-zinc-800">
                 <div>
-                  <p className="text-[10px] text-muted-foreground">Markets</p>
-                  <p className="text-sm font-semibold">{MARKETS.length}</p>
+                  <p className="text-[10px] text-zinc-400 uppercase tracking-wider">Markets</p>
+                  <p className="text-sm font-semibold tabular-nums">{MARKETS.length}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-muted-foreground">Traders</p>
-                  <p className="text-sm font-semibold">19.4K</p>
+                  <p className="text-[10px] text-zinc-400 uppercase tracking-wider">Traders</p>
+                  <p className="text-sm font-semibold tabular-nums">19.4K</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-muted-foreground">Fee</p>
-                  <p className="text-sm font-semibold">2%</p>
+                  <p className="text-[10px] text-zinc-400 uppercase tracking-wider">Fee</p>
+                  <p className="text-sm font-semibold tabular-nums">2%</p>
                 </div>
               </div>
             </Card>
@@ -278,7 +278,7 @@ const Kimapre = () => {
                             <p className="text-sm font-semibold truncate">{m.title}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-lg font-bold text-primary">
+                            <p className="text-lg font-bold tabular-nums text-emerald-500">
                               {Math.round(m.yesPrice * 100)}%
                             </p>
                           </div>
@@ -419,8 +419,8 @@ const Kimapre = () => {
                               }`}
                             />
                           </button>
-                          <p className="text-2xl font-bold text-primary leading-none">{yesPct}%</p>
-                          <p className="text-[10px] text-muted-foreground">Yes</p>
+                          <p className="text-2xl font-bold tabular-nums text-emerald-500 leading-none">{yesPct}%</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Yes</p>
                         </div>
                       </div>
 
@@ -553,19 +553,19 @@ const Kimapre = () => {
         {/* PORTFOLIO TAB */}
         {tab === "portfolio" && (
           <div>
-            <Card className="p-4 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 mb-4">
-              <p className="text-xs text-muted-foreground">Portfolio Value</p>
-              <p className="text-3xl font-bold">{formatPrice(portfolioValue)}</p>
-              <div className="flex items-center gap-3 mt-2 pt-2 border-t border-border/50">
+            <Card className="p-4 bg-zinc-900 text-zinc-100 border-zinc-800 rounded-xl mb-4">
+              <p className="text-[10px] text-zinc-400 uppercase tracking-wider">Portfolio Value</p>
+              <p className="text-3xl font-bold tabular-nums">{formatPrice(portfolioValue)}</p>
+              <div className="flex items-center gap-3 mt-2 pt-2 border-t border-zinc-800">
                 <div>
-                  <p className="text-[10px] text-muted-foreground">Cost Basis</p>
-                  <p className="text-sm font-semibold">{formatPrice(portfolioCost)}</p>
+                  <p className="text-[10px] text-zinc-400 uppercase tracking-wider">Cost Basis</p>
+                  <p className="text-sm font-semibold tabular-nums">{formatPrice(portfolioCost)}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-muted-foreground">P&L</p>
+                  <p className="text-[10px] text-zinc-400 uppercase tracking-wider">P&L</p>
                   <p
-                    className={`text-sm font-semibold ${
-                      portfolioPnL >= 0 ? "text-emerald-500" : "text-rose-500"
+                    className={`text-sm font-semibold tabular-nums ${
+                      portfolioPnL >= 0 ? "text-emerald-400" : "text-rose-400"
                     }`}
                   >
                     {portfolioPnL >= 0 ? "+" : ""}
@@ -573,8 +573,8 @@ const Kimapre = () => {
                   </p>
                 </div>
                 <div className="ml-auto">
-                  <p className="text-[10px] text-muted-foreground">Positions</p>
-                  <p className="text-sm font-semibold">{positions.length}</p>
+                  <p className="text-[10px] text-zinc-400 uppercase tracking-wider">Positions</p>
+                  <p className="text-sm font-semibold tabular-nums">{positions.length}</p>
                 </div>
               </div>
             </Card>
