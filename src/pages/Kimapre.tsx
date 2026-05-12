@@ -419,8 +419,8 @@ const Kimapre = () => {
                               }`}
                             />
                           </button>
-                          <p className="text-2xl font-bold text-primary leading-none">{yesPct}%</p>
-                          <p className="text-[10px] text-muted-foreground">Yes</p>
+                          <p className="text-2xl font-bold tabular-nums text-emerald-500 leading-none">{yesPct}%</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Yes</p>
                         </div>
                       </div>
 
