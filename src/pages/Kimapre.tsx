@@ -129,9 +129,9 @@ const Kimapre = () => {
   const portfolioPnL = portfolioValue - portfolioCost;
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border">
+    <div className="min-h-screen bg-background pb-24 [&_.font-bold]:tracking-tight">
+      {/* Header — Blofin style */}
+      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/60">
         <div className="max-w-md mx-auto px-4 py-3">
           <div className="flex items-center gap-3 mb-3">
             <button
@@ -142,11 +142,11 @@ const Kimapre = () => {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div className="flex-1">
-              <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
+              <h1 className="text-xl font-bold tracking-tight flex items-center gap-2 uppercase">
                 Kimapre
-                <Badge className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0">BETA</Badge>
+                <Badge className="bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 text-[10px] px-1.5 py-0 rounded-sm">PREDICT</Badge>
               </h1>
-              <p className="text-xs text-muted-foreground">Prediction markets · Trade on outcomes</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Trade outcomes · Settled in USDC</p>
             </div>
             <button
               onClick={() => toast.info("Filters coming soon")}
