@@ -99,6 +99,7 @@ const promoMaterials = [
 ];
 
 export default function Settings() {
+  const navigate = useNavigate();
   const { currency, setCurrency } = useCurrency();
   const [darkMode, setDarkMode] = useState(() => {
     return document.documentElement.classList.contains('dark');
