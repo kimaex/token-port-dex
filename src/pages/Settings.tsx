@@ -360,6 +360,22 @@ export default function Settings() {
             );
           })}
         </div>
+
+        <div className="mt-8 flex justify-end">
+          <Button
+            variant="outline"
+            className="gap-2 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            onClick={() => {
+              localStorage.removeItem("walletSeedPhrase");
+              localStorage.removeItem("walletType");
+              toast.success("Logged out");
+              navigate("/auth");
+            }}
+          >
+            <LogOut className="h-4 w-4" />
+            Logout
+          </Button>
+        </div>
       </div>
 
       {/* Currency Selection Modal */}
