@@ -298,8 +298,8 @@ const KimapreMarket = () => {
               <button
                 key={r}
                 onClick={() => setRange(r)}
-                className={`flex-1 py-1 text-[10px] font-semibold rounded ${
-                  range === r ? "bg-foreground text-background" : "bg-muted text-muted-foreground"
+                className={`flex-1 py-1 text-[10px] font-semibold rounded tabular-nums ${
+                  range === r ? "bg-emerald-500 text-white" : "bg-zinc-800 text-zinc-400"
                 }`}
               >
                 {r}
