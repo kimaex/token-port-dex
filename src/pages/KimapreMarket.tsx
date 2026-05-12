@@ -248,20 +248,20 @@ const KimapreMarket = () => {
           </div>
         </Card>
 
-        {/* Price chart */}
-        <Card className="p-4">
+        {/* Price chart — Blofin trader hero */}
+        <Card className="p-4 bg-zinc-900 text-zinc-100 border-zinc-800">
           <div className="flex items-center justify-between mb-2">
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase">
+              <p className="text-[10px] text-zinc-400 uppercase tracking-wider">
                 {market.type === "multi" ? selectedOutcome.label : "Yes"} chance
               </p>
               <div className="flex items-center gap-2">
-                <p className="text-3xl font-bold text-primary">
+                <p className={`text-3xl font-bold tabular-nums ${priceChange >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                   {Math.round(currentPrice * 100)}%
                 </p>
                 <span
-                  className={`text-xs font-semibold ${
-                    priceChange >= 0 ? "text-emerald-500" : "text-rose-500"
+                  className={`text-xs font-semibold tabular-nums ${
+                    priceChange >= 0 ? "text-emerald-400" : "text-rose-400"
                   }`}
                 >
                   {priceChange >= 0 ? "+" : ""}
@@ -271,7 +271,7 @@ const KimapreMarket = () => {
             </div>
             <TrendingUp
               className={`h-5 w-5 ${
-                priceChange >= 0 ? "text-emerald-500" : "text-rose-500"
+                priceChange >= 0 ? "text-emerald-400" : "text-rose-400"
               }`}
             />
           </div>
