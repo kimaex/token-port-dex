@@ -32,14 +32,6 @@ const Index = () => {
     return <Onboarding onComplete={handleOnboardingComplete} />;
   }
 
-  const copyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(getReferralLink());
-      toast.success("Referral link copied");
-    } catch {
-      toast.info(getReferralLink());
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
