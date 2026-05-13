@@ -5,10 +5,6 @@ import { ActionButtons } from "@/components/ActionButtons";
 import { AssetList } from "@/components/AssetList";
 import { BottomNav } from "@/components/BottomNav";
 import { Onboarding } from "@/components/Onboarding";
-import { Card } from "@/components/ui/card";
-import { Gift, Share2 } from "lucide-react";
-import { viralShare, getReferralLink } from "@/lib/viralShare";
-import { toast } from "sonner";
 
 const Index = () => {
   const navigate = useNavigate();
