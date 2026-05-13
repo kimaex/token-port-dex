@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TrendingUp, TrendingDown, Send, Download, ArrowLeftRight, ChevronLeft, MoreVertical, Copy, Check, QrCode, ChevronDown } from "lucide-react";
+import { TrendingUp, TrendingDown, Send, Download, ArrowLeftRight, ChevronLeft, MoreVertical, Copy, Check, QrCode, ChevronDown, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -136,8 +136,30 @@ export const AssetList = () => {
   const [sendAddress, setSendAddress] = useState("");
   const [sendAmount, setSendAmount] = useState("");
   const [copiedAddress, setCopiedAddress] = useState(false);
+  const [showTPSLModal, setShowTPSLModal] = useState(false);
+  const [tpPrice, setTpPrice] = useState("");
+  const [slPrice, setSlPrice] = useState("");
+  const [tpslAmount, setTpslAmount] = useState("");
 
   const timeframes = ["1H", "1D", "1W", "1M", "1Y", "ALL"];
+
+  const handleSetTPSL = () => {
+    if (!tpPrice && !slPrice) {
+      toast.error("Set Take Profit or Stop Loss price");
+      return;
+    }
+    if (!tpslAmount) {
+      toast.error("Enter amount");
+      return;
+    }
+    toast.success(
+      `TP/SL set on ${selectedAsset?.symbol}: ${tpPrice ? `TP $${tpPrice}` : ""}${tpPrice && slPrice ? " · " : ""}${slPrice ? `SL $${slPrice}` : ""}`
+    );
+    setShowTPSLModal(false);
+    setTpPrice("");
+    setSlPrice("");
+    setTpslAmount("");
+  };
 
   const handleCopyAddress = async (address: string) => {
     try {
@@ -270,8 +292,8 @@ export const AssetList = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="p-4 grid grid-cols-3 gap-3">
-          <Button 
+        <div className={`p-4 grid ${selectedAsset.symbol !== "USDC" ? "grid-cols-4" : "grid-cols-3"} gap-3`}>
+          <Button
             className="flex-col h-auto py-4 gap-2"
             variant="outline"
             onClick={handleOpenSend}
@@ -282,7 +304,7 @@ export const AssetList = () => {
             <span className="text-sm">Send</span>
           </Button>
 
-          <Button 
+          <Button
             className="flex-col h-auto py-4 gap-2"
             variant="outline"
             onClick={handleOpenReceive}
@@ -293,7 +315,7 @@ export const AssetList = () => {
             <span className="text-sm">Receive</span>
           </Button>
 
-          <Button 
+          <Button
             className="flex-col h-auto py-4 gap-2"
             variant="outline"
             onClick={() => {
@@ -306,7 +328,84 @@ export const AssetList = () => {
             </div>
             <span className="text-sm">Swap</span>
           </Button>
+
+          {selectedAsset.symbol !== "USDC" && (
+            <Button
+              className="flex-col h-auto py-4 gap-2"
+              variant="outline"
+              onClick={() => setShowTPSLModal(true)}
+            >
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Target className="h-5 w-5 text-primary" />
+              </div>
+              <span className="text-sm">TP/SL</span>
+            </Button>
+          )}
         </div>
+
+        {/* TP/SL Modal */}
+        <Dialog open={showTPSLModal} onOpenChange={setShowTPSLModal}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-primary" />
+                Set TP/SL · {selectedAsset.symbol}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="p-3 bg-muted rounded-xl flex justify-between text-sm">
+                <span className="text-muted-foreground">Mark Price</span>
+                <span className="font-semibold">{selectedAsset.price}</span>
+              </div>
+              <div>
+                <label className="text-sm text-muted-foreground mb-2 block">Amount ({selectedAsset.symbol})</label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    placeholder="0.00"
+                    value={tpslAmount}
+                    onChange={(e) => setTpslAmount(e.target.value)}
+                    className="bg-secondary pr-20"
+                  />
+                  <button
+                    onClick={() => setTpslAmount(selectedAsset.balance.replace(/,/g, ''))}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-primary font-medium"
+                  >
+                    MAX
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm text-success mb-2 block">Take Profit (USD)</label>
+                <Input
+                  type="number"
+                  placeholder="Trigger price"
+                  value={tpPrice}
+                  onChange={(e) => setTpPrice(e.target.value)}
+                  className="bg-secondary"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-destructive mb-2 block">Stop Loss (USD)</label>
+                <Input
+                  type="number"
+                  placeholder="Trigger price"
+                  value={slPrice}
+                  onChange={(e) => setSlPrice(e.target.value)}
+                  className="bg-secondary"
+                />
+              </div>
+              <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  Order auto-executes when {selectedAsset.symbol} reaches your TP or SL price.
+                </p>
+              </div>
+              <Button className="w-full bg-gradient-primary" onClick={handleSetTPSL}>
+                Confirm TP/SL Order
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Send Modal */}
         <Dialog open={showSendModal} onOpenChange={setShowSendModal}>
