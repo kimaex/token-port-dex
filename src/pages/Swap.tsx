@@ -6,6 +6,7 @@ import { ArrowDownUp, ChevronDown, Search, Settings, X, Zap, Info, Shield, Users
 import KimaexShield from "@/components/KimaexShield";
 import { toast } from "sonner";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { viralShare } from "@/lib/viralShare";
 
 interface Token {
   symbol: string;
@@ -139,7 +140,14 @@ export default function Swap() {
       if (takeProfit) message += ` | TP: ${takeProfit}`;
       toast.success(message);
     } else {
-      toast.success(`Swapping ${fromAmount} ${fromToken.symbol} for ${toAmount} ${toToken.symbol}`);
+      toast.success(`Swapping ${fromAmount} ${fromToken.symbol} for ${toAmount} ${toToken.symbol}`, {
+        action: {
+          label: "Share",
+          onClick: () => viralShare(`I just swapped ${fromAmount} ${fromToken.symbol} → ${toAmount} ${toToken.symbol} on Kimaex 🚀`),
+        },
+      });
+      // Auto-prompt share after a moment
+      setTimeout(() => viralShare(`I just swapped ${fromAmount} ${fromToken.symbol} → ${toAmount} ${toToken.symbol} on Kimaex 🚀`), 800);
     }
     setSwapStep("input");
     setFromAmount("");

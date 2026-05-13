@@ -195,51 +195,6 @@ const Kimapre = () => {
               />
             </div>
 
-            {/* Stats banner — Blofin trader panel */}
-            <Card className="p-4 bg-zinc-900 dark:bg-zinc-900 text-zinc-100 border-zinc-800 rounded-xl">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] text-zinc-400 uppercase tracking-wider">Total Volume</p>
-                  <p className="text-2xl font-bold tabular-nums text-emerald-400">{formatVolume(totalVolume)}</p>
-                </div>
-                <div className="flex items-center gap-1 text-emerald-400">
-                  <TrendingUp className="h-5 w-5" />
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-zinc-800">
-                <div>
-                  <p className="text-[10px] text-zinc-400 uppercase tracking-wider">Markets</p>
-                  <p className="text-sm font-semibold tabular-nums">{MARKETS.length}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-zinc-400 uppercase tracking-wider">Traders</p>
-                  <p className="text-sm font-semibold tabular-nums">19.4K</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-zinc-400 uppercase tracking-wider">Fee</p>
-                  <p className="text-sm font-semibold tabular-nums">2%</p>
-                </div>
-              </div>
-            </Card>
-
-            {/* Sort tabs */}
-            <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 scrollbar-none">
-              {SORT_OPTIONS.map(({ key, label, icon: Icon }) => (
-                <button
-                  key={key}
-                  onClick={() => setSortKey(key)}
-                  className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-                    sortKey === key
-                      ? "bg-foreground text-background"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  <Icon className="h-3 w-3" />
-                  {label}
-                </button>
-              ))}
-            </div>
-
             {/* Categories */}
             <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 scrollbar-none">
               {CATEGORIES.map((c) => (
