@@ -95,7 +95,9 @@ const Kimapre = () => {
   };
 
   const filtered = useMemo(() => {
+    const updownIds = new Set(UPDOWN_MARKETS.map((m) => m.id));
     let list = MARKETS.filter((m) => {
+      if (updownIds.has(m.id)) return false;
       const matchCat = activeCategory === "All" || m.category === activeCategory;
       const matchSearch = m.title.toLowerCase().includes(search.toLowerCase());
       return matchCat && matchSearch;
