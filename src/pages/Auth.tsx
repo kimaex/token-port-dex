@@ -46,6 +46,30 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
   const [loading, setLoading] = useState(false);
   const [pendingVerification, setPendingVerification] = useState<string | null>(null);
   const [referralCode, setReferralCode] = useState("");
+  const [forgotMode, setForgotMode] = useState(false);
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      toast.error("Enter your email to reset your password");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      toast.success("Password reset link sent. Check your email.");
+      setForgotMode(false);
+    } catch {
+      toast.error("Could not send reset email. Try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!email.trim()) {
