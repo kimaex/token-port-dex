@@ -242,6 +242,18 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+            {tab === "login" && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={forgotMode ? handleForgotPassword : () => setForgotMode(true)}
+                  disabled={loading}
+                  className="text-xs text-primary font-semibold hover:underline disabled:opacity-50"
+                >
+                  {forgotMode ? "Send reset link →" : "Forgot password?"}
+                </button>
+              </div>
+            )}
           </div>
 
           {tab === "register" && (
