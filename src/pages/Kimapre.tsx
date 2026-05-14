@@ -24,7 +24,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { BottomNav } from "@/components/BottomNav";
 import { useCurrency } from "@/contexts/CurrencyContext";
-import { MARKETS, MarketCategory, TOP_TRADERS, ACTIVITY_FEED } from "@/data/kimapreMarkets";
+import { MARKETS, MarketCategory, TOP_TRADERS, ACTIVITY_FEED, UPDOWN_MARKETS } from "@/data/kimapreMarkets";
+import { ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 
 type Category = "All" | MarketCategory;
@@ -94,7 +95,9 @@ const Kimapre = () => {
   };
 
   const filtered = useMemo(() => {
+    const updownIds = new Set(UPDOWN_MARKETS.map((m) => m.id));
     let list = MARKETS.filter((m) => {
+      if (updownIds.has(m.id)) return false;
       const matchCat = activeCategory === "All" || m.category === activeCategory;
       const matchSearch = m.title.toLowerCase().includes(search.toLowerCase());
       return matchCat && matchSearch;
@@ -210,6 +213,61 @@ const Kimapre = () => {
                   {c}
                 </button>
               ))}
+            </div>
+
+            {/* Up/Down Crypto Trading */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Zap className="h-4 w-4 text-primary" />
+                <h2 className="text-sm font-bold">Up / Down · 24h</h2>
+                <Badge className="bg-primary/15 text-primary text-[10px] border-0 ml-auto">BTC · SOL · ETH</Badge>
+              </div>
+              <div className="space-y-2">
+                {UPDOWN_MARKETS.map((m) => {
+                  const symbol = m.id.split("-")[0].toUpperCase();
+                  const upPct = Math.round(m.yesPrice * 100);
+                  const downPct = 100 - upPct;
+                  return (
+                    <Card key={m.id} className="p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <button
+                          onClick={() => navigate(`/kimapre/${m.id}`)}
+                          className="flex items-center gap-2 text-left"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-[11px] font-bold text-primary">
+                            {symbol}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold leading-tight">{symbol} · 24h</p>
+                            <p className="text-[10px] text-muted-foreground">
+                              {formatVolume(m.volume24h)} · 24h vol
+                            </p>
+                          </div>
+                        </button>
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                          {m.endsAt}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          onClick={() => navigate(`/kimapre/${m.id}?side=YES`)}
+                          variant="outline"
+                          className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 h-9 gap-1"
+                        >
+                          <ArrowUp className="h-4 w-4" /> Up · {upPct}¢
+                        </Button>
+                        <Button
+                          onClick={() => navigate(`/kimapre/${m.id}?side=NO`)}
+                          variant="outline"
+                          className="bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white border border-rose-500/30 h-9 gap-1"
+                        >
+                          <ArrowDown className="h-4 w-4" /> Down · {downPct}¢
+                        </Button>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Watchlist */}
