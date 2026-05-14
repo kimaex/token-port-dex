@@ -24,7 +24,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { BottomNav } from "@/components/BottomNav";
 import { useCurrency } from "@/contexts/CurrencyContext";
-import { MARKETS, MarketCategory, TOP_TRADERS, ACTIVITY_FEED } from "@/data/kimapreMarkets";
+import { MARKETS, MarketCategory, TOP_TRADERS, ACTIVITY_FEED, UPDOWN_MARKETS } from "@/data/kimapreMarkets";
+import { ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 
 type Category = "All" | MarketCategory;
