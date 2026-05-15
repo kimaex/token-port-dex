@@ -44,12 +44,14 @@ export const Onboarding = ({ onComplete }: OnboardingProps) => {
     if (currentSlide < slides.length - 1) {
       setCurrentSlide(currentSlide + 1);
     } else {
-      setStep("pin-setup");
+      // After welcome slides, send user to register/login first.
+      // PIN & biometric setup happens after registration in the Auth flow.
+      onComplete();
     }
   };
 
   const handleSkip = () => {
-    setStep("pin-setup");
+    onComplete();
   };
 
   const handlePinChange = (value: string) => {
