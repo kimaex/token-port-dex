@@ -24,19 +24,14 @@ export const Onboarding = ({ onComplete }: OnboardingProps) => {
       description: "Your keys, your crypto. Full control with bank-level security.",
     },
     {
+      icon: Wallet,
+      title: "Your Solana Wallet",
+      description: "Built for memecoins and prediction markets. Trade, swap, and bet on Solana — all in one place.",
+    },
+    {
       icon: Banknote,
       title: "Fiat Access",
       description: "Buy and sell crypto with local currencies. Mobile money, bank transfers, and cards supported across Africa.",
-    },
-    {
-      icon: Wallet,
-      title: "Multi-Chain Support",
-      description: "Manage Bitcoin, Ethereum, and thousands of other cryptocurrencies in one place.",
-    },
-    {
-      icon: Zap,
-      title: "Lightning Fast",
-      description: "Instant swaps, NFT trading, and DApp access. Your gateway to Web3.",
     },
   ];
 
