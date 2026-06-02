@@ -185,9 +185,19 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
           </div>
           <span className="text-lg font-bold tracking-tight text-black">Kimaex</span>
         </div>
-        <button className="text-xs text-black/60 flex items-center gap-1">
-          <Globe className="w-3.5 h-3.5" /> EN
-        </button>
+        <Select value={language} onValueChange={setLanguage}>
+          <SelectTrigger className="w-auto h-8 px-2 gap-1 bg-transparent border border-black/10 rounded-md text-xs text-black/70 focus:ring-0">
+            <Globe className="w-3.5 h-3.5" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="max-h-80 bg-white text-black">
+            {AFRICAN_LANGUAGES.map((l) => (
+              <SelectItem key={l.code} value={l.code} className="text-xs">
+                {l.native} <span className="text-black/40 ml-1">({l.code})</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="px-5">
