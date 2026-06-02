@@ -333,13 +333,6 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
           </button>
         </div>
 
-        {/* Decentralized notice */}
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 mt-4 mb-4 flex gap-2">
-          <Shield className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-          <p className="text-[11px] text-muted-foreground leading-relaxed">
-            <span className="text-foreground font-medium">Non-custodial wallet.</span> Your account secures app access — your seed phrase stays on your device. Kimaex never holds your keys.
-          </p>
-        </div>
 
         <p className="text-center text-xs text-muted-foreground pb-6">
           {tab === "login" ? "New to Kimaex? " : "Already have an account? "}
