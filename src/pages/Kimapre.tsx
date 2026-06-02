@@ -158,26 +158,6 @@ const Kimapre = () => {
             </button>
           </div>
 
-          {/* Top tabs */}
-          <div className="flex gap-1 bg-muted/50 p-1 rounded-lg">
-            {([
-              { k: "markets", label: "Markets", icon: BarChart3 },
-              { k: "activity", label: "Activity", icon: Activity },
-              { k: "leaderboard", label: "Top", icon: Award },
-              { k: "portfolio", label: "Portfolio", icon: Wallet },
-            ] as const).map(({ k, label, icon: Icon }) => (
-              <button
-                key={k}
-                onClick={() => setTab(k)}
-                className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-semibold transition-colors ${
-                  tab === k ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
-                }`}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                {label}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
 
