@@ -187,6 +187,13 @@ export default function Settings() {
       hasSwitch: false,
     },
     {
+      id: "language",
+      icon: Languages,
+      label: "Language",
+      description: `Current: ${(AFRICAN_LANGUAGES.find(l => l.code === language)?.native) || "English"}`,
+      hasSwitch: false,
+    },
+    {
       id: "security",
       icon: Shield,
       label: "Security",
