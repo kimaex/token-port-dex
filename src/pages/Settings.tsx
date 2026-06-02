@@ -223,6 +223,8 @@ export default function Settings() {
       setShowProfileModal(true);
     } else if (id === "currency") {
       setShowCurrencyModal(true);
+    } else if (id === "language") {
+      setShowLanguageModal(true);
     } else if (id === "connect-wallet") {
       setShowConnectedWallets(true);
     } else if (id === "referral") {
