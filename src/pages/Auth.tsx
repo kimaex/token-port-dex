@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { KeyRound, Users, Shield, Lock, Fingerprint, ChevronRight, Copy, Eye, EyeOff, Check, Plus, Download, Wallet, Globe, ArrowRight, Mail, Smartphone, ScanFace, Loader2, Cloud, Cpu, Sparkles } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AFRICAN_LANGUAGES } from "@/data/africanLanguages";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 
@@ -47,6 +49,11 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
   const [pendingVerification, setPendingVerification] = useState<string | null>(null);
   const [referralCode, setReferralCode] = useState("");
   const [forgotMode, setForgotMode] = useState(false);
+  const [language, setLanguage] = useState<string>(() => localStorage.getItem("kimaex_language") || "EN");
+
+  useEffect(() => {
+    localStorage.setItem("kimaex_language", language);
+  }, [language]);
 
   const handleForgotPassword = async () => {
     if (!email.trim()) {
@@ -178,9 +185,19 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
           </div>
           <span className="text-lg font-bold tracking-tight text-black">Kimaex</span>
         </div>
-        <button className="text-xs text-black/60 flex items-center gap-1">
-          <Globe className="w-3.5 h-3.5" /> EN
-        </button>
+        <Select value={language} onValueChange={setLanguage}>
+          <SelectTrigger className="w-auto h-8 px-2 gap-1 bg-transparent border border-black/10 rounded-md text-xs text-black/70 focus:ring-0">
+            <Globe className="w-3.5 h-3.5" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="max-h-80 bg-white text-black">
+            {AFRICAN_LANGUAGES.map((l) => (
+              <SelectItem key={l.code} value={l.code} className="text-xs">
+                {l.native} <span className="text-black/40 ml-1">({l.code})</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="px-5">

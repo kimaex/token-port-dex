@@ -1,4 +1,5 @@
-import { Moon, Wallet, Shield, MessageCircle, Users, DollarSign, ChevronRight, Check, Copy, Share2, Gift, X, ExternalLink, Eye, EyeOff, Lock, FileText, HelpCircle, Clock, CheckCircle, Send, Headphones, CreditCard, UserCheck, ShieldAlert, ArrowRight, TrendingUp, Award, Download, Link2, BarChart3, Wallet2, Banknote, ArrowRightLeft, User as UserIcon, Camera, IdCard } from "lucide-react";
+import { Moon, Wallet, Shield, MessageCircle, Users, DollarSign, ChevronRight, Check, Copy, Share2, Gift, X, ExternalLink, Eye, EyeOff, Lock, FileText, HelpCircle, Clock, CheckCircle, Send, Headphones, CreditCard, UserCheck, ShieldAlert, ArrowRight, TrendingUp, Award, Download, Link2, BarChart3, Wallet2, Banknote, ArrowRightLeft, User as UserIcon, Camera, IdCard, Globe, Languages } from "lucide-react";
+import { AFRICAN_LANGUAGES } from "@/data/africanLanguages";
 import {
   Table,
   TableBody,
@@ -109,6 +110,8 @@ export default function Settings() {
   const [showReferralModal, setShowReferralModal] = useState(false);
   const [connectedApps, setConnectedApps] = useState(connectedDApps);
   const [showCustomerCareModal, setShowCustomerCareModal] = useState(false);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [language, setLanguage] = useState<string>(() => localStorage.getItem("kimaex_language") || "EN");
 
   // Profile / KYC state
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -184,6 +187,13 @@ export default function Settings() {
       hasSwitch: false,
     },
     {
+      id: "language",
+      icon: Languages,
+      label: "Language",
+      description: `Current: ${(AFRICAN_LANGUAGES.find(l => l.code === language)?.native) || "English"}`,
+      hasSwitch: false,
+    },
+    {
       id: "security",
       icon: Shield,
       label: "Security",
@@ -213,6 +223,8 @@ export default function Settings() {
       setShowProfileModal(true);
     } else if (id === "currency") {
       setShowCurrencyModal(true);
+    } else if (id === "language") {
+      setShowLanguageModal(true);
     } else if (id === "connect-wallet") {
       setShowConnectedWallets(true);
     } else if (id === "referral") {
@@ -418,6 +430,51 @@ export default function Settings() {
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      {/* Language Selection Modal */}
+      <Dialog open={showLanguageModal} onOpenChange={setShowLanguageModal}>
+        <DialogContent className="max-w-md bg-background border-border">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-foreground">
+              Select Language
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="h-[420px] pr-4">
+            <div className="space-y-2">
+              {AFRICAN_LANGUAGES.map((lang) => (
+                <div
+                  key={lang.code}
+                  onClick={() => {
+                    setLanguage(lang.code);
+                    localStorage.setItem("kimaex_language", lang.code);
+                    setShowLanguageModal(false);
+                    toast.success(`Language set to ${lang.native}`);
+                  }}
+                  className={`p-4 rounded-xl cursor-pointer transition-all flex items-center justify-between ${
+                    language === lang.code
+                      ? "bg-primary/20 border border-primary"
+                      : "bg-card hover:bg-card/80 border border-border"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-gradient-primary flex items-center justify-center">
+                      <Globe className="h-5 w-5 text-primary-foreground" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">{lang.native}</p>
+                      <p className="text-sm text-muted-foreground">{lang.name} · {lang.code}</p>
+                    </div>
+                  </div>
+                  {language === lang.code && (
+                    <Check className="h-5 w-5 text-primary" />
+                  )}
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
 
       {/* Connected dApps Modal */}
       <Dialog open={showConnectedWallets} onOpenChange={setShowConnectedWallets}>
