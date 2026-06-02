@@ -147,9 +147,7 @@ const Kimapre = () => {
             <div className="flex-1">
               <h1 className="text-xl font-bold tracking-tight flex items-center gap-2 uppercase">
                 Kimapre
-                <Badge className="bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 text-[10px] px-1.5 py-0 rounded-sm">PREDICT</Badge>
               </h1>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Trade outcomes · Settled in USDC</p>
             </div>
             <button
               onClick={() => toast.info("Filters coming soon")}
