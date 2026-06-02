@@ -169,43 +169,43 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-white text-black flex flex-col">
       {/* Header */}
       <div className="px-5 pt-12 pb-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
-            <Wallet className="w-5 h-5 text-primary-foreground" />
+          <div className="w-9 h-9 rounded-lg bg-black flex items-center justify-center">
+            <Wallet className="w-5 h-5 text-white" />
           </div>
-          <span className="text-lg font-bold tracking-tight text-foreground">Kimaex</span>
+          <span className="text-lg font-bold tracking-tight text-black">Kimaex</span>
         </div>
-        <button className="text-xs text-muted-foreground flex items-center gap-1">
+        <button className="text-xs text-black/60 flex items-center gap-1">
           <Globe className="w-3.5 h-3.5" /> EN
         </button>
       </div>
 
       <div className="px-5">
-        <h1 className="text-2xl font-bold text-foreground mb-1">
+        <h1 className="text-2xl font-bold text-black mb-1">
           {tab === "login" ? "Welcome back" : "Create account"}
         </h1>
-        <p className="text-sm text-muted-foreground mb-6">
+        <p className="text-sm text-black/60 mb-6">
           {tab === "login"
             ? "Log in to access your decentralized wallet"
             : "Sign up — your keys, your crypto"}
         </p>
 
-        {/* Tabs */}
-        <div className="flex border-b border-border mb-5">
-          {(["login", "register"] as WelcomeTab[]).map((t) => (
+        {/* Tabs — Register first, Log In second (swapped) */}
+        <div className="flex border-b border-black/10 mb-5">
+          {(["register", "login"] as WelcomeTab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={`flex-1 pb-3 text-sm font-semibold transition-colors relative ${
-                tab === t ? "text-foreground" : "text-muted-foreground"
+                tab === t ? "text-black" : "text-black/50"
               }`}
             >
               {t === "login" ? "Log In" : "Register"}
               {tab === t && (
-                <span className="absolute bottom-[-1px] left-1/4 right-1/4 h-[3px] rounded-full bg-primary" />
+                <span className="absolute bottom-[-1px] left-1/4 right-1/4 h-[3px] rounded-full bg-black" />
               )}
             </button>
           ))}
