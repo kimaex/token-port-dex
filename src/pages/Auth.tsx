@@ -49,6 +49,11 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
   const [pendingVerification, setPendingVerification] = useState<string | null>(null);
   const [referralCode, setReferralCode] = useState("");
   const [forgotMode, setForgotMode] = useState(false);
+  const [language, setLanguage] = useState<string>(() => localStorage.getItem("kimaex_language") || "EN");
+
+  useEffect(() => {
+    localStorage.setItem("kimaex_language", language);
+  }, [language]);
 
   const handleForgotPassword = async () => {
     if (!email.trim()) {
