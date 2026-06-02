@@ -110,6 +110,8 @@ export default function Settings() {
   const [showReferralModal, setShowReferralModal] = useState(false);
   const [connectedApps, setConnectedApps] = useState(connectedDApps);
   const [showCustomerCareModal, setShowCustomerCareModal] = useState(false);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [language, setLanguage] = useState<string>(() => localStorage.getItem("kimaex_language") || "EN");
 
   // Profile / KYC state
   const [showProfileModal, setShowProfileModal] = useState(false);
