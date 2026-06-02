@@ -431,6 +431,51 @@ export default function Settings() {
         </DialogContent>
       </Dialog>
 
+      {/* Language Selection Modal */}
+      <Dialog open={showLanguageModal} onOpenChange={setShowLanguageModal}>
+        <DialogContent className="max-w-md bg-background border-border">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-foreground">
+              Select Language
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="h-[420px] pr-4">
+            <div className="space-y-2">
+              {AFRICAN_LANGUAGES.map((lang) => (
+                <div
+                  key={lang.code}
+                  onClick={() => {
+                    setLanguage(lang.code);
+                    localStorage.setItem("kimaex_language", lang.code);
+                    setShowLanguageModal(false);
+                    toast.success(`Language set to ${lang.native}`);
+                  }}
+                  className={`p-4 rounded-xl cursor-pointer transition-all flex items-center justify-between ${
+                    language === lang.code
+                      ? "bg-primary/20 border border-primary"
+                      : "bg-card hover:bg-card/80 border border-border"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-gradient-primary flex items-center justify-center">
+                      <Globe className="h-5 w-5 text-primary-foreground" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">{lang.native}</p>
+                      <p className="text-sm text-muted-foreground">{lang.name} · {lang.code}</p>
+                    </div>
+                  </div>
+                  {language === lang.code && (
+                    <Check className="h-5 w-5 text-primary" />
+                  )}
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+
       {/* Connected dApps Modal */}
       <Dialog open={showConnectedWallets} onOpenChange={setShowConnectedWallets}>
         <DialogContent className="max-w-md bg-background border-border">
