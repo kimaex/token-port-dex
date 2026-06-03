@@ -55,6 +55,19 @@ const KimapreMarket = () => {
   const [newComment, setNewComment] = useState("");
   const [comments, setComments] = useState(market?.comments || []);
   const [likedComments, setLikedComments] = useState<string[]>([]);
+  const isUpDown = !!market?.id?.includes("updown");
+  const DURATIONS = [
+    { label: "5m", minutes: 5 },
+    { label: "15m", minutes: 15 },
+    { label: "30m", minutes: 30 },
+    { label: "1h", minutes: 60 },
+    { label: "2h", minutes: 120 },
+    { label: "4h", minutes: 240 },
+    { label: "8h", minutes: 480 },
+    { label: "12h", minutes: 720 },
+    { label: "24h", minutes: 1440 },
+  ] as const;
+  const [duration, setDuration] = useState<number>(60);
 
   useEffect(() => {
     try {
