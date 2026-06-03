@@ -595,12 +595,12 @@ const Auth = () => {
       toast.success("Referral code applied!");
     }
     localStorage.setItem("referralPromptShown", "true");
-    routeAfterAuth();
+    setCurrentStep("security");
   };
 
   const handleSkipReferralPrompt = () => {
     localStorage.setItem("referralPromptShown", "true");
-    routeAfterAuth();
+    setCurrentStep("security");
   };
 
   // Welcome Step - Binance-style Login / Register tabs
