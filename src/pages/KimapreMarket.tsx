@@ -143,7 +143,7 @@ const KimapreMarket = () => {
     toast.success(
       `${orderType === "market" ? "Filled" : "Placed"} ${shares.toFixed(2)} ${
         market.type === "multi" ? selectedOutcome.label : side
-      } shares · payout ${formatPrice(potentialPayout)}`
+      } shares${isUpDown ? ` · ${duration < 60 ? `${duration}m` : `${duration / 60}h`}` : ""} · payout ${formatPrice(potentialPayout)}`
     );
     setAmount("");
     setLimitPrice("");
