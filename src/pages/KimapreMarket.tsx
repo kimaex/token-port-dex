@@ -55,6 +55,19 @@ const KimapreMarket = () => {
   const [newComment, setNewComment] = useState("");
   const [comments, setComments] = useState(market?.comments || []);
   const [likedComments, setLikedComments] = useState<string[]>([]);
+  const isUpDown = !!market?.id?.includes("updown");
+  const DURATIONS = [
+    { label: "5m", minutes: 5 },
+    { label: "15m", minutes: 15 },
+    { label: "30m", minutes: 30 },
+    { label: "1h", minutes: 60 },
+    { label: "2h", minutes: 120 },
+    { label: "4h", minutes: 240 },
+    { label: "8h", minutes: 480 },
+    { label: "12h", minutes: 720 },
+    { label: "24h", minutes: 1440 },
+  ] as const;
+  const [duration, setDuration] = useState<number>(60);
 
   useEffect(() => {
     try {
@@ -130,7 +143,7 @@ const KimapreMarket = () => {
     toast.success(
       `${orderType === "market" ? "Filled" : "Placed"} ${shares.toFixed(2)} ${
         market.type === "multi" ? selectedOutcome.label : side
-      } shares · payout ${formatPrice(potentialPayout)}`
+      } shares${isUpDown ? ` · ${duration < 60 ? `${duration}m` : `${duration / 60}h`}` : ""} · payout ${formatPrice(potentialPayout)}`
     );
     setAmount("");
     setLimitPrice("");
@@ -393,6 +406,32 @@ const KimapreMarket = () => {
                     {Math.round((1 - market.yesPrice) * 100)}¢
                   </p>
                 </button>
+              </div>
+            )}
+
+            {isUpDown && (
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs text-muted-foreground">Trade duration</label>
+                  <span className="text-[10px] text-muted-foreground">
+                    Resolves {duration < 60 ? `in ${duration}m` : `in ${duration / 60}h`}
+                  </span>
+                </div>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {DURATIONS.map((d) => (
+                    <button
+                      key={d.minutes}
+                      onClick={() => setDuration(d.minutes)}
+                      className={`py-1.5 rounded-md text-[11px] font-semibold border transition-colors ${
+                        duration === d.minutes
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-muted/40 border-border text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {d.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
