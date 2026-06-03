@@ -529,17 +529,19 @@ const Auth = () => {
   };
 
   const handleSecuritySubmit = () => {
-    if (pin && pin !== confirmPin) {
+    if (!pin || pin.length !== 6) {
+      toast.error("Enter a 6-digit PIN");
+      return;
+    }
+    if (pin !== confirmPin) {
       toast.error("PINs do not match");
       return;
     }
-    if (pin) {
-      localStorage.setItem("walletPin", pin);
-    }
+    localStorage.setItem("walletPin", pin);
     localStorage.setItem("biometricEnabled", String(biometricEnabled));
     localStorage.setItem("twoFactorEnabled", String(twoFactorEnabled));
     toast.success("Wallet setup complete!");
-    navigate("/");
+    routeAfterAuth();
   };
 
   // Centralized app: after auth, go straight to home — no wallet provisioning.
