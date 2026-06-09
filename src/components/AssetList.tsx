@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { TrendingUp, TrendingDown, Send, Download, ArrowLeftRight, ChevronLeft, MoreVertical, Copy, Check, QrCode, ChevronDown, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from "recharts";
@@ -126,6 +127,7 @@ const generateChartData = (isPositive: boolean) => {
 };
 
 export const AssetList = () => {
+  const navigate = useNavigate();
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [activeTimeframe, setActiveTimeframe] = useState("1D");
   const [showSendModal, setShowSendModal] = useState(false);
@@ -619,9 +621,20 @@ export const AssetList = () => {
 
   return (
     <div className="px-6 pb-24">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold">Assets</h3>
+      <div className="flex items-center gap-2 mb-4 bg-muted/50 rounded-xl p-1">
+        <button
+          className="flex-1 py-2 text-sm font-semibold rounded-lg bg-primary text-primary-foreground"
+        >
+          Assets
+        </button>
+        <button
+          onClick={() => navigate("/stocks")}
+          className="flex-1 py-2 text-sm font-semibold rounded-lg text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Stocks
+        </button>
       </div>
+
 
       <div className="space-y-3">
         {assets.map((asset) => (
