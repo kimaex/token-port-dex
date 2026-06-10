@@ -25,6 +25,7 @@ import Notifications from "./pages/Notifications";
 import Send from "./pages/Send";
 import Receive from "./pages/Receive";
 import Stocks from "./pages/Stocks";
+import StockTradingGuide from "./pages/StockTradingGuide";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/send" element={<Send />} />
             <Route path="/receive" element={<Receive />} />
             <Route path="/stocks" element={<Stocks />} />
+            <Route path="/stocks/guide" element={<StockTradingGuide />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

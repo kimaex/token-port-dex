@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Search, TrendingUp, TrendingDown, Circle, Bell, Star, StarOff } from "lucide-react";
+import { ChevronLeft, Search, TrendingUp, TrendingDown, Circle, Bell, Star, StarOff, BookOpen, HelpCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
