@@ -277,6 +277,14 @@ export default function Stocks() {
               className="pl-9 bg-secondary border-0"
             />
           </div>
+
+          <button
+            onClick={() => navigate("/stocks/guide")}
+            className="mt-3 flex items-center justify-center gap-2 w-full py-2 text-xs font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/15 transition-colors"
+          >
+            <HelpCircle className="h-3.5 w-3.5" />
+            How stock trading works
+          </button>
         </div>
 
         {/* News ticker */}
