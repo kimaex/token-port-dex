@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Search, TrendingUp, TrendingDown, Circle, Bell, Star, StarOff } from "lucide-react";
+import { ChevronLeft, Search, TrendingUp, TrendingDown, Circle, Bell, Star, StarOff, BookOpen, HelpCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
@@ -277,6 +277,14 @@ export default function Stocks() {
               className="pl-9 bg-secondary border-0"
             />
           </div>
+
+          <button
+            onClick={() => navigate("/stocks/guide")}
+            className="mt-3 flex items-center justify-center gap-2 w-full py-2 text-xs font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/15 transition-colors"
+          >
+            <HelpCircle className="h-3.5 w-3.5" />
+            How stock trading works
+          </button>
         </div>
 
         {/* News ticker */}
