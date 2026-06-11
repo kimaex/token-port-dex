@@ -102,6 +102,11 @@ export default function Stocks() {
   );
 
   const watched = STOCKS.filter((s) => watchlist.includes(s.ticker));
+  const { usdc, holdings } = usePortfolio();
+  const portfolioValue = holdings.reduce(
+    (sum, h) => sum + h.shares * (prices[h.ticker] ?? STOCKS.find((s) => s.ticker === h.ticker)?.price ?? 0),
+    0
+  );
 
   if (selected) {
     const livePrice = prices[selected.ticker] ?? selected.price;
