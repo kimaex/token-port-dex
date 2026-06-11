@@ -37,7 +37,7 @@ const generateWalletAddress = () => {
   return address;
 };
 
-const assets: Asset[] = [
+const baseAssets: Asset[] = [
   {
     id: "1",
     name: "Bitcoin",
