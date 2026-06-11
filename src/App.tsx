@@ -62,6 +62,8 @@ const App = () => (
             <Route path="/receive" element={<Receive />} />
             <Route path="/stocks" element={<Stocks />} />
             <Route path="/stocks/guide" element={<StockTradingGuide />} />
+            <Route path="/stocks/buy/:ticker" element={<BuyStock />} />
+            <Route path="/stocks/sell/:ticker" element={<SellStock />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
