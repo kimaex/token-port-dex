@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { TrendingUp, TrendingDown, Send, Download, ArrowLeftRight, ChevronLeft, MoreVertical, Copy, Check, QrCode, ChevronDown, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { usePortfolio } from "@/lib/portfolioStore";
 
 interface Network {
   id: string;
