@@ -282,8 +282,75 @@ export default function Stocks() {
           </div>
         </div>
 
-        {/* Market overview */}
+        {/* USDC Balance + Portfolio summary */}
         <div className="px-4 pt-4">
+          <div className="bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/20 rounded-2xl p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Wallet className="h-3 w-3" /> USDC Balance
+                </p>
+                <p className="text-2xl font-bold tabular-nums mt-1">
+                  ${usdc.toFixed(2)}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground">Portfolio Value</p>
+                <p className="text-lg font-semibold tabular-nums mt-1">
+                  ${portfolioValue.toFixed(2)}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* My Portfolio */}
+        {holdings.length > 0 && (
+          <div className="px-4 pt-6">
+            <h2 className="text-sm font-semibold mb-3 text-muted-foreground">My Portfolio</h2>
+            <div className="space-y-2">
+              {holdings.map((h) => {
+                const s = STOCKS.find((x) => x.ticker === h.ticker);
+                const live = prices[h.ticker] ?? s?.price ?? h.avgPrice;
+                const value = h.shares * live;
+                const pl = (live - h.avgPrice) * h.shares;
+                const plPct = ((live - h.avgPrice) / h.avgPrice) * 100;
+                return (
+                  <div
+                    key={h.ticker}
+                    onClick={() => s && setSelected(s)}
+                    className="flex items-center justify-between p-3 bg-card border border-border rounded-xl cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                        style={{ background: s?.color ?? "#666" }}
+                      >
+                        {h.ticker[0]}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm">{h.ticker}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {h.shares.toFixed(4)} shares · avg ${h.avgPrice.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-sm tabular-nums">${value.toFixed(2)}</p>
+                      <p className={`text-xs ${pl >= 0 ? "text-success" : "text-destructive"}`}>
+                        {pl >= 0 ? "+" : ""}
+                        {pl.toFixed(2)} ({plPct.toFixed(2)}%)
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Market overview */}
+        <div className="px-4 pt-6">
           <h2 className="text-sm font-semibold mb-2 text-muted-foreground">Market Overview</h2>
           <div className="grid grid-cols-3 gap-2">
             {INDICES.map((idx) => (
