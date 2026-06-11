@@ -349,7 +349,7 @@ export default function Stocks() {
                       className="h-8 bg-success hover:bg-success/90 text-white"
                       onClick={(e) => {
                         e.stopPropagation();
-                        toast.success(`Buy order placed · ${s.ticker} @ $${live.toFixed(2)}`);
+                        navigate(`/stocks/buy/${s.ticker}`);
                       }}
                     >
                       Buy
@@ -359,7 +359,7 @@ export default function Stocks() {
                       className="h-8 bg-destructive hover:bg-destructive/90 text-white"
                       onClick={(e) => {
                         e.stopPropagation();
-                        toast.success(`Sell order placed · ${s.ticker} @ $${live.toFixed(2)}`);
+                        navigate(`/stocks/sell/${s.ticker}`);
                       }}
                     >
                       Sell
