@@ -145,6 +145,20 @@ export const AssetList = () => {
   const [tpslAmount, setTpslAmount] = useState("");
 
   const timeframes = ["1H", "1D", "1W", "1M", "1Y", "ALL"];
+  const { usdc } = usePortfolio();
+  const assets = useMemo<Asset[]>(
+    () =>
+      baseAssets.map((a) =>
+        a.symbol === "USDC"
+          ? {
+              ...a,
+              balance: usdc.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+              value: `$${usdc.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            }
+          : a
+      ),
+    [usdc]
+  );
 
   const handleSetTPSL = () => {
     if (!tpPrice && !slPrice) {
