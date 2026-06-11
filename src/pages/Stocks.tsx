@@ -1,36 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Search, TrendingUp, TrendingDown, Circle, Bell, Star, StarOff, BookOpen, HelpCircle } from "lucide-react";
+import { ChevronLeft, Search, TrendingUp, TrendingDown, Circle, Bell, Star, StarOff, BookOpen, HelpCircle, Wallet } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
-
-interface Stock {
-  ticker: string;
-  name: string;
-  logo: string;
-  color: string;
-  price: number;
-  change: number;
-  marketCap: string;
-  peRatio: string;
-  volume: string;
-  about: string;
-}
-
-const STOCKS: Stock[] = [
-  { ticker: "AAPL", name: "Apple Inc.", logo: "", color: "#A2AAAD", price: 234.12, change: 1.42, marketCap: "$3.52T", peRatio: "36.4", volume: "48.2M", about: "Designs, manufactures, and markets smartphones, computers, wearables, and accessories worldwide." },
-  { ticker: "MSFT", name: "Microsoft Corp.", logo: "", color: "#00A4EF", price: 432.88, change: 0.86, marketCap: "$3.21T", peRatio: "37.1", volume: "21.5M", about: "Develops, licenses, and supports software, services, devices, and solutions worldwide." },
-  { ticker: "NVDA", name: "NVIDIA Corp.", logo: "", color: "#76B900", price: 142.55, change: 3.21, marketCap: "$3.48T", peRatio: "65.8", volume: "210.1M", about: "Provides graphics, compute, and networking solutions for gaming, data center, and AI markets." },
-  { ticker: "TSLA", name: "Tesla, Inc.", logo: "", color: "#E31937", price: 351.04, change: -2.13, marketCap: "$1.12T", peRatio: "92.2", volume: "98.4M", about: "Designs, develops, manufactures, and sells electric vehicles and energy generation systems." },
-  { ticker: "AMZN", name: "Amazon.com, Inc.", logo: "", color: "#FF9900", price: 224.92, change: 1.05, marketCap: "$2.37T", peRatio: "47.6", volume: "33.8M", about: "Engages in the retail sale of consumer products, advertising, and subscription services through online and physical stores." },
-  { ticker: "GOOGL", name: "Alphabet Inc.", logo: "", color: "#4285F4", price: 188.21, change: 0.42, marketCap: "$2.30T", peRatio: "26.5", volume: "19.6M", about: "Provides online advertising services, cloud, devices, and other platforms worldwide via Google and Other Bets." },
-  { ticker: "META", name: "Meta Platforms", logo: "", color: "#1877F2", price: 612.55, change: -0.78, marketCap: "$1.55T", peRatio: "29.1", volume: "12.4M", about: "Builds technologies that help people connect through Facebook, Instagram, WhatsApp, and Reality Labs." },
-  { ticker: "NFLX", name: "Netflix, Inc.", logo: "", color: "#E50914", price: 902.45, change: 2.55, marketCap: "$386B", peRatio: "47.3", volume: "4.1M", about: "Provides entertainment services with TV series, documentaries, feature films, and games across genres." },
-];
+import { STOCKS, type Stock } from "@/data/stocksData";
+import { usePortfolio } from "@/lib/portfolioStore";
 
 const INDICES = [
   { name: "S&P 500", value: "5,978.42", change: 0.51 },
@@ -124,6 +102,11 @@ export default function Stocks() {
   );
 
   const watched = STOCKS.filter((s) => watchlist.includes(s.ticker));
+  const { usdc, holdings } = usePortfolio();
+  const portfolioValue = holdings.reduce(
+    (sum, h) => sum + h.shares * (prices[h.ticker] ?? STOCKS.find((s) => s.ticker === h.ticker)?.price ?? 0),
+    0
+  );
 
   if (selected) {
     const livePrice = prices[selected.ticker] ?? selected.price;
@@ -202,13 +185,13 @@ export default function Stocks() {
           <div className="px-4 mt-4 grid grid-cols-2 gap-3">
             <Button
               className="h-12 bg-success hover:bg-success/90 text-white font-semibold"
-              onClick={() => toast.success(`Buy order placed · ${selected.ticker} @ $${livePrice.toFixed(2)}`)}
+              onClick={() => navigate(`/stocks/buy/${selected.ticker}`)}
             >
               Buy {selected.ticker}
             </Button>
             <Button
               className="h-12 bg-destructive hover:bg-destructive/90 text-white font-semibold"
-              onClick={() => toast.success(`Sell order placed · ${selected.ticker} @ $${livePrice.toFixed(2)}`)}
+              onClick={() => navigate(`/stocks/sell/${selected.ticker}`)}
             >
               Sell {selected.ticker}
             </Button>
@@ -299,8 +282,75 @@ export default function Stocks() {
           </div>
         </div>
 
-        {/* Market overview */}
+        {/* USDC Balance + Portfolio summary */}
         <div className="px-4 pt-4">
+          <div className="bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/20 rounded-2xl p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Wallet className="h-3 w-3" /> USDC Balance
+                </p>
+                <p className="text-2xl font-bold tabular-nums mt-1">
+                  ${usdc.toFixed(2)}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground">Portfolio Value</p>
+                <p className="text-lg font-semibold tabular-nums mt-1">
+                  ${portfolioValue.toFixed(2)}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* My Portfolio */}
+        {holdings.length > 0 && (
+          <div className="px-4 pt-6">
+            <h2 className="text-sm font-semibold mb-3 text-muted-foreground">My Portfolio</h2>
+            <div className="space-y-2">
+              {holdings.map((h) => {
+                const s = STOCKS.find((x) => x.ticker === h.ticker);
+                const live = prices[h.ticker] ?? s?.price ?? h.avgPrice;
+                const value = h.shares * live;
+                const pl = (live - h.avgPrice) * h.shares;
+                const plPct = ((live - h.avgPrice) / h.avgPrice) * 100;
+                return (
+                  <div
+                    key={h.ticker}
+                    onClick={() => s && setSelected(s)}
+                    className="flex items-center justify-between p-3 bg-card border border-border rounded-xl cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                        style={{ background: s?.color ?? "#666" }}
+                      >
+                        {h.ticker[0]}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm">{h.ticker}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {h.shares.toFixed(4)} shares · avg ${h.avgPrice.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-sm tabular-nums">${value.toFixed(2)}</p>
+                      <p className={`text-xs ${pl >= 0 ? "text-success" : "text-destructive"}`}>
+                        {pl >= 0 ? "+" : ""}
+                        {pl.toFixed(2)} ({plPct.toFixed(2)}%)
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Market overview */}
+        <div className="px-4 pt-6">
           <h2 className="text-sm font-semibold mb-2 text-muted-foreground">Market Overview</h2>
           <div className="grid grid-cols-3 gap-2">
             {INDICES.map((idx) => (
@@ -371,7 +421,7 @@ export default function Stocks() {
                       className="h-8 bg-success hover:bg-success/90 text-white"
                       onClick={(e) => {
                         e.stopPropagation();
-                        toast.success(`Buy order placed · ${s.ticker} @ $${live.toFixed(2)}`);
+                        navigate(`/stocks/buy/${s.ticker}`);
                       }}
                     >
                       Buy
@@ -381,7 +431,7 @@ export default function Stocks() {
                       className="h-8 bg-destructive hover:bg-destructive/90 text-white"
                       onClick={(e) => {
                         e.stopPropagation();
-                        toast.success(`Sell order placed · ${s.ticker} @ $${live.toFixed(2)}`);
+                        navigate(`/stocks/sell/${s.ticker}`);
                       }}
                     >
                       Sell

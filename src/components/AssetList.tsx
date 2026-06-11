@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { TrendingUp, TrendingDown, Send, Download, ArrowLeftRight, ChevronLeft, MoreVertical, Copy, Check, QrCode, ChevronDown, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { usePortfolio } from "@/lib/portfolioStore";
 
 interface Network {
   id: string;
@@ -36,7 +37,7 @@ const generateWalletAddress = () => {
   return address;
 };
 
-const assets: Asset[] = [
+const baseAssets: Asset[] = [
   {
     id: "1",
     name: "Bitcoin",
@@ -144,6 +145,20 @@ export const AssetList = () => {
   const [tpslAmount, setTpslAmount] = useState("");
 
   const timeframes = ["1H", "1D", "1W", "1M", "1Y", "ALL"];
+  const { usdc } = usePortfolio();
+  const assets = useMemo<Asset[]>(
+    () =>
+      baseAssets.map((a) =>
+        a.symbol === "USDC"
+          ? {
+              ...a,
+              balance: usdc.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+              value: `$${usdc.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            }
+          : a
+      ),
+    [usdc]
+  );
 
   const handleSetTPSL = () => {
     if (!tpPrice && !slPrice) {
