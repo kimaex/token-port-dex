@@ -180,13 +180,13 @@ export default function Stocks() {
           <div className="px-4 mt-4 grid grid-cols-2 gap-3">
             <Button
               className="h-12 bg-success hover:bg-success/90 text-white font-semibold"
-              onClick={() => toast.success(`Buy order placed · ${selected.ticker} @ $${livePrice.toFixed(2)}`)}
+              onClick={() => navigate(`/stocks/buy/${selected.ticker}`)}
             >
               Buy {selected.ticker}
             </Button>
             <Button
               className="h-12 bg-destructive hover:bg-destructive/90 text-white font-semibold"
-              onClick={() => toast.success(`Sell order placed · ${selected.ticker} @ $${livePrice.toFixed(2)}`)}
+              onClick={() => navigate(`/stocks/sell/${selected.ticker}`)}
             >
               Sell {selected.ticker}
             </Button>
