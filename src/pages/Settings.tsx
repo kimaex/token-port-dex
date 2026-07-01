@@ -325,54 +325,197 @@ export default function Settings() {
     }
   };
 
+  const username = "jibkid";
+  const displayFullName = (profile.firstName && profile.lastName)
+    ? `${profile.firstName} ${profile.lastName}`
+    : "Jibrin Ibrahim";
+  const displayDob = profile.dob || "//2010";
+  const displayEmail = "i***@gmail.com";
+
+  const personalInfo = [
+    { label: "Full Name", value: displayFullName },
+    { label: "Nickname", value: username },
+    { label: "Gender", value: "Male" },
+    { label: "Date of Birth", value: displayDob },
+    { label: "Email", value: displayEmail },
+  ];
+
+  const comingSoon = (name: string) => toast.info(`${name} — coming soon`);
+
+  const groups: {
+    title: string;
+    items: { icon: any; label: string; hint?: string; onClick: () => void; switch?: boolean }[];
+  }[] = [
+    {
+      title: "Security",
+      items: [
+        { icon: Lock, label: "Change Password", onClick: () => comingSoon("Change Password") },
+        { icon: Shield, label: "Biometric Login", onClick: () => comingSoon("Biometric Login") },
+        { icon: ShieldAlert, label: "Two-Factor Authentication (2FA)", onClick: () => comingSoon("2FA") },
+        { icon: Eye, label: "Recovery Phrase Backup", onClick: () => comingSoon("Recovery Phrase Backup") },
+      ],
+    },
+    {
+      title: "Verification",
+      items: [
+        { icon: CheckCircle, label: "KYC Status", hint: profile.kycStatus === "verified" ? "Verified" : profile.kycStatus === "pending" ? "Pending" : "Unverified", onClick: () => setShowProfileModal(true) },
+        { icon: IdCard, label: "Identity Verification", onClick: () => setShowProfileModal(true) },
+      ],
+    },
+    {
+      title: "Wallet Settings",
+      items: [
+        { icon: Wallet2, label: "Manage Wallets", onClick: () => comingSoon("Manage Wallets") },
+        { icon: Link2, label: "Connected Accounts", hint: `${connectedApps.length} apps`, onClick: () => setShowConnectedWallets(true) },
+        { icon: Download, label: "Export Wallet", onClick: () => comingSoon("Export Wallet") },
+        { icon: Clock, label: "Transaction History", onClick: () => navigate("/history") },
+      ],
+    },
+    {
+      title: "Preferences",
+      items: [
+        { icon: Languages, label: "Language", hint: (AFRICAN_LANGUAGES.find(l => l.code === language)?.native) || "English", onClick: () => setShowLanguageModal(true) },
+        { icon: DollarSign, label: "Currency", hint: `${currency.symbol} ${currency.code}`, onClick: () => setShowCurrencyModal(true) },
+        { icon: Moon, label: "Theme", hint: darkMode ? "Dark" : "Light", switch: true, onClick: () => toggleDarkMode(!darkMode) },
+        { icon: MessageCircle, label: "Notifications", onClick: () => navigate("/notifications") },
+      ],
+    },
+    {
+      title: "Support",
+      items: [
+        { icon: HelpCircle, label: "Help Center", onClick: () => setShowCustomerCareModal(true) },
+        { icon: Headphones, label: "Contact Support", onClick: () => setShowCustomerCareModal(true) },
+        { icon: FileText, label: "Terms & Conditions", onClick: () => comingSoon("Terms & Conditions") },
+        { icon: Shield, label: "Privacy Policy", onClick: () => comingSoon("Privacy Policy") },
+      ],
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-background pb-24">
-      <div className="max-w-md mx-auto p-6">
-        <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-          Settings
-        </h1>
-        <p className="text-muted-foreground mb-6">
-          Manage your account and preferences
-        </p>
-
-        <div className="space-y-3">
-          {settingsSections.map((setting) => {
-            const Icon = setting.icon;
-            return (
-              <Card
-                key={setting.id}
-                className="p-4 cursor-pointer hover:bg-card/80 transition-all border-border bg-card"
-                onClick={() => !setting.hasSwitch && handleSettingClick(setting.id)}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-gradient-primary flex items-center justify-center shadow-glow">
-                    <Icon className="h-6 w-6 text-primary-foreground" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-foreground">
-                      {setting.label}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {setting.description}
-                    </p>
-                  </div>
-                  {setting.hasSwitch ? (
-                    <Switch
-                      checked={darkMode}
-                      onCheckedChange={(checked) => {
-                        toggleDarkMode(checked);
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  ) : (
-                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                  )}
-                </div>
-              </Card>
-            );
-          })}
+      <div className="max-w-md mx-auto p-5 space-y-5">
+        {/* Header */}
+        <div className="pt-2">
+          <h1 className="text-2xl font-bold text-foreground">Settings</h1>
         </div>
 
+        {/* Profile Card */}
+        <Card className="p-6 bg-gradient-to-br from-primary/10 via-card to-card border-border">
+          <div className="flex flex-col items-center text-center">
+            <div className="relative">
+              <div className="h-24 w-24 rounded-full bg-gradient-primary flex items-center justify-center overflow-hidden shadow-glow ring-4 ring-background">
+                {profile.photo ? (
+                  <img src={profile.photo} alt="Profile" className="h-full w-full object-cover" />
+                ) : (
+                  <UserIcon className="h-12 w-12 text-primary-foreground" />
+                )}
+              </div>
+              <label className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-primary flex items-center justify-center cursor-pointer ring-2 ring-background hover:scale-105 transition-transform">
+                <Camera className="h-4 w-4 text-primary-foreground" />
+                <input type="file" accept="image/*" className="hidden" onChange={handleProfilePhoto} />
+              </label>
+            </div>
+            <h2 className="mt-3 text-lg font-bold text-foreground">{username}</h2>
+            <div className="mt-1.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/15 border border-green-500/30">
+              <CheckCircle className="h-3 w-3 text-green-500" />
+              <span className="text-[11px] font-semibold text-green-600 dark:text-green-400">Tier 3 Verified</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-4 rounded-full px-5 border-primary/40 text-primary hover:bg-primary/10"
+              onClick={() => setShowProfileModal(true)}
+            >
+              Edit Profile
+            </Button>
+          </div>
+        </Card>
+
+        {/* Personal Information Card */}
+        <Card className="overflow-hidden border-border bg-card">
+          <div className="px-4 pt-4 pb-2">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Personal Information</h3>
+          </div>
+          <div className="divide-y divide-border">
+            {personalInfo.map((row) => (
+              <button
+                key={row.label}
+                onClick={() => setShowProfileModal(true)}
+                className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-muted/40 transition-colors text-left"
+              >
+                <span className="text-sm text-muted-foreground">{row.label}</span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-sm font-medium text-foreground truncate">{row.value}</span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                </div>
+              </button>
+            ))}
+          </div>
+        </Card>
+
+        {/* Grouped Setting Sections */}
+        {groups.map((group) => (
+          <div key={group.title} className="space-y-2">
+            <h3 className="px-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{group.title}</h3>
+            <Card className="overflow-hidden border-border bg-card">
+              <div className="divide-y divide-border">
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.label}
+                      onClick={item.onClick}
+                      className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/40 transition-colors text-left"
+                    >
+                      <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Icon className="h-4.5 w-4.5 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{item.label}</p>
+                      </div>
+                      {item.switch ? (
+                        <Switch
+                          checked={darkMode}
+                          onCheckedChange={(checked) => toggleDarkMode(checked)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      ) : (
+                        <>
+                          {item.hint && (
+                            <span className="text-xs text-muted-foreground truncate max-w-[110px]">{item.hint}</span>
+                          )}
+                          <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        </>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </Card>
+          </div>
+        ))}
+
+        {/* Referral (unchanged behavior) */}
+        <div className="space-y-2">
+          <h3 className="px-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Rewards</h3>
+          <Card
+            className="p-4 cursor-pointer hover:bg-card/80 transition-all border-border bg-card"
+            onClick={() => setShowReferralModal(true)}
+          >
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-full bg-gradient-primary flex items-center justify-center shadow-glow">
+                <Users className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-foreground">Referral</h3>
+                <p className="text-sm text-muted-foreground">Invite friends and earn rewards</p>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            </div>
+          </Card>
+        </div>
+
+        {/* Logout (unchanged) */}
         <div className="mt-8 flex justify-end">
           <Button
             variant="outline"
@@ -389,6 +532,7 @@ export default function Settings() {
           </Button>
         </div>
       </div>
+
 
       {/* Currency Selection Modal */}
       <Dialog open={showCurrencyModal} onOpenChange={setShowCurrencyModal}>
