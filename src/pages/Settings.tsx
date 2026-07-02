@@ -366,9 +366,6 @@ export default function Settings() {
       title: "Wallet Settings",
       items: [
         { icon: Wallet2, label: "Manage Wallets", onClick: () => comingSoon("Manage Wallets") },
-        { icon: Link2, label: "Connected Accounts", hint: `${connectedApps.length} apps`, onClick: () => setShowConnectedWallets(true) },
-        { icon: Download, label: "Export Wallet", onClick: () => comingSoon("Export Wallet") },
-        { icon: Clock, label: "Transaction History", onClick: () => navigate("/history") },
       ],
     },
     {
