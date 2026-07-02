@@ -1,4 +1,4 @@
-import { Moon, Wallet, Shield, MessageCircle, Users, DollarSign, ChevronRight, Check, Copy, Share2, Gift, X, ExternalLink, Eye, EyeOff, Lock, FileText, HelpCircle, Clock, CheckCircle, Send, Headphones, CreditCard, UserCheck, ShieldAlert, ArrowRight, TrendingUp, Award, Download, Link2, BarChart3, Wallet2, Banknote, ArrowRightLeft, User as UserIcon, Camera, IdCard, Globe, Languages } from "lucide-react";
+import { Moon, Wallet, Shield, MessageCircle, Users, DollarSign, ChevronRight, ChevronDown, Check, Copy, Share2, Gift, X, ExternalLink, Eye, EyeOff, Lock, FileText, HelpCircle, Clock, CheckCircle, Send, Headphones, CreditCard, UserCheck, ShieldAlert, ArrowRight, TrendingUp, Award, Download, Link2, BarChart3, Wallet2, Banknote, ArrowRightLeft, User as UserIcon, Camera, IdCard, Globe, Languages } from "lucide-react";
 import { AFRICAN_LANGUAGES } from "@/data/africanLanguages";
 import {
   Table,
