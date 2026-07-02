@@ -112,6 +112,8 @@ export default function Settings() {
   const [showCustomerCareModal, setShowCustomerCareModal] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [language, setLanguage] = useState<string>(() => localStorage.getItem("kimaex_language") || "EN");
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const toggleSection = (key: string) => setExpandedSections((p) => ({ ...p, [key]: !p[key] }));
 
   // Profile / KYC state
   const [showProfileModal, setShowProfileModal] = useState(false);
