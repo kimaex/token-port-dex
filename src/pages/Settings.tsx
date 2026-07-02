@@ -432,67 +432,91 @@ export default function Settings() {
 
         {/* Personal Information Card */}
         <Card className="overflow-hidden border-border bg-card">
-          <div className="px-4 pt-4 pb-2">
+        <Card className="overflow-hidden border-border bg-card">
+          <button
+            onClick={() => toggleSection("personal")}
+            className="w-full flex items-center justify-between px-4 py-4 hover:bg-muted/40 transition-colors"
+          >
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Personal Information</h3>
-          </div>
-          <div className="divide-y divide-border">
-            {personalInfo.map((row) => (
-              <button
-                key={row.label}
-                onClick={() => setShowProfileModal(true)}
-                className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-muted/40 transition-colors text-left"
-              >
-                <span className="text-sm text-muted-foreground">{row.label}</span>
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-sm font-medium text-foreground truncate">{row.value}</span>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                </div>
-              </button>
-            ))}
-          </div>
+            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${expandedSections["personal"] ? "rotate-180" : ""}`} />
+          </button>
+          {expandedSections["personal"] && (
+            <div className="divide-y divide-border border-t border-border">
+              {personalInfo.map((row) => (
+                <button
+                  key={row.label}
+                  onClick={() => setShowProfileModal(true)}
+                  className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-muted/40 transition-colors text-left"
+                >
+                  <span className="text-sm text-muted-foreground">{row.label}</span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-sm font-medium text-foreground truncate">{row.value}</span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </Card>
 
         {/* Grouped Setting Sections */}
-        {groups.map((group) => (
-          <div key={group.title} className="space-y-2">
-            <h3 className="px-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{group.title}</h3>
-            <Card className="overflow-hidden border-border bg-card">
-              <div className="divide-y divide-border">
-                {group.items.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      key={item.label}
-                      onClick={item.onClick}
-                      className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/40 transition-colors text-left"
-                    >
-                      <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Icon className="h-4.5 w-4.5 text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{item.label}</p>
-                      </div>
-                      {item.switch ? (
-                        <Switch
-                          checked={darkMode}
-                          onCheckedChange={(checked) => toggleDarkMode(checked)}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      ) : (
-                        <>
-                          {item.hint && (
-                            <span className="text-xs text-muted-foreground truncate max-w-[110px]">{item.hint}</span>
-                          )}
-                          <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        </>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+        {groups.map((group) => {
+          const isSupport = group.title === "Support";
+          const expanded = isSupport ? true : !!expandedSections[group.title];
+          return (
+            <Card key={group.title} className="overflow-hidden border-border bg-card">
+              {isSupport ? (
+                <div className="px-4 py-3 border-b border-border">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{group.title}</h3>
+                </div>
+              ) : (
+                <button
+                  onClick={() => toggleSection(group.title)}
+                  className="w-full flex items-center justify-between px-4 py-4 hover:bg-muted/40 transition-colors"
+                >
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{group.title}</h3>
+                  <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${expanded ? "rotate-180" : ""}`} />
+                </button>
+              )}
+              {expanded && (
+                <div className={`divide-y divide-border ${isSupport ? "" : "border-t border-border"}`}>
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <button
+                        key={item.label}
+                        onClick={item.onClick}
+                        className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/40 transition-colors text-left"
+                      >
+                        <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <Icon className="h-4.5 w-4.5 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{item.label}</p>
+                        </div>
+                        {item.switch ? (
+                          <Switch
+                            checked={darkMode}
+                            onCheckedChange={(checked) => toggleDarkMode(checked)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        ) : (
+                          <>
+                            {item.hint && (
+                              <span className="text-xs text-muted-foreground truncate max-w-[110px]">{item.hint}</span>
+                            )}
+                            <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          </>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </Card>
-          </div>
-        ))}
+          );
+        })}
+
 
         {/* Referral (unchanged behavior) */}
         <div className="space-y-2">
