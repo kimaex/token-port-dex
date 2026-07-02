@@ -338,21 +338,8 @@ export default function Stocks() {
         </div>
       </div>
 
-      {/* Floating Trade button */}
-      <div className="fixed bottom-24 left-0 right-0 z-40 pointer-events-none">
-        <div className="max-w-md mx-auto px-6 flex justify-center">
-          <button
-            onClick={() => setSelected(STOCKS[0])}
-            className="pointer-events-auto px-10 h-14 rounded-full font-bold text-white text-base transition-transform active:scale-95 hover:scale-105"
-            style={{
-              background: "linear-gradient(135deg, #a855f7, #7c3aed 50%, #c026d3)",
-              boxShadow: "0 10px 40px -5px rgba(168,85,247,0.7), 0 0 30px rgba(192,38,211,0.4), inset 0 1px 0 rgba(255,255,255,0.2)",
-            }}
-          >
-            Trade
-          </button>
-        </div>
-      </div>
+
+
 
       <BottomNav />
     </div>
