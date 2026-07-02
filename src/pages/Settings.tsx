@@ -432,7 +432,7 @@ export default function Settings() {
 
         {/* Personal Information Card */}
         <Card className="overflow-hidden border-border bg-card">
-        <Card className="overflow-hidden border-border bg-card">
+
           <button
             onClick={() => toggleSection("personal")}
             className="w-full flex items-center justify-between px-4 py-4 hover:bg-muted/40 transition-colors"
