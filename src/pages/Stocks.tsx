@@ -324,12 +324,13 @@ export default function Stocks() {
             {[
               { id: "mine", label: "My stocks" },
               { id: "watch", label: "Watchlist" },
+              { id: "ipo", label: "IPO" },
             ].map((t) => {
               const active = tab === t.id;
               return (
                 <button
                   key={t.id}
-                  onClick={() => setTab(t.id as "mine" | "watch")}
+                  onClick={() => setTab(t.id as "mine" | "watch" | "ipo")}
                   className={`relative pb-3 text-sm font-semibold transition-colors ${
                     active ? "text-foreground" : "text-muted-foreground"
                   }`}
