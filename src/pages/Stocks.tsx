@@ -4,7 +4,7 @@ import { ChevronLeft, TrendingUp, TrendingDown, Star, StarOff, Bell } from "luci
 import { Button } from "@/components/ui/button";
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { BottomNav } from "@/components/BottomNav";
-import { STOCKS, type Stock } from "@/data/stocksData";
+import { STOCKS, IPOS, type Stock, type IPO } from "@/data/stocksData";
 import { usePortfolio } from "@/lib/portfolioStore";
 
 const seededRandom = (seed: number) => {
@@ -52,7 +52,7 @@ const StockLogo = ({ stock, size = 44 }: { stock: Stock; size?: number }) => (
 export default function Stocks() {
   const navigate = useNavigate();
   const [selected, setSelected] = useState<Stock | null>(null);
-  const [tab, setTab] = useState<"mine" | "watch">("mine");
+  const [tab, setTab] = useState<"mine" | "watch" | "ipo">("mine");
   const [prices, setPrices] = useState<Record<string, number>>(
     Object.fromEntries(STOCKS.map((s) => [s.ticker, s.price]))
   );
