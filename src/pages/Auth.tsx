@@ -176,53 +176,69 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
   }
 
   return (
-    <div className="min-h-screen bg-white text-black flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col relative overflow-hidden">
+      {/* Purple ambient glow */}
+      <div className="pointer-events-none absolute -top-32 -right-24 h-72 w-72 rounded-full bg-purple-500/25 blur-3xl" />
+      <div className="pointer-events-none absolute top-1/3 -left-24 h-72 w-72 rounded-full bg-fuchsia-500/20 blur-3xl" />
+
       {/* Header */}
-      <div className="px-5 pt-12 pb-6 flex items-center justify-between">
+      <div className="relative z-10 px-5 pt-12 pb-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-lg bg-black flex items-center justify-center">
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg"
+            style={{
+              background: "linear-gradient(135deg, #7C3AED, #A855F7, #C084FC)",
+              boxShadow: "0 8px 24px -8px rgba(168,85,247,0.6)",
+            }}
+          >
             <Wallet className="w-5 h-5 text-white" />
           </div>
-          <span className="text-lg font-bold tracking-tight text-black">Kimaex</span>
+          <span className="text-lg font-bold tracking-tight text-foreground">Kimaex</span>
         </div>
         <Select value={language} onValueChange={setLanguage}>
-          <SelectTrigger className="w-auto h-8 px-2 gap-1 bg-transparent border border-black/10 rounded-md text-xs text-black/70 focus:ring-0">
+          <SelectTrigger className="w-auto h-8 px-2 gap-1 bg-card/60 border border-border rounded-md text-xs text-muted-foreground focus:ring-0 backdrop-blur">
             <Globe className="w-3.5 h-3.5" />
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="max-h-80 bg-white text-black">
+          <SelectContent className="max-h-80">
             {AFRICAN_LANGUAGES.map((l) => (
               <SelectItem key={l.code} value={l.code} className="text-xs">
-                {l.native} <span className="text-black/40 ml-1">({l.code})</span>
+                {l.native} <span className="text-muted-foreground ml-1">({l.code})</span>
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      <div className="px-5">
-        <h1 className="text-2xl font-bold text-black mb-1">
+      <div className="relative z-10 px-5">
+        <h1 className="text-2xl font-bold text-foreground mb-1">
           {tab === "login" ? "Welcome back" : "Create account"}
         </h1>
-        <p className="text-sm text-black/60 mb-6">
+        <p className="text-sm text-muted-foreground mb-6">
           {tab === "login"
             ? "Log in to access your decentralized wallet"
             : "Sign up — your keys, your crypto"}
         </p>
 
         {/* Tabs — Register first, Log In second (swapped) */}
-        <div className="flex border-b border-black/10 mb-5">
+        <div className="flex border-b border-border mb-5">
           {(["register", "login"] as WelcomeTab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={`flex-1 pb-3 text-sm font-semibold transition-colors relative ${
-                tab === t ? "text-black" : "text-black/50"
+                tab === t ? "text-foreground" : "text-muted-foreground"
               }`}
             >
               {t === "login" ? "Log In" : "Register"}
               {tab === t && (
-                <span className="absolute bottom-[-1px] left-1/4 right-1/4 h-[3px] rounded-full bg-black" />
+                <span
+                  className="absolute bottom-[-1px] left-1/4 right-1/4 h-[3px] rounded-full"
+                  style={{
+                    background: "linear-gradient(90deg, #7C3AED, #A855F7, #C084FC)",
+                    boxShadow: "0 0 12px rgba(168,85,247,0.7)",
+                  }}
+                />
               )}
             </button>
           ))}
@@ -230,30 +246,30 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
 
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <Label className="text-xs text-black/60">Email</Label>
+            <Label className="text-xs text-muted-foreground">Email</Label>
             <Input
               type="email"
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-12 rounded-lg bg-black/5 border-black/10 text-black placeholder:text-black/40"
+              className="h-12 rounded-lg bg-card/60 border-border text-foreground placeholder:text-muted-foreground backdrop-blur"
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs text-black/60">Password</Label>
+            <Label className="text-xs text-muted-foreground">Password</Label>
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
                 placeholder={tab === "register" ? "At least 6 characters" : "Enter password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-12 rounded-lg bg-black/5 border-black/10 text-black placeholder:text-black/40 pr-11"
+                className="h-12 rounded-lg bg-card/60 border-border text-foreground placeholder:text-muted-foreground pr-11 backdrop-blur"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-black/50"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -264,7 +280,7 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
                   type="button"
                   onClick={forgotMode ? handleForgotPassword : () => setForgotMode(true)}
                   disabled={loading}
-                  className="text-xs text-black font-semibold hover:underline disabled:opacity-50"
+                  className="text-xs text-primary font-semibold hover:underline disabled:opacity-50"
                 >
                   {forgotMode ? "Send reset link →" : "Forgot password?"}
                 </button>
@@ -275,9 +291,9 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
           {tab === "register" && (
             <>
               <div className="space-y-1.5">
-                <Label className="text-xs text-black/60 flex items-center gap-1.5">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5" />
-                  Referral Code <span className="text-black/40">(Optional)</span>
+                  Referral Code <span className="text-muted-foreground/70">(Optional)</span>
                 </Label>
                 <Input
                   type="text"
@@ -285,9 +301,9 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
                   value={referralCode}
                   onChange={(e) => setReferralCode(e.target.value.slice(0, 50))}
                   maxLength={50}
-                  className="h-12 rounded-lg bg-black/5 border-black/10 text-black placeholder:text-black/40"
+                  className="h-12 rounded-lg bg-card/60 border-border text-foreground placeholder:text-muted-foreground backdrop-blur"
                 />
-                <p className="text-[10px] text-black/60">
+                <p className="text-[10px] text-muted-foreground">
                   Get a trading bonus when you sign up with a referral code
                 </p>
               </div>
@@ -296,11 +312,11 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
                   type="checkbox"
                   checked={agreed}
                   onChange={(e) => setAgreed(e.target.checked)}
-                  className="mt-0.5 accent-black"
+                  className="mt-0.5 accent-primary"
                 />
-                <span className="text-[11px] text-black/60 leading-relaxed">
-                  I agree to the <span className="text-black underline">Terms of Service</span> and{" "}
-                  <span className="text-black underline">Privacy Policy</span>
+                <span className="text-[11px] text-muted-foreground leading-relaxed">
+                  I agree to the <span className="text-primary underline">Terms of Service</span> and{" "}
+                  <span className="text-primary underline">Privacy Policy</span>
                 </span>
               </label>
             </>
@@ -310,16 +326,20 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
         <Button
           onClick={handleSubmit}
           disabled={loading || (tab === "register" && !agreed)}
-          className="w-full h-12 mt-5 rounded-lg font-semibold text-base bg-black text-white hover:bg-black/90"
+          className="w-full h-12 mt-5 rounded-lg font-semibold text-base text-white border-0"
+          style={{
+            background: "linear-gradient(135deg, #7C3AED, #A855F7, #C084FC)",
+            boxShadow: "0 10px 30px -10px rgba(168,85,247,0.7)",
+          }}
         >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : tab === "login" ? "Log In" : "Create Account"}
         </Button>
 
         {/* Divider */}
         <div className="flex items-center gap-3 my-5">
-          <div className="flex-1 h-px bg-black/10" />
-          <span className="text-[11px] text-black/50 uppercase tracking-wider">or continue with</span>
-          <div className="flex-1 h-px bg-black/10" />
+          <div className="flex-1 h-px bg-border" />
+          <span className="text-[11px] text-muted-foreground uppercase tracking-wider">or continue with</span>
+          <div className="flex-1 h-px bg-border" />
         </div>
 
         {/* Social sign-in */}
@@ -327,7 +347,7 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
           <button
             onClick={() => handleSocial("google")}
             disabled={loading}
-            className="h-12 rounded-lg bg-white border border-black/15 flex items-center justify-center gap-2 text-black font-medium text-sm hover:bg-black/5 transition-colors disabled:opacity-50"
+            className="h-12 rounded-lg bg-card/60 border border-border flex items-center justify-center gap-2 text-foreground font-medium text-sm hover:bg-card transition-colors disabled:opacity-50 backdrop-blur"
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -340,7 +360,7 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
           <button
             onClick={() => handleSocial("apple")}
             disabled={loading}
-            className="h-12 rounded-lg bg-white border border-black/15 flex items-center justify-center gap-2 text-black font-medium text-sm hover:bg-black/5 transition-colors disabled:opacity-50"
+            className="h-12 rounded-lg bg-card/60 border border-border flex items-center justify-center gap-2 text-foreground font-medium text-sm hover:bg-card transition-colors disabled:opacity-50 backdrop-blur"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
               <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
@@ -350,11 +370,11 @@ const BinanceWelcome = ({ onAuthenticated }: { onAuthenticated: (opts?: { isNewA
         </div>
 
 
-        <p className="text-center text-xs text-black/60 pb-6 pt-4">
+        <p className="text-center text-xs text-muted-foreground pb-6 pt-4">
           {tab === "login" ? "New to Kimaex? " : "Already have an account? "}
           <button
             onClick={() => setTab(tab === "login" ? "register" : "login")}
-            className="text-black font-semibold underline"
+            className="text-primary font-semibold underline"
           >
             {tab === "login" ? "Create account" : "Log in"}
           </button>
