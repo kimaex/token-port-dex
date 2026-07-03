@@ -4,7 +4,7 @@ import { ChevronLeft, TrendingUp, TrendingDown, Star, StarOff, Bell } from "luci
 import { Button } from "@/components/ui/button";
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { BottomNav } from "@/components/BottomNav";
-import { STOCKS, IPOS, type Stock, type IPO } from "@/data/stocksData";
+import { STOCKS, IPOS, type Stock } from "@/data/stocksData";
 import { usePortfolio } from "@/lib/portfolioStore";
 
 const seededRandom = (seed: number) => {
