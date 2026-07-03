@@ -114,7 +114,7 @@ export default function Swap() {
       toast.error("Minimum swap amount is $0.50");
       return;
     }
-    setSwapStep("shield");
+    setSwapStep("confirm");
   };
 
   const handleShieldProceed = () => {
@@ -771,19 +771,13 @@ export default function Swap() {
             </div>
           )}
 
-          {/* Kimaex Shield Badge */}
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-lg border border-primary/20 mt-2">
-            <Shield className="h-4 w-4 text-primary" />
-            <span className="text-xs font-medium text-primary">Kimaex Shield 🛡️ — Auto-scans tokens before every swap</span>
-          </div>
-
           {/* Proceed Button */}
           <Button
             onClick={handleProceedToConfirm}
             className="w-full h-14 text-lg font-semibold"
             disabled={!fromAmount || parseFloat(fromAmount) <= 0}
           >
-            {!fromAmount || parseFloat(fromAmount) <= 0 ? "Enter amount" : "Scan & Proceed"}
+            {!fromAmount || parseFloat(fromAmount) <= 0 ? "Enter amount" : "Swap"}
           </Button>
         </div>
 

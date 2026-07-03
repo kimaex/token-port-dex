@@ -4,7 +4,7 @@ import { ChevronLeft, TrendingUp, TrendingDown, Star, StarOff, Bell } from "luci
 import { Button } from "@/components/ui/button";
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { BottomNav } from "@/components/BottomNav";
-import { STOCKS, type Stock } from "@/data/stocksData";
+import { STOCKS, IPOS, type Stock } from "@/data/stocksData";
 import { usePortfolio } from "@/lib/portfolioStore";
 
 const seededRandom = (seed: number) => {
@@ -52,7 +52,7 @@ const StockLogo = ({ stock, size = 44 }: { stock: Stock; size?: number }) => (
 export default function Stocks() {
   const navigate = useNavigate();
   const [selected, setSelected] = useState<Stock | null>(null);
-  const [tab, setTab] = useState<"mine" | "watch">("mine");
+  const [tab, setTab] = useState<"mine" | "watch" | "ipo">("mine");
   const [prices, setPrices] = useState<Record<string, number>>(
     Object.fromEntries(STOCKS.map((s) => [s.ticker, s.price]))
   );
@@ -192,6 +192,52 @@ export default function Stocks() {
             <h3 className="font-semibold mb-2">About {selected.name}</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">{selected.about}</p>
           </div>
+
+          {/* Dividend Info */}
+          <div className="mx-4 mt-4 p-4 bg-card border border-border rounded-2xl">
+            <h3 className="font-semibold mb-3">Dividend Information</h3>
+            {selected.dividendYield === "—" ? (
+              <p className="text-sm text-muted-foreground">This stock does not currently pay a dividend.</p>
+            ) : (
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div>
+                  <p className="text-xs text-muted-foreground">Yield</p>
+                  <p className="font-semibold text-emerald-500">{selected.dividendYield}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Per Share</p>
+                  <p className="font-semibold">{selected.dividendPerShare}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Ex-Date</p>
+                  <p className="font-semibold text-xs">{selected.exDividendDate}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* News */}
+          <div className="mx-4 mt-4 p-4 bg-card border border-border rounded-2xl">
+            <h3 className="font-semibold mb-3">Latest News</h3>
+            <div className="space-y-3">
+              {selected.news.map((n, i) => (
+                <div key={i} className="flex gap-3 pb-3 border-b border-border last:border-0 last:pb-0">
+                  <div
+                    className="w-1 rounded-full shrink-0"
+                    style={{ background: "linear-gradient(180deg, #a855f7, #c084fc)" }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium leading-snug">{n.title}</p>
+                    <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
+                      <span className="font-semibold text-purple-400">{n.source}</span>
+                      <span>•</span>
+                      <span>{n.time}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
         <BottomNav />
       </div>
@@ -278,12 +324,13 @@ export default function Stocks() {
             {[
               { id: "mine", label: "My stocks" },
               { id: "watch", label: "Watchlist" },
+              { id: "ipo", label: "IPO" },
             ].map((t) => {
               const active = tab === t.id;
               return (
                 <button
                   key={t.id}
-                  onClick={() => setTab(t.id as "mine" | "watch")}
+                  onClick={() => setTab(t.id as "mine" | "watch" | "ipo")}
                   className={`relative pb-3 text-sm font-semibold transition-colors ${
                     active ? "text-foreground" : "text-muted-foreground"
                   }`}
@@ -305,37 +352,100 @@ export default function Stocks() {
         </div>
 
         {/* List */}
-        <div className="px-4 mt-4 space-y-2">
-          {list.length === 0 && (
-            <div className="text-center py-12 text-sm text-muted-foreground">
-              {tab === "watch" ? "Tap the star on any stock to add it here." : "No stocks yet."}
-            </div>
-          )}
-          {list.map((s) => {
-            const live = prices[s.ticker] ?? s.price;
-            const positive = s.change >= 0;
-            return (
-              <button
-                key={s.ticker}
-                onClick={() => setSelected(s)}
-                className="w-full flex items-center gap-3 p-3 bg-card border border-border rounded-2xl hover:border-purple-500/40 transition-all text-left"
-              >
-                <StockLogo stock={s} />
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm truncate">{s.name}</p>
-                  <p className="text-xs text-muted-foreground">{s.ticker}</p>
+        {tab === "ipo" ? (
+          <div className="px-4 mt-4 space-y-3">
+            {IPOS.map((ipo) => {
+              const statusStyles =
+                ipo.status === "live"
+                  ? { label: "Live", bg: "bg-emerald-500/15", text: "text-emerald-400", ring: "ring-emerald-500/30" }
+                  : ipo.status === "upcoming"
+                  ? { label: "Upcoming", bg: "bg-purple-500/15", text: "text-purple-300", ring: "ring-purple-500/30" }
+                  : { label: "Recent", bg: "bg-blue-500/15", text: "text-blue-400", ring: "ring-blue-500/30" };
+              return (
+                <div
+                  key={ipo.ticker}
+                  className="p-4 bg-card border border-border rounded-2xl hover:border-purple-500/40 transition-all"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="rounded-2xl flex items-center justify-center font-bold text-white shrink-0 shadow-lg"
+                      style={{
+                        background: `linear-gradient(135deg, ${ipo.color}, ${ipo.color}cc)`,
+                        width: 44,
+                        height: 44,
+                        fontSize: 18,
+                      }}
+                    >
+                      {ipo.logo}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-sm truncate">{ipo.name}</p>
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ring-1 ${statusStyles.bg} ${statusStyles.text} ${statusStyles.ring}`}>
+                          {statusStyles.label}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{ipo.ticker} • Valuation {ipo.valuation}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-3 leading-relaxed">{ipo.about}</p>
+                  <div className="grid grid-cols-2 gap-2 mt-3">
+                    <div className="bg-secondary/40 rounded-xl p-2">
+                      <p className="text-[10px] text-muted-foreground">Price Range</p>
+                      <p className="text-sm font-semibold">{ipo.priceRange}</p>
+                    </div>
+                    <div className="bg-secondary/40 rounded-xl p-2">
+                      <p className="text-[10px] text-muted-foreground">Date</p>
+                      <p className="text-sm font-semibold">{ipo.expectedDate}</p>
+                    </div>
+                  </div>
+                  <Button
+                    className="w-full h-10 mt-3 text-white border-0 font-semibold"
+                    style={{
+                      background: "linear-gradient(135deg, #7C3AED, #A855F7, #C084FC)",
+                      boxShadow: "0 8px 20px -8px rgba(168,85,247,0.6)",
+                    }}
+                    onClick={() => {}}
+                  >
+                    {ipo.status === "live" ? "Participate" : ipo.status === "upcoming" ? "Notify Me" : "View Details"}
+                  </Button>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold text-sm tabular-nums">${live.toFixed(2)}</p>
-                  <p className={`text-xs font-medium ${positive ? "text-emerald-500" : "text-rose-500"}`}>
-                    {positive ? "+" : ""}
-                    {s.change}%
-                  </p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="px-4 mt-4 space-y-2">
+            {list.length === 0 && (
+              <div className="text-center py-12 text-sm text-muted-foreground">
+                {tab === "watch" ? "Tap the star on any stock to add it here." : "No stocks yet."}
+              </div>
+            )}
+            {list.map((s) => {
+              const live = prices[s.ticker] ?? s.price;
+              const positive = s.change >= 0;
+              return (
+                <button
+                  key={s.ticker}
+                  onClick={() => setSelected(s)}
+                  className="w-full flex items-center gap-3 p-3 bg-card border border-border rounded-2xl hover:border-purple-500/40 transition-all text-left"
+                >
+                  <StockLogo stock={s} />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm truncate">{s.name}</p>
+                    <p className="text-xs text-muted-foreground">{s.ticker}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-sm tabular-nums">${live.toFixed(2)}</p>
+                    <p className={`text-xs font-medium ${positive ? "text-emerald-500" : "text-rose-500"}`}>
+                      {positive ? "+" : ""}
+                      {s.change}%
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
 
