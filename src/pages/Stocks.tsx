@@ -192,6 +192,52 @@ export default function Stocks() {
             <h3 className="font-semibold mb-2">About {selected.name}</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">{selected.about}</p>
           </div>
+
+          {/* Dividend Info */}
+          <div className="mx-4 mt-4 p-4 bg-card border border-border rounded-2xl">
+            <h3 className="font-semibold mb-3">Dividend Information</h3>
+            {selected.dividendYield === "—" ? (
+              <p className="text-sm text-muted-foreground">This stock does not currently pay a dividend.</p>
+            ) : (
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div>
+                  <p className="text-xs text-muted-foreground">Yield</p>
+                  <p className="font-semibold text-emerald-500">{selected.dividendYield}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Per Share</p>
+                  <p className="font-semibold">{selected.dividendPerShare}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Ex-Date</p>
+                  <p className="font-semibold text-xs">{selected.exDividendDate}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* News */}
+          <div className="mx-4 mt-4 p-4 bg-card border border-border rounded-2xl">
+            <h3 className="font-semibold mb-3">Latest News</h3>
+            <div className="space-y-3">
+              {selected.news.map((n, i) => (
+                <div key={i} className="flex gap-3 pb-3 border-b border-border last:border-0 last:pb-0">
+                  <div
+                    className="w-1 rounded-full shrink-0"
+                    style={{ background: "linear-gradient(180deg, #a855f7, #c084fc)" }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium leading-snug">{n.title}</p>
+                    <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
+                      <span className="font-semibold text-purple-400">{n.source}</span>
+                      <span>•</span>
+                      <span>{n.time}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
         <BottomNav />
       </div>
