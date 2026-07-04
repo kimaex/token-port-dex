@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { useCurrency, africanCurrencies } from "@/contexts/CurrencyContext";
 import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 // Mock connected dApps data
 const connectedDApps = [
