@@ -5,21 +5,48 @@ import { ActionButtons } from "@/components/ActionButtons";
 import { AssetList } from "@/components/AssetList";
 import { BottomNav } from "@/components/BottomNav";
 import { Onboarding } from "@/components/Onboarding";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const navigate = useNavigate();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding");
-    const hasAccount = localStorage.getItem("walletSeedPhrase");
-    if (!hasSeenOnboarding) {
-      setShowOnboarding(true);
-    } else if (!hasAccount) {
-      // After welcoming slides, send new members to login/register
-      navigate("/auth");
-    }
+    let cancelled = false;
+    const check = async () => {
+      const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding");
+      const hasAccount = localStorage.getItem("walletSeedPhrase");
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (cancelled) return;
+
+      if (!hasSeenOnboarding) {
+        setShowOnboarding(true);
+        setChecking(false);
+        return;
+      }
+
+      if (!session || !hasAccount) {
+        navigate("/auth", { replace: true });
+        return;
+      }
+      setChecking(false);
+    };
+    check();
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        navigate("/auth", { replace: true });
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
   }, [navigate]);
+
 
   const handleOnboardingComplete = () => {
     localStorage.setItem("hasSeenOnboarding", "true");
@@ -31,6 +58,11 @@ const Index = () => {
   if (showOnboarding) {
     return <Onboarding onComplete={handleOnboardingComplete} />;
   }
+
+  if (checking) {
+    return <div className="min-h-screen bg-background" />;
+  }
+
 
 
   return (

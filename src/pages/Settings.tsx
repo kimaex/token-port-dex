@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { useCurrency, africanCurrencies } from "@/contexts/CurrencyContext";
 import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 // Mock connected dApps data
 const connectedDApps = [
@@ -543,11 +544,15 @@ export default function Settings() {
           <Button
             variant="outline"
             className="gap-2 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
-            onClick={() => {
+            onClick={async () => {
+              try {
+                await supabase.auth.signOut();
+              } catch {}
               localStorage.removeItem("walletSeedPhrase");
               localStorage.removeItem("walletType");
+              localStorage.removeItem("kimaex_authenticated");
               toast.success("Logged out");
-              navigate("/auth");
+              navigate("/auth", { replace: true });
             }}
           >
             <LogOut className="h-4 w-4" />
