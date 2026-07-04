@@ -59,6 +59,11 @@ const Index = () => {
     return <Onboarding onComplete={handleOnboardingComplete} />;
   }
 
+  if (checking) {
+    return <div className="min-h-screen bg-background" />;
+  }
+
+
 
   return (
     <div className="min-h-screen bg-background">
