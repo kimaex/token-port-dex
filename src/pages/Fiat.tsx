@@ -1090,7 +1090,7 @@ const Fiat = () => {
                       </p>
                     </div>
 
-                    <Button onClick={handleConfirmSell} className="w-full h-14 text-lg font-semibold">
+                    <Button onClick={() => setPinOpen(true)} className="w-full h-14 text-lg font-semibold">
                       Confirm Withdrawal
                     </Button>
 
