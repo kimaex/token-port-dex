@@ -1,4 +1,4 @@
-import { Send, Download, CreditCard, Coins } from "lucide-react";
+import { Send, Download, CreditCard, Coins, Receipt } from "lucide-react";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -7,7 +7,8 @@ export const ActionButtons = () => {
 
   return (
     <div className="px-6 pb-6">
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-5 gap-2">
+
         <Button 
           className="flex flex-col h-auto py-3 bg-card hover:bg-card/80 border border-border"
           variant="ghost"
@@ -42,7 +43,7 @@ export const ActionButtons = () => {
         </Button>
 
         <Button 
-          className="flex flex-col h-auto py-3 bg-card hover:bg-card/80 border border-border"
+          className="flex flex-col h-auto py-3 px-1 bg-card hover:bg-card/80 border border-border"
           variant="ghost"
           onClick={() => navigate("/stake-earn")}
         >
@@ -51,6 +52,18 @@ export const ActionButtons = () => {
           </div>
           <span className="text-xs font-medium">Stake</span>
         </Button>
+
+        <Button 
+          className="flex flex-col h-auto py-3 px-1 bg-card hover:bg-card/80 border border-border"
+          variant="ghost"
+          onClick={() => navigate("/bills")}
+        >
+          <div className="h-10 w-10 rounded-full bg-gradient-primary flex items-center justify-center mb-1.5 shadow-glow">
+            <Receipt className="h-4 w-4 text-primary-foreground" />
+          </div>
+          <span className="text-xs font-medium">Bills</span>
+        </Button>
+
       </div>
     </div>
   );

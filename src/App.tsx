@@ -28,6 +28,7 @@ import Stocks from "./pages/Stocks";
 import StockTradingGuide from "./pages/StockTradingGuide";
 import BuyStock from "./pages/BuyStock";
 import SellStock from "./pages/SellStock";
+import Bills from "./pages/Bills";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,6 +65,7 @@ const App = () => (
             <Route path="/stocks/guide" element={<StockTradingGuide />} />
             <Route path="/stocks/buy/:ticker" element={<BuyStock />} />
             <Route path="/stocks/sell/:ticker" element={<SellStock />} />
+            <Route path="/bills" element={<Bills />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
