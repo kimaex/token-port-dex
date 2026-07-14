@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowDownToLine, ArrowUpFromLine, Copy, Check, Clock, Building2, User, CreditCard, DollarSign, Smartphone, ChevronDown, Globe } from "lucide-react";
 
 import { toast } from "sonner";
+import { TransactionPinDialog } from "@/components/TransactionPinDialog";
 
 type BuyStep = "amount" | "paymentMethod" | "payment" | "processing" | "complete";
 type SellStep = "amount" | "paymentMethod" | "paymentDetails" | "confirm" | "processing" | "complete";
@@ -222,6 +223,9 @@ const Fiat = () => {
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [accountName, setAccountName] = useState("");
+
+  // Transaction PIN
+  const [pinOpen, setPinOpen] = useState(false);
 
   const fiatAmount = parseFloat(usdcAmount || "0") * selectedCountry.exchangeRate;
   // Sell: user enters local currency amount they want to withdraw; we compute USDC to deduct
