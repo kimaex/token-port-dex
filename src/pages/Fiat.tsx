@@ -1167,6 +1167,13 @@ const Fiat = () => {
           ))}
         </div>
       </div>
+      <TransactionPinDialog
+        open={pinOpen}
+        onOpenChange={setPinOpen}
+        onSuccess={handleConfirmSell}
+        title="Authorize Withdrawal"
+        description="Enter your 4-digit PIN to confirm this fiat withdrawal."
+      />
     </div>
   );
 };
