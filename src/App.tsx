@@ -28,6 +28,7 @@ import Stocks from "./pages/Stocks";
 import StockTradingGuide from "./pages/StockTradingGuide";
 import BuyStock from "./pages/BuyStock";
 import SellStock from "./pages/SellStock";
+import Bills from "./pages/Bills";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
