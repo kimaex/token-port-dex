@@ -43,7 +43,7 @@ export const ActionButtons = () => {
         </Button>
 
         <Button 
-          className="flex flex-col h-auto py-3 bg-card hover:bg-card/80 border border-border"
+          className="flex flex-col h-auto py-3 px-1 bg-card hover:bg-card/80 border border-border"
           variant="ghost"
           onClick={() => navigate("/stake-earn")}
         >
@@ -52,6 +52,18 @@ export const ActionButtons = () => {
           </div>
           <span className="text-xs font-medium">Stake</span>
         </Button>
+
+        <Button 
+          className="flex flex-col h-auto py-3 px-1 bg-card hover:bg-card/80 border border-border"
+          variant="ghost"
+          onClick={() => navigate("/bills")}
+        >
+          <div className="h-10 w-10 rounded-full bg-gradient-primary flex items-center justify-center mb-1.5 shadow-glow">
+            <Receipt className="h-4 w-4 text-primary-foreground" />
+          </div>
+          <span className="text-xs font-medium">Bills</span>
+        </Button>
+
       </div>
     </div>
   );
