@@ -1,4 +1,4 @@
-import { Send, Download, CreditCard, Coins } from "lucide-react";
+import { Send, Download, CreditCard, Coins, Receipt } from "lucide-react";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -7,7 +7,8 @@ export const ActionButtons = () => {
 
   return (
     <div className="px-6 pb-6">
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-5 gap-2">
+
         <Button 
           className="flex flex-col h-auto py-3 bg-card hover:bg-card/80 border border-border"
           variant="ghost"
