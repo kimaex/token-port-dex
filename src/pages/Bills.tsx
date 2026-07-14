@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { BottomNav } from "@/components/BottomNav";
+import { TransactionPinDialog } from "@/components/TransactionPinDialog";
 
 type BillTab = "airtime" | "data" | "electricity";
 
@@ -48,6 +49,7 @@ export default function Bills() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [tab, setTab] = useState<BillTab>("airtime");
+  const [pinOpen, setPinOpen] = useState(false);
 
   // Airtime
   const [airNet, setAirNet] = useState("");
@@ -72,27 +74,43 @@ export default function Bills() {
     });
   };
 
-  const submit = () => {
+  const validate = (): boolean => {
     if (tab === "airtime") {
       if (!airNet || !airPhone || !airAmount) {
-        return toast({ title: "Missing Information", description: "Fill all fields", variant: "destructive" });
+        toast({ title: "Missing Information", description: "Fill all fields", variant: "destructive" });
+        return false;
       }
+    } else if (tab === "data") {
+      if (!dataNet || !dataPlan || !dataPhone) {
+        toast({ title: "Missing Information", description: "Fill all fields", variant: "destructive" });
+        return false;
+      }
+    } else {
+      if (!disco || !meter || !elecAmount) {
+        toast({ title: "Missing Information", description: "Fill all fields", variant: "destructive" });
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const runPayment = () => {
+    if (tab === "airtime") {
       pay(`${airNet} airtime`, airAmount);
       setAirPhone(""); setAirAmount("");
     } else if (tab === "data") {
-      if (!dataNet || !dataPlan || !dataPhone) {
-        return toast({ title: "Missing Information", description: "Fill all fields", variant: "destructive" });
-      }
       const plan = DATA_PLANS[dataNet]?.find((p) => p.label === dataPlan);
       pay(`${dataNet} ${dataPlan}`, plan?.price ?? 0);
       setDataPhone("");
     } else {
-      if (!disco || !meter || !elecAmount) {
-        return toast({ title: "Missing Information", description: "Fill all fields", variant: "destructive" });
-      }
       pay(`${disco} (${meterType})`, elecAmount);
       setMeter(""); setElecAmount("");
     }
+  };
+
+  const submit = () => {
+    if (!validate()) return;
+    setPinOpen(true);
   };
 
   const tabs: { id: BillTab; label: string; icon: typeof Phone }[] = [
@@ -219,6 +237,13 @@ export default function Bills() {
           Pay Now
         </Button>
       </div>
+      <TransactionPinDialog
+        open={pinOpen}
+        onOpenChange={setPinOpen}
+        onSuccess={runPayment}
+        title="Authorize Payment"
+        description="Enter your 4-digit PIN to confirm this bill payment."
+      />
       <BottomNav />
     </div>
   );
