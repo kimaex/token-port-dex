@@ -65,6 +65,7 @@ const App = () => (
             <Route path="/stocks/guide" element={<StockTradingGuide />} />
             <Route path="/stocks/buy/:ticker" element={<BuyStock />} />
             <Route path="/stocks/sell/:ticker" element={<SellStock />} />
+            <Route path="/bills" element={<Bills />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
