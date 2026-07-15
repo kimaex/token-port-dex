@@ -712,54 +712,226 @@ const Kimapre = () => {
                   const market = MARKETS.find((m) => m.id === p.marketId);
                   if (!market) return null;
                   const out = market.outcomes.find((o) => o.id === p.outcomeId);
-                  const currentPrice = p.side === "YES" || !out
-                    ? out?.price ?? 0
-                    : 1 - (out?.price ?? 0);
+                  const currentPrice =
+                    p.side === "YES" || !out
+                      ? out?.price ?? 0
+                      : 1 - (out?.price ?? 0);
                   const value = p.shares * currentPrice;
                   const pnl = value - p.cost;
+                  const q = computeCashOut(p);
                   return (
-                    <Card
-                      key={i}
-                      className="p-3 cursor-pointer hover:border-primary/50"
-                      onClick={() => navigate(`/kimapre/${p.marketId}`)}
-                    >
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium truncate">{market.title}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge
-                              className={`text-[10px] border-0 ${
-                                p.side === "YES"
-                                  ? "bg-emerald-500/15 text-emerald-500"
-                                  : "bg-rose-500/15 text-rose-500"
+                    <Card key={i} className="p-3 hover:border-primary/50">
+                      <button
+                        onClick={() => navigate(`/kimapre/${p.marketId}`)}
+                        className="w-full text-left"
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium truncate">{market.title}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge
+                                className={`text-[10px] border-0 ${
+                                  p.side === "YES"
+                                    ? "bg-emerald-500/15 text-emerald-500"
+                                    : "bg-rose-500/15 text-rose-500"
+                                }`}
+                              >
+                                {p.side} · {out?.label}
+                              </Badge>
+                              <span className="text-[10px] text-muted-foreground">
+                                {p.shares.toFixed(0)} shares
+                              </span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-bold">{formatPrice(value)}</p>
+                            <p
+                              className={`text-[10px] font-semibold ${
+                                pnl >= 0 ? "text-emerald-500" : "text-rose-500"
                               }`}
                             >
-                              {p.side} · {out?.label}
-                            </Badge>
-                            <span className="text-[10px] text-muted-foreground">
-                              {p.shares.toFixed(0)} shares
-                            </span>
+                              {pnl >= 0 ? "+" : ""}
+                              {formatPrice(pnl)}
+                            </p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-sm font-bold">{formatPrice(value)}</p>
-                          <p
-                            className={`text-[10px] font-semibold ${
-                              pnl >= 0 ? "text-emerald-500" : "text-rose-500"
+                      </button>
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/50">
+                        <div className="text-[10px] text-muted-foreground">
+                          Cash-out{" "}
+                          <span className="font-semibold text-foreground tabular-nums">
+                            {formatPrice(q.net)}
+                          </span>
+                          <span
+                            className={`ml-1 font-semibold ${
+                              q.pnl >= 0 ? "text-emerald-500" : "text-rose-500"
                             }`}
                           >
-                            {pnl >= 0 ? "+" : ""}
-                            {formatPrice(pnl)}
-                          </p>
+                            ({q.pnl >= 0 ? "+" : ""}
+                            {formatPrice(q.pnl)})
+                          </span>
                         </div>
+                        <Button
+                          size="sm"
+                          disabled={!q.eligible}
+                          onClick={() => setCashOutIdx(i)}
+                          className="h-8 gap-1 bg-primary text-primary-foreground"
+                        >
+                          <LogOut className="h-3.5 w-3.5" /> Cash Out
+                        </Button>
                       </div>
                     </Card>
                   );
                 })}
               </div>
             )}
+
+            {/* Cashed-out history */}
+            {history.length > 0 && (
+              <div className="mt-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <HistoryIcon className="h-4 w-4 text-primary" />
+                  <h2 className="text-sm font-bold">Prediction History</h2>
+                </div>
+                <div className="space-y-2">
+                  {history.map((h) => (
+                    <Card key={h.id} className="p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium truncate">{h.marketTitle}</p>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <Badge className="bg-muted text-muted-foreground text-[10px] border-0">
+                              {h.side} · {h.outcomeLabel}
+                            </Badge>
+                            <Badge className="bg-primary/15 text-primary text-[10px] border-0">
+                              Cashed Out
+                            </Badge>
+                            <span className="text-[10px] text-muted-foreground">
+                              {new Date(h.at).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-bold tabular-nums">
+                            {formatPrice(h.proceeds)}
+                          </p>
+                          <p
+                            className={`text-[10px] font-semibold tabular-nums ${
+                              h.pnl >= 0 ? "text-emerald-500" : "text-rose-500"
+                            }`}
+                          >
+                            {h.pnl >= 0 ? "+" : ""}
+                            {formatPrice(h.pnl)}
+                          </p>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
+
+        {/* Cash Out confirmation dialog */}
+        <Dialog open={cashOutIdx != null} onOpenChange={(o) => !o && setCashOutIdx(null)}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Cash Out Position</DialogTitle>
+              <DialogDescription>
+                Close this position now at the live market price. Proceeds are credited
+                instantly to your USDC wallet.
+              </DialogDescription>
+            </DialogHeader>
+            {cashOutPos && cashOutMarket && cashOutQuote && (
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs text-muted-foreground">Market</p>
+                  <p className="text-sm font-semibold leading-snug">{cashOutMarket.title}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge
+                      className={`text-[10px] border-0 ${
+                        cashOutPos.side === "YES"
+                          ? "bg-emerald-500/15 text-emerald-500"
+                          : "bg-rose-500/15 text-rose-500"
+                      }`}
+                    >
+                      {cashOutPos.side}
+                    </Badge>
+                    <span className="text-[10px] text-muted-foreground">
+                      {cashOutPos.shares.toFixed(2)} shares · avg{" "}
+                      {Math.round(cashOutPos.avgPrice * 100)}¢
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-1.5 p-3 rounded-lg bg-muted/40 border border-border/50">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Cash-out price</span>
+                    <span className="font-semibold tabular-nums">
+                      {Math.round(cashOutQuote.price * 100)}¢
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Time to resolution</span>
+                    <span className="font-semibold tabular-nums">
+                      {cashOutQuote.hoursLeft < 1
+                        ? `${Math.max(0, Math.round(cashOutQuote.hoursLeft * 60))}m`
+                        : cashOutQuote.hoursLeft < 24
+                        ? `${cashOutQuote.hoursLeft.toFixed(1)}h`
+                        : `${Math.round(cashOutQuote.hoursLeft / 24)}d`}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Gross</span>
+                    <span className="font-semibold tabular-nums">
+                      {formatPrice(cashOutQuote.gross)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Platform fee (2%)</span>
+                    <span className="font-semibold tabular-nums">
+                      -{formatPrice(cashOutQuote.fee)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm pt-1.5 border-t border-border/50">
+                    <span className="font-semibold">You receive</span>
+                    <span className="font-bold text-primary tabular-nums">
+                      {formatPrice(cashOutQuote.net)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Est. P&L</span>
+                    <span
+                      className={`font-semibold tabular-nums ${
+                        cashOutQuote.pnl >= 0 ? "text-emerald-500" : "text-rose-500"
+                      }`}
+                    >
+                      {cashOutQuote.pnl >= 0 ? "+" : ""}
+                      {formatPrice(cashOutQuote.pnl)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+            <DialogFooter className="gap-2 sm:gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setCashOutIdx(null)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => cashOutIdx != null && executeCashOut(cashOutIdx)}
+                disabled={!cashOutQuote?.eligible}
+                className="flex-1 bg-primary text-primary-foreground"
+              >
+                Confirm Cash Out
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
 
         <p className="text-[10px] text-center text-muted-foreground pt-2 pb-4">
           Markets resolve based on real-world outcomes. Trade with USDC. 2% platform fee.
