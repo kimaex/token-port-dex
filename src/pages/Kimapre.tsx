@@ -17,16 +17,27 @@ import {
   Award,
   Wallet,
   ChevronRight,
+  LogOut,
+  History as HistoryIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { BottomNav } from "@/components/BottomNav";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { MARKETS, MarketCategory, TOP_TRADERS, ACTIVITY_FEED, UPDOWN_MARKETS } from "@/data/kimapreMarkets";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
+import { getUsdcBalance, setUsdcBalance } from "@/lib/portfolioStore";
 
 type Category = "All" | MarketCategory;
 type Tab = "markets" | "activity" | "leaderboard" | "portfolio";
@@ -64,6 +75,24 @@ interface Position {
   shares: number;
   avgPrice: number;
   cost: number;
+  status?: "OPEN" | "CASHED_OUT";
+}
+
+interface HistoryEntry {
+  id: string;
+  marketId: string;
+  marketTitle: string;
+  outcomeLabel: string;
+  side: "YES" | "NO";
+  shares: number;
+  avgPrice: number;
+  cost: number;
+  exitPrice: number;
+  proceeds: number;
+  fee: number;
+  pnl: number;
+  status: "CASHED_OUT";
+  at: number;
 }
 
 const Kimapre = () => {
@@ -75,6 +104,8 @@ const Kimapre = () => {
   const [sortKey, setSortKey] = useState<SortKey>("trending");
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [cashOutIdx, setCashOutIdx] = useState<number | null>(null);
 
   // Load persisted state
   useEffect(() => {
@@ -83,6 +114,8 @@ const Kimapre = () => {
       if (w) setWatchlist(JSON.parse(w));
       const p = localStorage.getItem("kimapre_positions");
       if (p) setPositions(JSON.parse(p));
+      const h = localStorage.getItem("kimapre_history");
+      if (h) setHistory(JSON.parse(h));
     } catch {}
   }, []);
 
@@ -131,6 +164,81 @@ const Kimapre = () => {
   const portfolioCost = positions.reduce((s, p) => s + p.cost, 0);
   const portfolioPnL = portfolioValue - portfolioCost;
 
+  // Cash-out pricing: current market price adjusted by liquidity slippage
+  // and a small time-decay factor, then a 2% platform fee.
+  const CASH_OUT_FEE_PCT = 0.02;
+  const computeCashOut = (p: Position) => {
+    const market = MARKETS.find((m) => m.id === p.marketId);
+    if (!market)
+      return { eligible: false, price: 0, gross: 0, fee: 0, net: 0, pnl: 0, hoursLeft: 0 };
+    const out = market.outcomes.find((o) => o.id === p.outcomeId);
+    const rawPrice = !out
+      ? 0
+      : p.side === "YES"
+      ? out.price
+      : 1 - out.price;
+    // Slippage: shares consumed vs liquidity
+    const notional = p.shares * rawPrice;
+    const slippage = Math.min(0.15, notional / Math.max(1, market.liquidity));
+    // Time decay: shrinks value slightly as market nears resolution
+    const hoursLeft = Math.max(0, (market.endsAtTs - Date.now()) / 3_600_000);
+    const timeDecay = hoursLeft < 1 ? 0.05 : hoursLeft < 24 ? 0.02 : 0.005;
+    const adjPrice = Math.max(0.01, rawPrice * (1 - slippage - timeDecay));
+    const gross = p.shares * adjPrice;
+    const fee = gross * CASH_OUT_FEE_PCT;
+    const net = Math.max(0, gross - fee);
+    const pnl = net - p.cost;
+    const eligible = hoursLeft > 0 && p.shares > 0 && adjPrice > 0.01;
+    return { eligible, price: adjPrice, gross, fee, net, pnl, hoursLeft };
+  };
+
+  const executeCashOut = (idx: number) => {
+    const p = positions[idx];
+    if (!p) return;
+    const market = MARKETS.find((m) => m.id === p.marketId);
+    if (!market) return;
+    const out = market.outcomes.find((o) => o.id === p.outcomeId);
+    const q = computeCashOut(p);
+    if (!q.eligible) {
+      toast.error("This position isn't eligible for cash out");
+      return;
+    }
+    // Credit USDC wallet
+    setUsdcBalance(getUsdcBalance() + q.net);
+    // Remove position
+    const nextPositions = positions.filter((_, i) => i !== idx);
+    setPositions(nextPositions);
+    localStorage.setItem("kimapre_positions", JSON.stringify(nextPositions));
+    // Record history
+    const entry: HistoryEntry = {
+      id: "PX-" + Date.now().toString(36).toUpperCase(),
+      marketId: p.marketId,
+      marketTitle: market.title,
+      outcomeLabel: out?.label || p.side,
+      side: p.side,
+      shares: p.shares,
+      avgPrice: p.avgPrice,
+      cost: p.cost,
+      exitPrice: q.price,
+      proceeds: q.net,
+      fee: q.fee,
+      pnl: q.pnl,
+      status: "CASHED_OUT",
+      at: Date.now(),
+    };
+    const nextHistory = [entry, ...history].slice(0, 200);
+    setHistory(nextHistory);
+    localStorage.setItem("kimapre_history", JSON.stringify(nextHistory));
+    setCashOutIdx(null);
+    toast.success(`Cashed out · ${formatPrice(q.net)} credited to wallet`);
+  };
+
+  const cashOutPos = cashOutIdx != null ? positions[cashOutIdx] : null;
+  const cashOutMarket = cashOutPos ? MARKETS.find((m) => m.id === cashOutPos.marketId) : null;
+  const cashOutQuote = cashOutPos ? computeCashOut(cashOutPos) : null;
+
+
+
   return (
     <div className="min-h-screen bg-background pb-24 [&_.font-bold]:tracking-tight">
       {/* Header — Blofin style */}
@@ -158,6 +266,25 @@ const Kimapre = () => {
             </button>
           </div>
 
+          {/* Top-level tab switcher */}
+          <div className="flex gap-1 bg-muted/50 p-1 rounded-lg">
+            {([
+              { k: "markets", label: "Markets" },
+              { k: "activity", label: "Activity" },
+              { k: "leaderboard", label: "Leaders" },
+              { k: "portfolio", label: "Portfolio" },
+            ] as const).map(({ k, label }) => (
+              <button
+                key={k}
+                onClick={() => setTab(k)}
+                className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+                  tab === k ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -585,54 +712,226 @@ const Kimapre = () => {
                   const market = MARKETS.find((m) => m.id === p.marketId);
                   if (!market) return null;
                   const out = market.outcomes.find((o) => o.id === p.outcomeId);
-                  const currentPrice = p.side === "YES" || !out
-                    ? out?.price ?? 0
-                    : 1 - (out?.price ?? 0);
+                  const currentPrice =
+                    p.side === "YES" || !out
+                      ? out?.price ?? 0
+                      : 1 - (out?.price ?? 0);
                   const value = p.shares * currentPrice;
                   const pnl = value - p.cost;
+                  const q = computeCashOut(p);
                   return (
-                    <Card
-                      key={i}
-                      className="p-3 cursor-pointer hover:border-primary/50"
-                      onClick={() => navigate(`/kimapre/${p.marketId}`)}
-                    >
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium truncate">{market.title}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge
-                              className={`text-[10px] border-0 ${
-                                p.side === "YES"
-                                  ? "bg-emerald-500/15 text-emerald-500"
-                                  : "bg-rose-500/15 text-rose-500"
+                    <Card key={i} className="p-3 hover:border-primary/50">
+                      <button
+                        onClick={() => navigate(`/kimapre/${p.marketId}`)}
+                        className="w-full text-left"
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium truncate">{market.title}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge
+                                className={`text-[10px] border-0 ${
+                                  p.side === "YES"
+                                    ? "bg-emerald-500/15 text-emerald-500"
+                                    : "bg-rose-500/15 text-rose-500"
+                                }`}
+                              >
+                                {p.side} · {out?.label}
+                              </Badge>
+                              <span className="text-[10px] text-muted-foreground">
+                                {p.shares.toFixed(0)} shares
+                              </span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-bold">{formatPrice(value)}</p>
+                            <p
+                              className={`text-[10px] font-semibold ${
+                                pnl >= 0 ? "text-emerald-500" : "text-rose-500"
                               }`}
                             >
-                              {p.side} · {out?.label}
-                            </Badge>
-                            <span className="text-[10px] text-muted-foreground">
-                              {p.shares.toFixed(0)} shares
-                            </span>
+                              {pnl >= 0 ? "+" : ""}
+                              {formatPrice(pnl)}
+                            </p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-sm font-bold">{formatPrice(value)}</p>
-                          <p
-                            className={`text-[10px] font-semibold ${
-                              pnl >= 0 ? "text-emerald-500" : "text-rose-500"
+                      </button>
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/50">
+                        <div className="text-[10px] text-muted-foreground">
+                          Cash-out{" "}
+                          <span className="font-semibold text-foreground tabular-nums">
+                            {formatPrice(q.net)}
+                          </span>
+                          <span
+                            className={`ml-1 font-semibold ${
+                              q.pnl >= 0 ? "text-emerald-500" : "text-rose-500"
                             }`}
                           >
-                            {pnl >= 0 ? "+" : ""}
-                            {formatPrice(pnl)}
-                          </p>
+                            ({q.pnl >= 0 ? "+" : ""}
+                            {formatPrice(q.pnl)})
+                          </span>
                         </div>
+                        <Button
+                          size="sm"
+                          disabled={!q.eligible}
+                          onClick={() => setCashOutIdx(i)}
+                          className="h-8 gap-1 bg-primary text-primary-foreground"
+                        >
+                          <LogOut className="h-3.5 w-3.5" /> Cash Out
+                        </Button>
                       </div>
                     </Card>
                   );
                 })}
               </div>
             )}
+
+            {/* Cashed-out history */}
+            {history.length > 0 && (
+              <div className="mt-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <HistoryIcon className="h-4 w-4 text-primary" />
+                  <h2 className="text-sm font-bold">Prediction History</h2>
+                </div>
+                <div className="space-y-2">
+                  {history.map((h) => (
+                    <Card key={h.id} className="p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium truncate">{h.marketTitle}</p>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <Badge className="bg-muted text-muted-foreground text-[10px] border-0">
+                              {h.side} · {h.outcomeLabel}
+                            </Badge>
+                            <Badge className="bg-primary/15 text-primary text-[10px] border-0">
+                              Cashed Out
+                            </Badge>
+                            <span className="text-[10px] text-muted-foreground">
+                              {new Date(h.at).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-bold tabular-nums">
+                            {formatPrice(h.proceeds)}
+                          </p>
+                          <p
+                            className={`text-[10px] font-semibold tabular-nums ${
+                              h.pnl >= 0 ? "text-emerald-500" : "text-rose-500"
+                            }`}
+                          >
+                            {h.pnl >= 0 ? "+" : ""}
+                            {formatPrice(h.pnl)}
+                          </p>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
+
+        {/* Cash Out confirmation dialog */}
+        <Dialog open={cashOutIdx != null} onOpenChange={(o) => !o && setCashOutIdx(null)}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Cash Out Position</DialogTitle>
+              <DialogDescription>
+                Close this position now at the live market price. Proceeds are credited
+                instantly to your USDC wallet.
+              </DialogDescription>
+            </DialogHeader>
+            {cashOutPos && cashOutMarket && cashOutQuote && (
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs text-muted-foreground">Market</p>
+                  <p className="text-sm font-semibold leading-snug">{cashOutMarket.title}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge
+                      className={`text-[10px] border-0 ${
+                        cashOutPos.side === "YES"
+                          ? "bg-emerald-500/15 text-emerald-500"
+                          : "bg-rose-500/15 text-rose-500"
+                      }`}
+                    >
+                      {cashOutPos.side}
+                    </Badge>
+                    <span className="text-[10px] text-muted-foreground">
+                      {cashOutPos.shares.toFixed(2)} shares · avg{" "}
+                      {Math.round(cashOutPos.avgPrice * 100)}¢
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-1.5 p-3 rounded-lg bg-muted/40 border border-border/50">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Cash-out price</span>
+                    <span className="font-semibold tabular-nums">
+                      {Math.round(cashOutQuote.price * 100)}¢
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Time to resolution</span>
+                    <span className="font-semibold tabular-nums">
+                      {cashOutQuote.hoursLeft < 1
+                        ? `${Math.max(0, Math.round(cashOutQuote.hoursLeft * 60))}m`
+                        : cashOutQuote.hoursLeft < 24
+                        ? `${cashOutQuote.hoursLeft.toFixed(1)}h`
+                        : `${Math.round(cashOutQuote.hoursLeft / 24)}d`}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Gross</span>
+                    <span className="font-semibold tabular-nums">
+                      {formatPrice(cashOutQuote.gross)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Platform fee (2%)</span>
+                    <span className="font-semibold tabular-nums">
+                      -{formatPrice(cashOutQuote.fee)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm pt-1.5 border-t border-border/50">
+                    <span className="font-semibold">You receive</span>
+                    <span className="font-bold text-primary tabular-nums">
+                      {formatPrice(cashOutQuote.net)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Est. P&L</span>
+                    <span
+                      className={`font-semibold tabular-nums ${
+                        cashOutQuote.pnl >= 0 ? "text-emerald-500" : "text-rose-500"
+                      }`}
+                    >
+                      {cashOutQuote.pnl >= 0 ? "+" : ""}
+                      {formatPrice(cashOutQuote.pnl)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+            <DialogFooter className="gap-2 sm:gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setCashOutIdx(null)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => cashOutIdx != null && executeCashOut(cashOutIdx)}
+                disabled={!cashOutQuote?.eligible}
+                className="flex-1 bg-primary text-primary-foreground"
+              >
+                Confirm Cash Out
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
 
         <p className="text-[10px] text-center text-muted-foreground pt-2 pb-4">
           Markets resolve based on real-world outcomes. Trade with USDC. 2% platform fee.
