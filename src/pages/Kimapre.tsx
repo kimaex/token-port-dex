@@ -17,16 +17,27 @@ import {
   Award,
   Wallet,
   ChevronRight,
+  LogOut,
+  History as HistoryIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { BottomNav } from "@/components/BottomNav";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { MARKETS, MarketCategory, TOP_TRADERS, ACTIVITY_FEED, UPDOWN_MARKETS } from "@/data/kimapreMarkets";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
+import { getUsdcBalance, setUsdcBalance } from "@/lib/portfolioStore";
 
 type Category = "All" | MarketCategory;
 type Tab = "markets" | "activity" | "leaderboard" | "portfolio";
