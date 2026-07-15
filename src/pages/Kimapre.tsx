@@ -75,6 +75,24 @@ interface Position {
   shares: number;
   avgPrice: number;
   cost: number;
+  status?: "OPEN" | "CASHED_OUT";
+}
+
+interface HistoryEntry {
+  id: string;
+  marketId: string;
+  marketTitle: string;
+  outcomeLabel: string;
+  side: "YES" | "NO";
+  shares: number;
+  avgPrice: number;
+  cost: number;
+  exitPrice: number;
+  proceeds: number;
+  fee: number;
+  pnl: number;
+  status: "CASHED_OUT";
+  at: number;
 }
 
 const Kimapre = () => {
@@ -86,6 +104,8 @@ const Kimapre = () => {
   const [sortKey, setSortKey] = useState<SortKey>("trending");
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [cashOutIdx, setCashOutIdx] = useState<number | null>(null);
 
   // Load persisted state
   useEffect(() => {
@@ -94,6 +114,8 @@ const Kimapre = () => {
       if (w) setWatchlist(JSON.parse(w));
       const p = localStorage.getItem("kimapre_positions");
       if (p) setPositions(JSON.parse(p));
+      const h = localStorage.getItem("kimapre_history");
+      if (h) setHistory(JSON.parse(h));
     } catch {}
   }, []);
 
