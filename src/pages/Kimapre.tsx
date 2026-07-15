@@ -164,6 +164,81 @@ const Kimapre = () => {
   const portfolioCost = positions.reduce((s, p) => s + p.cost, 0);
   const portfolioPnL = portfolioValue - portfolioCost;
 
+  // Cash-out pricing: current market price adjusted by liquidity slippage
+  // and a small time-decay factor, then a 2% platform fee.
+  const CASH_OUT_FEE_PCT = 0.02;
+  const computeCashOut = (p: Position) => {
+    const market = MARKETS.find((m) => m.id === p.marketId);
+    if (!market)
+      return { eligible: false, price: 0, gross: 0, fee: 0, net: 0, pnl: 0, hoursLeft: 0 };
+    const out = market.outcomes.find((o) => o.id === p.outcomeId);
+    const rawPrice = !out
+      ? 0
+      : p.side === "YES"
+      ? out.price
+      : 1 - out.price;
+    // Slippage: shares consumed vs liquidity
+    const notional = p.shares * rawPrice;
+    const slippage = Math.min(0.15, notional / Math.max(1, market.liquidity));
+    // Time decay: shrinks value slightly as market nears resolution
+    const hoursLeft = Math.max(0, (market.endsAtTs - Date.now()) / 3_600_000);
+    const timeDecay = hoursLeft < 1 ? 0.05 : hoursLeft < 24 ? 0.02 : 0.005;
+    const adjPrice = Math.max(0.01, rawPrice * (1 - slippage - timeDecay));
+    const gross = p.shares * adjPrice;
+    const fee = gross * CASH_OUT_FEE_PCT;
+    const net = Math.max(0, gross - fee);
+    const pnl = net - p.cost;
+    const eligible = hoursLeft > 0 && p.shares > 0 && adjPrice > 0.01;
+    return { eligible, price: adjPrice, gross, fee, net, pnl, hoursLeft };
+  };
+
+  const executeCashOut = (idx: number) => {
+    const p = positions[idx];
+    if (!p) return;
+    const market = MARKETS.find((m) => m.id === p.marketId);
+    if (!market) return;
+    const out = market.outcomes.find((o) => o.id === p.outcomeId);
+    const q = computeCashOut(p);
+    if (!q.eligible) {
+      toast.error("This position isn't eligible for cash out");
+      return;
+    }
+    // Credit USDC wallet
+    setUsdcBalance(getUsdcBalance() + q.net);
+    // Remove position
+    const nextPositions = positions.filter((_, i) => i !== idx);
+    setPositions(nextPositions);
+    localStorage.setItem("kimapre_positions", JSON.stringify(nextPositions));
+    // Record history
+    const entry: HistoryEntry = {
+      id: "PX-" + Date.now().toString(36).toUpperCase(),
+      marketId: p.marketId,
+      marketTitle: market.title,
+      outcomeLabel: out?.label || p.side,
+      side: p.side,
+      shares: p.shares,
+      avgPrice: p.avgPrice,
+      cost: p.cost,
+      exitPrice: q.price,
+      proceeds: q.net,
+      fee: q.fee,
+      pnl: q.pnl,
+      status: "CASHED_OUT",
+      at: Date.now(),
+    };
+    const nextHistory = [entry, ...history].slice(0, 200);
+    setHistory(nextHistory);
+    localStorage.setItem("kimapre_history", JSON.stringify(nextHistory));
+    setCashOutIdx(null);
+    toast.success(`Cashed out · ${formatPrice(q.net)} credited to wallet`);
+  };
+
+  const cashOutPos = cashOutIdx != null ? positions[cashOutIdx] : null;
+  const cashOutMarket = cashOutPos ? MARKETS.find((m) => m.id === cashOutPos.marketId) : null;
+  const cashOutQuote = cashOutPos ? computeCashOut(cashOutPos) : null;
+
+
+
   return (
     <div className="min-h-screen bg-background pb-24 [&_.font-bold]:tracking-tight">
       {/* Header — Blofin style */}
