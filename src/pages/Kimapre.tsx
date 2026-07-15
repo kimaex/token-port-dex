@@ -191,6 +191,25 @@ const Kimapre = () => {
             </button>
           </div>
 
+          {/* Top-level tab switcher */}
+          <div className="flex gap-1 bg-muted/50 p-1 rounded-lg">
+            {([
+              { k: "markets", label: "Markets" },
+              { k: "activity", label: "Activity" },
+              { k: "leaderboard", label: "Leaders" },
+              { k: "portfolio", label: "Portfolio" },
+            ] as const).map(({ k, label }) => (
+              <button
+                key={k}
+                onClick={() => setTab(k)}
+                className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+                  tab === k ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
