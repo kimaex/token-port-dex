@@ -184,7 +184,7 @@ const Kimapre = () => {
         break;
     }
     return list;
-  }, [activeCategory, search, sortKey]);
+  }, [activeCategory, search, sortKey, sportSub]);
 
   const totalVolume = MARKETS.reduce((s, m) => s + m.volume, 0);
   const portfolioValue = positions.reduce((s, p) => {
