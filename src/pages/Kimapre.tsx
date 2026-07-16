@@ -134,6 +134,7 @@ const Kimapre = () => {
   const [positions, setPositions] = useState<Position[]>([]);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [cashOutIdx, setCashOutIdx] = useState<number | null>(null);
+  const [sportSub, setSportSub] = useState<SportSub>("All");
 
   // Load persisted state
   useEffect(() => {
