@@ -1,11 +1,32 @@
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowDownLeft, ArrowUpRight, Clock, Repeat } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Clock, Repeat, TrendingUp } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
+
+interface PredictionHistoryEntry {
+  id: string;
+  marketTitle: string;
+  outcomeLabel: string;
+  side: "YES" | "NO";
+  shares: number;
+  proceeds: number;
+  pnl: number;
+  status: "CASHED_OUT";
+  at: number;
+}
 
 const History = () => {
   const { formatPrice } = useCurrency();
-  
+  const [predictions, setPredictions] = useState<PredictionHistoryEntry[]>([]);
+
+  useEffect(() => {
+    try {
+      const h = localStorage.getItem("kimapre_history");
+      if (h) setPredictions(JSON.parse(h));
+    } catch {}
+  }, []);
+
   const transactions = [
     { id: 1, type: "receive", asset: "BTC", amount: "+0.025", valueUSD: 1250, time: "2 hours ago", status: "completed" },
     { id: 2, type: "send", asset: "ETH", amount: "-1.5", valueUSD: 4500, time: "5 hours ago", status: "completed" },
@@ -77,6 +98,56 @@ const History = () => {
             </Card>
           ))}
         </div>
+
+        {predictions.length > 0 && (
+          <div className="pt-4">
+            <div className="flex items-center gap-2 mb-3">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              <h2 className="text-lg font-bold">Prediction History</h2>
+            </div>
+            <div className="space-y-3">
+              {predictions.map((h) => (
+                <Card key={h.id} className="hover:shadow-card transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{h.marketTitle}</p>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <Badge
+                            className={`text-[10px] border-0 ${
+                              h.side === "YES"
+                                ? "bg-emerald-500/15 text-emerald-500"
+                                : "bg-rose-500/15 text-rose-500"
+                            }`}
+                          >
+                            {h.side} · {h.outcomeLabel}
+                          </Badge>
+                          <Badge variant="outline" className="text-[10px]">
+                            Cashed Out
+                          </Badge>
+                          <span className="text-[10px] text-muted-foreground">
+                            {new Date(h.at).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold tabular-nums">{formatPrice(h.proceeds)}</p>
+                        <p
+                          className={`text-[10px] font-semibold tabular-nums ${
+                            h.pnl >= 0 ? "text-emerald-500" : "text-rose-500"
+                          }`}
+                        >
+                          {h.pnl >= 0 ? "+" : ""}
+                          {formatPrice(h.pnl)}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

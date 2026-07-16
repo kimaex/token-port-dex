@@ -55,6 +55,34 @@ const CATEGORIES: Category[] = [
   "World",
 ];
 
+const SPORT_SUBS = [
+  "All",
+  "Basketball",
+  "Soccer",
+  "Tennis",
+  "Football",
+  "Formula 1",
+  "UFC",
+  "NHL",
+  "MLB",
+  "Golf",
+  "IPL",
+] as const;
+type SportSub = typeof SPORT_SUBS[number];
+
+const SPORT_KEYWORDS: Record<Exclude<SportSub, "All">, string[]> = {
+  Basketball: ["nba", "basketball"],
+  Soccer: ["afcon", "world cup", "soccer", "football", "premier", "champions"],
+  Tennis: ["tennis", "wimbledon", "atp", "wta", "us open"],
+  Football: ["nfl", "super bowl"],
+  "Formula 1": ["f1", "formula", "grand prix"],
+  UFC: ["ufc", "mma"],
+  NHL: ["nhl", "hockey", "stanley"],
+  MLB: ["mlb", "baseball", "world series"],
+  Golf: ["golf", "pga", "masters"],
+  IPL: ["ipl", "cricket"],
+};
+
 const formatVolume = (n: number) => {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `$${(n / 1_000).toFixed(1)}K`;
@@ -106,6 +134,7 @@ const Kimapre = () => {
   const [positions, setPositions] = useState<Position[]>([]);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [cashOutIdx, setCashOutIdx] = useState<number | null>(null);
+  const [sportSub, setSportSub] = useState<SportSub>("All");
 
   // Load persisted state
   useEffect(() => {
@@ -133,7 +162,12 @@ const Kimapre = () => {
       if (updownIds.has(m.id)) return false;
       const matchCat = activeCategory === "All" || m.category === activeCategory;
       const matchSearch = m.title.toLowerCase().includes(search.toLowerCase());
-      return matchCat && matchSearch;
+      let matchSub = true;
+      if (activeCategory === "Sports" && sportSub !== "All") {
+        const kws = SPORT_KEYWORDS[sportSub];
+        matchSub = kws.some((k) => m.title.toLowerCase().includes(k));
+      }
+      return matchCat && matchSearch && matchSub;
     });
     switch (sortKey) {
       case "volume":
@@ -150,7 +184,7 @@ const Kimapre = () => {
         break;
     }
     return list;
-  }, [activeCategory, search, sortKey]);
+  }, [activeCategory, search, sortKey, sportSub]);
 
   const totalVolume = MARKETS.reduce((s, m) => s + m.volume, 0);
   const portfolioValue = positions.reduce((s, p) => {
@@ -320,7 +354,27 @@ const Kimapre = () => {
               ))}
             </div>
 
-            {/* Up/Down Crypto Trading */}
+            {/* Sport sub-categories */}
+            {activeCategory === "Sports" && (
+              <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 scrollbar-none">
+                {SPORT_SUBS.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setSportSub(s)}
+                    className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                      sportSub === s
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted/60 text-muted-foreground"
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Up/Down Crypto Trading — only under Crypto */}
+            {(activeCategory === "All" || activeCategory === "Crypto") && (
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Zap className="h-4 w-4 text-primary" />
@@ -374,6 +428,7 @@ const Kimapre = () => {
                 })}
               </div>
             </div>
+            )}
 
             {/* Watchlist */}
             {watchlist.length > 0 && (
@@ -786,50 +841,7 @@ const Kimapre = () => {
               </div>
             )}
 
-            {/* Cashed-out history */}
-            {history.length > 0 && (
-              <div className="mt-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <HistoryIcon className="h-4 w-4 text-primary" />
-                  <h2 className="text-sm font-bold">Prediction History</h2>
-                </div>
-                <div className="space-y-2">
-                  {history.map((h) => (
-                    <Card key={h.id} className="p-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium truncate">{h.marketTitle}</p>
-                          <div className="flex items-center gap-2 mt-1 flex-wrap">
-                            <Badge className="bg-muted text-muted-foreground text-[10px] border-0">
-                              {h.side} · {h.outcomeLabel}
-                            </Badge>
-                            <Badge className="bg-primary/15 text-primary text-[10px] border-0">
-                              Cashed Out
-                            </Badge>
-                            <span className="text-[10px] text-muted-foreground">
-                              {new Date(h.at).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-bold tabular-nums">
-                            {formatPrice(h.proceeds)}
-                          </p>
-                          <p
-                            className={`text-[10px] font-semibold tabular-nums ${
-                              h.pnl >= 0 ? "text-emerald-500" : "text-rose-500"
-                            }`}
-                          >
-                            {h.pnl >= 0 ? "+" : ""}
-                            {formatPrice(h.pnl)}
-                          </p>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
+
           </div>
         )}
 
