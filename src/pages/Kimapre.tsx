@@ -354,7 +354,27 @@ const Kimapre = () => {
               ))}
             </div>
 
-            {/* Up/Down Crypto Trading */}
+            {/* Sport sub-categories */}
+            {activeCategory === "Sports" && (
+              <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 scrollbar-none">
+                {SPORT_SUBS.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setSportSub(s)}
+                    className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                      sportSub === s
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted/60 text-muted-foreground"
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Up/Down Crypto Trading — only under Crypto */}
+            {(activeCategory === "All" || activeCategory === "Crypto") && (
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Zap className="h-4 w-4 text-primary" />
