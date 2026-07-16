@@ -428,6 +428,7 @@ const Kimapre = () => {
                 })}
               </div>
             </div>
+            )}
 
             {/* Watchlist */}
             {watchlist.length > 0 && (
