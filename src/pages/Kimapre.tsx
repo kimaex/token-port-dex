@@ -55,6 +55,34 @@ const CATEGORIES: Category[] = [
   "World",
 ];
 
+const SPORT_SUBS = [
+  "All",
+  "Basketball",
+  "Soccer",
+  "Tennis",
+  "Football",
+  "Formula 1",
+  "UFC",
+  "NHL",
+  "MLB",
+  "Golf",
+  "IPL",
+] as const;
+type SportSub = typeof SPORT_SUBS[number];
+
+const SPORT_KEYWORDS: Record<Exclude<SportSub, "All">, string[]> = {
+  Basketball: ["nba", "basketball"],
+  Soccer: ["afcon", "world cup", "soccer", "football", "premier", "champions"],
+  Tennis: ["tennis", "wimbledon", "atp", "wta", "us open"],
+  Football: ["nfl", "super bowl"],
+  "Formula 1": ["f1", "formula", "grand prix"],
+  UFC: ["ufc", "mma"],
+  NHL: ["nhl", "hockey", "stanley"],
+  MLB: ["mlb", "baseball", "world series"],
+  Golf: ["golf", "pga", "masters"],
+  IPL: ["ipl", "cricket"],
+};
+
 const formatVolume = (n: number) => {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `$${(n / 1_000).toFixed(1)}K`;
