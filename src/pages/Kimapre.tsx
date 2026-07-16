@@ -162,7 +162,12 @@ const Kimapre = () => {
       if (updownIds.has(m.id)) return false;
       const matchCat = activeCategory === "All" || m.category === activeCategory;
       const matchSearch = m.title.toLowerCase().includes(search.toLowerCase());
-      return matchCat && matchSearch;
+      let matchSub = true;
+      if (activeCategory === "Sports" && sportSub !== "All") {
+        const kws = SPORT_KEYWORDS[sportSub];
+        matchSub = kws.some((k) => m.title.toLowerCase().includes(k));
+      }
+      return matchCat && matchSearch && matchSub;
     });
     switch (sortKey) {
       case "volume":
