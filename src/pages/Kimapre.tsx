@@ -841,50 +841,7 @@ const Kimapre = () => {
               </div>
             )}
 
-            {/* Cashed-out history */}
-            {history.length > 0 && (
-              <div className="mt-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <HistoryIcon className="h-4 w-4 text-primary" />
-                  <h2 className="text-sm font-bold">Prediction History</h2>
-                </div>
-                <div className="space-y-2">
-                  {history.map((h) => (
-                    <Card key={h.id} className="p-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium truncate">{h.marketTitle}</p>
-                          <div className="flex items-center gap-2 mt-1 flex-wrap">
-                            <Badge className="bg-muted text-muted-foreground text-[10px] border-0">
-                              {h.side} · {h.outcomeLabel}
-                            </Badge>
-                            <Badge className="bg-primary/15 text-primary text-[10px] border-0">
-                              Cashed Out
-                            </Badge>
-                            <span className="text-[10px] text-muted-foreground">
-                              {new Date(h.at).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-bold tabular-nums">
-                            {formatPrice(h.proceeds)}
-                          </p>
-                          <p
-                            className={`text-[10px] font-semibold tabular-nums ${
-                              h.pnl >= 0 ? "text-emerald-500" : "text-rose-500"
-                            }`}
-                          >
-                            {h.pnl >= 0 ? "+" : ""}
-                            {formatPrice(h.pnl)}
-                          </p>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
+
           </div>
         )}
 
