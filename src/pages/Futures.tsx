@@ -1,0 +1,707 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { BottomNav } from "@/components/BottomNav";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { ChevronDown, Search, TrendingUp, TrendingDown, X } from "lucide-react";
+import { toast } from "sonner";
+import { getUsdcBalance, setUsdcBalance, usePortfolio } from "@/lib/portfolioStore";
+
+/** All futures markets are quoted and settled in Nigerian Naira. */
+const NGN_PER_USD = 1580;
+
+const fmtNGN = (v: number, dp = 2) =>
+  "₦" +
+  new Intl.NumberFormat("en-NG", {
+    minimumFractionDigits: dp,
+    maximumFractionDigits: dp,
+  }).format(v);
+
+interface Pair {
+  symbol: string;
+  base: string;
+  usd: number;
+  change: number;
+}
+
+const PAIRS: Pair[] = [
+  { symbol: "BTC/NGN", base: "BTC", usd: 96420, change: 2.41 },
+  { symbol: "ETH/NGN", base: "ETH", usd: 3320, change: -1.12 },
+  { symbol: "SOL/NGN", base: "SOL", usd: 198.4, change: 4.85 },
+  { symbol: "BNB/NGN", base: "BNB", usd: 612.3, change: 0.74 },
+  { symbol: "XRP/NGN", base: "XRP", usd: 2.31, change: -2.06 },
+  { symbol: "DOGE/NGN", base: "DOGE", usd: 0.3812, change: 5.9 },
+  { symbol: "TON/NGN", base: "TON", usd: 5.42, change: 1.33 },
+  { symbol: "AVAX/NGN", base: "AVAX", usd: 38.7, change: -0.58 },
+];
+
+const LEVERAGES = [1, 3, 5, 10, 20, 25, 50, 75, 100, 125];
+
+interface Position {
+  id: string;
+  symbol: string;
+  side: "long" | "short";
+  leverage: number;
+  entry: number; // NGN
+  size: number; // NGN notional
+  margin: number; // NGN
+  liq: number; // NGN
+  tp?: number;
+  sl?: number;
+  at: number;
+}
+
+const POS_KEY = "futures_positions";
+const HIST_KEY = "futures_history";
+
+const readPositions = (): Position[] => {
+  try {
+    return JSON.parse(localStorage.getItem(POS_KEY) || "[]");
+  } catch {
+    return [];
+  }
+};
+
+const Futures = () => {
+  const { usdc } = usePortfolio();
+  const [pair, setPair] = useState<Pair>(PAIRS[0]);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [side, setSide] = useState<"long" | "short">("long");
+  const [orderType, setOrderType] = useState<"market" | "limit">("market");
+  const [leverage, setLeverage] = useState(20);
+  const [limitPrice, setLimitPrice] = useState("");
+  const [amount, setAmount] = useState(""); // margin in NGN
+  const [tab, setTab] = useState<"positions" | "orders">("positions");
+  const [positions, setPositions] = useState<Position[]>(readPositions);
+  const [tick, setTick] = useState(0);
+  const [tpslFor, setTpslFor] = useState<Position | null>(null);
+  const [tpInput, setTpInput] = useState("");
+  const [slInput, setSlInput] = useState("");
+  const driftRef = useRef<Record<string, number>>({});
+
+  // live-ish price drift
+  useEffect(() => {
+    const t = setInterval(() => {
+      const d = driftRef.current;
+      PAIRS.forEach((p) => {
+        d[p.symbol] = (d[p.symbol] ?? 0) + (Math.random() - 0.5) * 0.0016;
+      });
+      setTick((x) => x + 1);
+    }, 2000);
+    return () => clearInterval(t);
+  }, []);
+
+  const priceOf = (p: Pair) =>
+    p.usd * NGN_PER_USD * (1 + (driftRef.current[p.symbol] ?? 0));
+
+  const mark = priceOf(pair);
+  const balanceNGN = usdc * NGN_PER_USD;
+
+  const persist = (next: Position[]) => {
+    setPositions(next);
+    localStorage.setItem(POS_KEY, JSON.stringify(next));
+  };
+
+  const series = useMemo(() => {
+    const pts: number[] = [];
+    let v = 100;
+    let seed = pair.symbol.length * 7 + pair.base.charCodeAt(0);
+    for (let i = 0; i < 60; i++) {
+      seed = (seed * 9301 + 49297) % 233280;
+      v += (seed / 233280 - 0.48) * 4;
+      pts.push(v);
+    }
+    return pts;
+  }, [pair]);
+
+  const path = useMemo(() => {
+    const min = Math.min(...series);
+    const max = Math.max(...series);
+    const r = max - min || 1;
+    return series
+      .map((v, i) => {
+        const x = (i / (series.length - 1)) * 300;
+        const y = 110 - ((v - min) / r) * 100;
+        return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+      })
+      .join(" ");
+  }, [series]);
+
+  const book = useMemo(() => {
+    const asks = Array.from({ length: 6 }, (_, i) => ({
+      price: mark * (1 + (i + 1) * 0.0006),
+      size: 0.12 + ((i * 37) % 9) / 10,
+    })).reverse();
+    const bids = Array.from({ length: 6 }, (_, i) => ({
+      price: mark * (1 - (i + 1) * 0.0006),
+      size: 0.14 + ((i * 53) % 9) / 10,
+    }));
+    return { asks, bids };
+  }, [mark]);
+
+  const marginNGN = parseFloat(amount) || 0;
+  const entry = orderType === "limit" ? parseFloat(limitPrice) || mark : mark;
+  const notional = marginNGN * leverage;
+  const qty = entry > 0 ? notional / entry : 0;
+  const fee = notional * 0.0006;
+  const liq =
+    side === "long" ? entry * (1 - 1 / leverage) : entry * (1 + 1 / leverage);
+
+  const pnlOf = (p: Position) => {
+    const cur = priceOf(PAIRS.find((x) => x.symbol === p.symbol) || pair);
+    const dir = p.side === "long" ? 1 : -1;
+    return ((cur - p.entry) / p.entry) * p.size * dir;
+  };
+
+  const openPosition = () => {
+    if (marginNGN <= 0) return toast.error("Enter an amount");
+    if (marginNGN > balanceNGN) return toast.error("Insufficient balance");
+    if (marginNGN < 0.5 * NGN_PER_USD)
+      return toast.error(`Minimum margin is ${fmtNGN(0.5 * NGN_PER_USD, 0)}`);
+    setUsdcBalance(getUsdcBalance() - (marginNGN + fee) / NGN_PER_USD);
+    const pos: Position = {
+      id: "FUT-" + Date.now().toString(36).toUpperCase(),
+      symbol: pair.symbol,
+      side,
+      leverage,
+      entry,
+      size: notional,
+      margin: marginNGN,
+      liq,
+      at: Date.now(),
+    };
+    persist([pos, ...positions]);
+    setAmount("");
+    setTab("positions");
+    toast.success(
+      `${side === "long" ? "Long" : "Short"} ${pair.symbol} ${leverage}x opened`
+    );
+  };
+
+  const closePosition = (p: Position) => {
+    const pnl = pnlOf(p);
+    const closeFee = p.size * 0.0006;
+    const proceeds = Math.max(0, p.margin + pnl - closeFee);
+    setUsdcBalance(getUsdcBalance() + proceeds / NGN_PER_USD);
+    persist(positions.filter((x) => x.id !== p.id));
+    try {
+      const hist = JSON.parse(localStorage.getItem(HIST_KEY) || "[]");
+      hist.unshift({
+        id: p.id,
+        symbol: p.symbol,
+        side: p.side,
+        leverage: p.leverage,
+        entry: p.entry,
+        exit: priceOf(PAIRS.find((x) => x.symbol === p.symbol) || pair),
+        proceeds,
+        pnl: pnl - closeFee,
+        at: Date.now(),
+      });
+      localStorage.setItem(HIST_KEY, JSON.stringify(hist.slice(0, 100)));
+    } catch {}
+    toast.success(`Position closed · ${pnl >= 0 ? "+" : ""}${fmtNGN(pnl)}`);
+  };
+
+  const saveTpSl = () => {
+    if (!tpslFor) return;
+    persist(
+      positions.map((p) =>
+        p.id === tpslFor.id
+          ? {
+              ...p,
+              tp: parseFloat(tpInput) || undefined,
+              sl: parseFloat(slInput) || undefined,
+            }
+          : p
+      )
+    );
+    setTpslFor(null);
+    toast.success("TP/SL updated");
+  };
+
+  const filtered = PAIRS.filter(
+    (p) =>
+      p.symbol.toLowerCase().includes(query.toLowerCase()) ||
+      p.base.toLowerCase().includes(query.toLowerCase())
+  );
+
+  const up = pair.change >= 0;
+
+  return (
+    <div className="min-h-screen bg-background pb-24">
+      <div className="max-w-md mx-auto">
+        {/* Header */}
+        <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border px-4 py-3">
+          <div className="flex items-center justify-between">
+            <button
+              className="flex items-center gap-2"
+              onClick={() => setPickerOpen(true)}
+            >
+              <span className="text-lg font-bold">{pair.symbol}</span>
+              <Badge className="bg-primary/15 text-primary border-0 text-[10px]">
+                Perp
+              </Badge>
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </button>
+            <div className="text-right">
+              <p className="text-xs text-muted-foreground">Balance</p>
+              <p className="text-sm font-semibold tabular-nums">
+                {fmtNGN(balanceNGN, 0)}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-end gap-3 mt-2">
+            <p
+              className={`text-2xl font-bold tabular-nums ${
+                up ? "text-emerald-500" : "text-rose-500"
+              }`}
+            >
+              {fmtNGN(mark, 2)}
+            </p>
+            <span
+              className={`text-sm font-semibold mb-1 ${
+                up ? "text-emerald-500" : "text-rose-500"
+              }`}
+            >
+              {up ? "+" : ""}
+              {pair.change.toFixed(2)}%
+            </span>
+          </div>
+        </div>
+
+        {/* Chart */}
+        <div className="px-4 pt-3">
+          <div className="rounded-xl border border-border bg-card p-3">
+            <svg viewBox="0 0 300 120" className="w-full h-32">
+              <defs>
+                <linearGradient id="futGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="0%"
+                    stopColor={up ? "#22C55E" : "#EF4444"}
+                    stopOpacity="0.35"
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor={up ? "#22C55E" : "#EF4444"}
+                    stopOpacity="0"
+                  />
+                </linearGradient>
+              </defs>
+              <path
+                d={`${path} L300,120 L0,120 Z`}
+                fill="url(#futGrad)"
+                stroke="none"
+              />
+              <path
+                d={path}
+                fill="none"
+                stroke={up ? "#22C55E" : "#EF4444"}
+                strokeWidth="2"
+              />
+            </svg>
+            <div className="flex gap-2 mt-2">
+              {["1m", "5m", "15m", "1H", "4H", "1D"].map((tf, i) => (
+                <button
+                  key={tf}
+                  className={`text-[11px] px-2 py-1 rounded-md ${
+                    i === 2
+                      ? "bg-primary/15 text-primary font-semibold"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  {tf}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Order entry + book */}
+        <div className="px-4 pt-3 grid grid-cols-5 gap-3">
+          <div className="col-span-3 space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setSide("long")}
+                className={`h-9 rounded-lg text-sm font-semibold transition-colors ${
+                  side === "long"
+                    ? "bg-emerald-500 text-white"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
+                Long
+              </button>
+              <button
+                onClick={() => setSide("short")}
+                className={`h-9 rounded-lg text-sm font-semibold transition-colors ${
+                  side === "short"
+                    ? "bg-rose-500 text-white"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
+                Short
+              </button>
+            </div>
+
+            <div className="flex gap-3 text-xs">
+              {(["market", "limit"] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setOrderType(t)}
+                  className={`capitalize pb-1 border-b-2 ${
+                    orderType === t
+                      ? "border-primary text-foreground font-semibold"
+                      : "border-transparent text-muted-foreground"
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+
+            {orderType === "limit" && (
+              <div>
+                <label className="text-[11px] text-muted-foreground">
+                  Limit price (₦)
+                </label>
+                <Input
+                  inputMode="decimal"
+                  value={limitPrice}
+                  onChange={(e) => setLimitPrice(e.target.value)}
+                  placeholder={mark.toFixed(2)}
+                  className="h-10"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="text-[11px] text-muted-foreground">
+                Margin (₦)
+              </label>
+              <Input
+                inputMode="decimal"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.00"
+                className="h-10"
+              />
+              <div className="flex gap-2 mt-2">
+                {[25, 50, 75, 100].map((pct) => (
+                  <button
+                    key={pct}
+                    onClick={() =>
+                      setAmount(((balanceNGN * pct) / 100).toFixed(2))
+                    }
+                    className="flex-1 text-[11px] py-1 rounded-md bg-muted text-muted-foreground"
+                  >
+                    {pct}%
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] text-muted-foreground">
+                  Leverage
+                </span>
+                <span className="text-xs font-bold text-primary">
+                  {leverage}x
+                </span>
+              </div>
+              <Slider
+                value={[LEVERAGES.indexOf(leverage) < 0 ? 4 : LEVERAGES.indexOf(leverage)]}
+                min={0}
+                max={LEVERAGES.length - 1}
+                step={1}
+                onValueChange={(v) => setLeverage(LEVERAGES[v[0]])}
+              />
+              <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+                <span>1x</span>
+                <span>125x</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Order book */}
+          <div className="col-span-2">
+            <p className="text-[10px] text-muted-foreground mb-1">Order book</p>
+            <div className="space-y-0.5">
+              {book.asks.map((a, i) => (
+                <div key={i} className="flex justify-between text-[10px] tabular-nums">
+                  <span className="text-rose-500">{a.price.toFixed(0)}</span>
+                  <span className="text-muted-foreground">{a.size.toFixed(2)}</span>
+                </div>
+              ))}
+              <div className="py-1 text-xs font-bold tabular-nums text-center">
+                {mark.toFixed(0)}
+              </div>
+              {book.bids.map((b, i) => (
+                <div key={i} className="flex justify-between text-[10px] tabular-nums">
+                  <span className="text-emerald-500">{b.price.toFixed(0)}</span>
+                  <span className="text-muted-foreground">{b.size.toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Summary + submit */}
+        <div className="px-4 pt-3 space-y-1 text-[11px] text-muted-foreground">
+          <div className="flex justify-between">
+            <span>Order value</span>
+            <span className="text-foreground tabular-nums">{fmtNGN(notional)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Quantity</span>
+            <span className="text-foreground tabular-nums">
+              {qty.toFixed(6)} {pair.base}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span>Est. liquidation</span>
+            <span className="text-rose-500 tabular-nums">{fmtNGN(liq)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Fee (0.06%)</span>
+            <span className="text-foreground tabular-nums">{fmtNGN(fee)}</span>
+          </div>
+        </div>
+
+        <div className="px-4 pt-3">
+          <Button
+            onClick={openPosition}
+            className={`w-full h-12 text-base font-semibold text-white ${
+              side === "long"
+                ? "bg-emerald-500 hover:bg-emerald-600"
+                : "bg-rose-500 hover:bg-rose-600"
+            }`}
+          >
+            {side === "long" ? (
+              <TrendingUp className="h-4 w-4 mr-2" />
+            ) : (
+              <TrendingDown className="h-4 w-4 mr-2" />
+            )}
+            {side === "long" ? "Buy / Long" : "Sell / Short"} {leverage}x
+          </Button>
+        </div>
+
+        {/* Positions */}
+        <div className="px-4 pt-5">
+          <div className="flex gap-4 border-b border-border">
+            {(["positions", "orders"] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`capitalize pb-2 text-sm border-b-2 ${
+                  tab === t
+                    ? "border-primary text-foreground font-semibold"
+                    : "border-transparent text-muted-foreground"
+                }`}
+              >
+                {t === "positions" ? `Positions (${positions.length})` : "Open orders"}
+              </button>
+            ))}
+          </div>
+
+          {tab === "positions" ? (
+            positions.length === 0 ? (
+              <p className="text-center text-sm text-muted-foreground py-10">
+                No open positions
+              </p>
+            ) : (
+              <div className="space-y-3 pt-3">
+                {positions.map((p) => {
+                  const pnl = pnlOf(p);
+                  const roe = (pnl / p.margin) * 100;
+                  return (
+                    <div
+                      key={p.id}
+                      className="rounded-xl border border-border bg-card p-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold">{p.symbol}</span>
+                          <Badge
+                            className={`text-[10px] border-0 ${
+                              p.side === "long"
+                                ? "bg-emerald-500/15 text-emerald-500"
+                                : "bg-rose-500/15 text-rose-500"
+                            }`}
+                          >
+                            {p.side === "long" ? "Long" : "Short"} {p.leverage}x
+                          </Badge>
+                        </div>
+                        <div className="text-right">
+                          <p
+                            className={`text-sm font-bold tabular-nums ${
+                              pnl >= 0 ? "text-emerald-500" : "text-rose-500"
+                            }`}
+                          >
+                            {pnl >= 0 ? "+" : ""}
+                            {fmtNGN(pnl)}
+                          </p>
+                          <p
+                            className={`text-[10px] tabular-nums ${
+                              pnl >= 0 ? "text-emerald-500" : "text-rose-500"
+                            }`}
+                          >
+                            {roe >= 0 ? "+" : ""}
+                            {roe.toFixed(2)}%
+                          </p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 mt-3 text-[10px] text-muted-foreground">
+                        <div>
+                          <p>Entry</p>
+                          <p className="text-foreground tabular-nums">
+                            {fmtNGN(p.entry, 0)}
+                          </p>
+                        </div>
+                        <div>
+                          <p>Margin</p>
+                          <p className="text-foreground tabular-nums">
+                            {fmtNGN(p.margin, 0)}
+                          </p>
+                        </div>
+                        <div>
+                          <p>Liq. price</p>
+                          <p className="text-rose-500 tabular-nums">
+                            {fmtNGN(p.liq, 0)}
+                          </p>
+                        </div>
+                      </div>
+                      {(p.tp || p.sl) && (
+                        <p className="text-[10px] text-muted-foreground mt-2">
+                          TP {p.tp ? fmtNGN(p.tp, 0) : "—"} · SL{" "}
+                          {p.sl ? fmtNGN(p.sl, 0) : "—"}
+                        </p>
+                      )}
+                      <div className="flex gap-2 mt-3">
+                        <Button
+                          variant="secondary"
+                          className="flex-1 h-9 text-xs"
+                          onClick={() => {
+                            setTpslFor(p);
+                            setTpInput(p.tp ? String(p.tp) : "");
+                            setSlInput(p.sl ? String(p.sl) : "");
+                          }}
+                        >
+                          TP/SL
+                        </Button>
+                        <Button
+                          className="flex-1 h-9 text-xs"
+                          onClick={() => closePosition(p)}
+                        >
+                          Close
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )
+          ) : (
+            <p className="text-center text-sm text-muted-foreground py-10">
+              No open orders
+            </p>
+          )}
+        </div>
+
+        <BottomNav />
+      </div>
+
+      {/* Pair picker */}
+      <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Select market</DialogTitle>
+            <DialogDescription>All pairs settle in Naira (₦)</DialogDescription>
+          </DialogHeader>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search pair"
+              className="pl-9"
+            />
+          </div>
+          <div className="max-h-72 overflow-y-auto space-y-1">
+            {filtered.map((p) => (
+              <button
+                key={p.symbol}
+                onClick={() => {
+                  setPair(p);
+                  setPickerOpen(false);
+                  setQuery("");
+                }}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-muted"
+              >
+                <span className="text-sm font-medium">{p.symbol}</span>
+                <span className="text-right">
+                  <span className="block text-sm tabular-nums">
+                    {fmtNGN(priceOf(p), 2)}
+                  </span>
+                  <span
+                    className={`block text-[10px] ${
+                      p.change >= 0 ? "text-emerald-500" : "text-rose-500"
+                    }`}
+                  >
+                    {p.change >= 0 ? "+" : ""}
+                    {p.change.toFixed(2)}%
+                  </span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* TP/SL */}
+      <Dialog open={!!tpslFor} onOpenChange={(o) => !o && setTpslFor(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Take Profit / Stop Loss</DialogTitle>
+            <DialogDescription>{tpslFor?.symbol} · prices in ₦</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-muted-foreground">Take profit</label>
+              <Input
+                inputMode="decimal"
+                value={tpInput}
+                onChange={(e) => setTpInput(e.target.value)}
+                placeholder="0.00"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">Stop loss</label>
+              <Input
+                inputMode="decimal"
+                value={slInput}
+                onChange={(e) => setSlInput(e.target.value)}
+                placeholder="0.00"
+              />
+            </div>
+            <Button className="w-full" onClick={saveTpSl}>
+              Save
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <span className="hidden">{tick}</span>
+    </div>
+  );
+};
+
+export default Futures;
