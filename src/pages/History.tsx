@@ -4,26 +4,34 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowDownLeft, ArrowUpRight, Clock, Repeat, TrendingUp } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
 
-interface PredictionHistoryEntry {
+interface FuturesHistoryEntry {
   id: string;
-  marketTitle: string;
-  outcomeLabel: string;
-  side: "YES" | "NO";
-  shares: number;
+  symbol: string;
+  side: "long" | "short";
+  leverage: number;
+  entry: number;
+  exit: number;
   proceeds: number;
   pnl: number;
-  status: "CASHED_OUT";
   at: number;
 }
 
+const NGN_PER_USD = 1580;
+const fmtNGN = (v: number, dp = 2) =>
+  "₦" +
+  new Intl.NumberFormat("en-NG", {
+    minimumFractionDigits: dp,
+    maximumFractionDigits: dp,
+  }).format(v);
+
 const History = () => {
   const { formatPrice } = useCurrency();
-  const [predictions, setPredictions] = useState<PredictionHistoryEntry[]>([]);
+  const [futures, setFutures] = useState<FuturesHistoryEntry[]>([]);
 
   useEffect(() => {
     try {
-      const h = localStorage.getItem("kimapre_history");
-      if (h) setPredictions(JSON.parse(h));
+      const h = localStorage.getItem("futures_history");
+      if (h) setFutures(JSON.parse(h));
     } catch {}
   }, []);
 
@@ -99,46 +107,49 @@ const History = () => {
           ))}
         </div>
 
-        {predictions.length > 0 && (
+        {futures.length > 0 && (
           <div className="pt-4">
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="w-5 h-5 text-primary" />
-              <h2 className="text-lg font-bold">Prediction History</h2>
+              <h2 className="text-lg font-bold">Futures History</h2>
             </div>
             <div className="space-y-3">
-              {predictions.map((h) => (
+              {futures.map((h) => (
                 <Card key={h.id} className="hover:shadow-card transition-shadow">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{h.marketTitle}</p>
+                        <p className="text-sm font-medium truncate">{h.symbol}</p>
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
                           <Badge
                             className={`text-[10px] border-0 ${
-                              h.side === "YES"
+                              h.side === "long"
                                 ? "bg-emerald-500/15 text-emerald-500"
                                 : "bg-rose-500/15 text-rose-500"
                             }`}
                           >
-                            {h.side} · {h.outcomeLabel}
+                            {h.side === "long" ? "Long" : "Short"} {h.leverage}x
                           </Badge>
                           <Badge variant="outline" className="text-[10px]">
-                            Cashed Out
+                            Closed
                           </Badge>
                           <span className="text-[10px] text-muted-foreground">
                             {new Date(h.at).toLocaleDateString()}
                           </span>
                         </div>
+                        <p className="text-[10px] text-muted-foreground mt-1 tabular-nums">
+                          Entry {fmtNGN(h.entry, 0)} → Exit {fmtNGN(h.exit, 0)}
+                        </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-bold tabular-nums">{formatPrice(h.proceeds)}</p>
+                        <p className="text-sm font-bold tabular-nums">{fmtNGN(h.proceeds)}</p>
                         <p
                           className={`text-[10px] font-semibold tabular-nums ${
                             h.pnl >= 0 ? "text-emerald-500" : "text-rose-500"
                           }`}
                         >
                           {h.pnl >= 0 ? "+" : ""}
-                          {formatPrice(h.pnl)}
+                          {fmtNGN(h.pnl)}
                         </p>
                       </div>
                     </div>
@@ -148,6 +159,7 @@ const History = () => {
             </div>
           </div>
         )}
+
       </div>
     </div>
   );
