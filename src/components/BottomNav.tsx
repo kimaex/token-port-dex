@@ -9,7 +9,7 @@ export const BottomNav = () => {
     { id: "wallet", icon: Wallet, label: "Wallet", path: "/" },
     { id: "swap", icon: Repeat, label: "Swap", path: "/swap" },
     { id: "history", icon: Clock, label: "History", path: "/history" },
-    { id: "kimapre", icon: TrendingUp, label: "Kimapre", path: "/kimapre" },
+    { id: "futures", icon: TrendingUp, label: "Futures", path: "/futures" },
     { id: "settings", icon: Settings, label: "Settings", path: "/settings" },
   ];
 
