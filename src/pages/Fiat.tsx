@@ -6,7 +6,6 @@ import {
   Check,
   Building2,
   ChevronRight,
-  Plus,
   Trash2,
   CheckCircle2,
   ShieldCheck,
@@ -422,11 +421,6 @@ const Fiat = () => {
         title="Confirm withdrawal"
         description={`Enter your PIN to send ${fmtNGN(receive)} to ${accountName || "your bank"}.`}
       />
-
-      {/* keep icon import used */}
-      <span className="hidden">
-        <Plus />
-      </span>
     </div>
   );
 };
