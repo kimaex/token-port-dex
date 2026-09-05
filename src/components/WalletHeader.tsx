@@ -3,10 +3,13 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 import { WalletSelector } from "./WalletSelector";
+import { fmtNGN, useNaira } from "@/lib/naira";
 
 export const WalletHeader = () => {
   const [showBalance, setShowBalance] = useState(true);
   const navigate = useNavigate();
+  const { balance } = useNaira();
+  const todayChange = balance * 0.053;
 
   return (
     <div className="p-6 pb-8">
@@ -38,18 +41,19 @@ export const WalletHeader = () => {
             )}
           </Button>
         </div>
-        
+
         {showBalance ? (
           <>
-            <h2 className="text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              $24,582.50
+            <h2 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent tabular-nums">
+              {fmtNGN(balance)}
             </h2>
-            <p className="text-sm text-success flex items-center justify-center gap-1">
-              +$1,245.20 (5.3%) <span className="text-muted-foreground">today</span>
+            <p className="text-sm text-success flex items-center justify-center gap-1 tabular-nums">
+              +{fmtNGN(todayChange)} (5.3%){" "}
+              <span className="text-muted-foreground">today</span>
             </p>
           </>
         ) : (
-          <h2 className="text-5xl font-bold">••••••</h2>
+          <h2 className="text-4xl font-bold">••••••</h2>
         )}
       </div>
     </div>
