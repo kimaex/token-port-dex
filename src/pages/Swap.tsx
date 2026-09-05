@@ -1,823 +1,368 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  ArrowUpDown,
+  Search,
+  Settings2,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowDownUp, ChevronDown, Search, Settings, X, Zap, Info, Shield, Users } from "lucide-react";
-import KimaexShield from "@/components/KimaexShield";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
-import { useCurrency } from "@/contexts/CurrencyContext";
-import { viralShare } from "@/lib/viralShare";
+import { fmtNGN, fmtNGNShort, useNaira } from "@/lib/naira";
 
-interface Token {
+export interface Token {
   symbol: string;
   name: string;
-  balance: string;
-  price: number;
-  icon: string;
-  network: string;
+  emoji: string;
+  priceNGN: number;
+  change: number;
+  meme?: boolean;
+  marketCapNGN: number;
 }
 
-const tokens: Token[] = [
-  { symbol: "BTC", name: "Bitcoin", balance: "0.5432", price: 43250, icon: "₿", network: "Bitcoin" },
-  { symbol: "ETH", name: "Ethereum", balance: "3.2145", price: 2650, icon: "Ξ", network: "Ethereum" },
-  { symbol: "USDC", name: "USD Coin", balance: "5,234.56", price: 1, icon: "◈", network: "Multi-chain" },
-  { symbol: "USDT", name: "Tether", balance: "1,234.56", price: 1, icon: "₮", network: "Multi-chain" },
-  { symbol: "SOL", name: "Solana", balance: "45.67", price: 98.5, icon: "◎", network: "Solana" },
-  { symbol: "BNB", name: "BNB", balance: "12.34", price: 312, icon: "◇", network: "BSC" },
-  { symbol: "XRP", name: "Ripple", balance: "1,500.00", price: 0.62, icon: "✕", network: "XRP Ledger" },
-  { symbol: "ADA", name: "Cardano", balance: "2,500.00", price: 0.52, icon: "₳", network: "Cardano" },
-  { symbol: "DOGE", name: "Dogecoin", balance: "10,000.00", price: 0.085, icon: "Ð", network: "Dogecoin" },
-  { symbol: "MATIC", name: "Polygon", balance: "500.00", price: 0.92, icon: "⬡", network: "Polygon" },
+export const TOKENS: Token[] = [
+  { symbol: "PEPE", name: "Pepe", emoji: "🐸", priceNGN: 0.0000198, change: 12.4, meme: true, marketCapNGN: 13_200_000_000_000 },
+  { symbol: "BONK", name: "Bonk", emoji: "🐕", priceNGN: 0.0000451, change: -4.2, meme: true, marketCapNGN: 4_100_000_000_000 },
+  { symbol: "DOGE", name: "Dogecoin", emoji: "🐶", priceNGN: 602.3, change: 5.9, meme: true, marketCapNGN: 88_000_000_000_000 },
+  { symbol: "SHIB", name: "Shiba Inu", emoji: "🦊", priceNGN: 0.0000342, change: 2.1, meme: true, marketCapNGN: 20_100_000_000_000 },
+  { symbol: "WIF", name: "dogwifhat", emoji: "🧢", priceNGN: 3_140, change: 8.7, meme: true, marketCapNGN: 3_100_000_000_000 },
+  { symbol: "FLOKI", name: "Floki", emoji: "🐺", priceNGN: 0.243, change: -1.8, meme: true, marketCapNGN: 2_300_000_000_000 },
+  { symbol: "BTC", name: "Bitcoin", emoji: "₿", priceNGN: 152_343_600, change: 2.4, marketCapNGN: 3_000_000_000_000_000 },
+  { symbol: "ETH", name: "Ethereum", emoji: "Ξ", priceNGN: 5_245_600, change: -1.1, marketCapNGN: 630_000_000_000_000 },
+  { symbol: "SOL", name: "Solana", emoji: "◎", priceNGN: 313_472, change: 4.9, marketCapNGN: 150_000_000_000_000 },
 ];
 
-type SwapStep = "input" | "shield" | "confirm" | "finalConfirm";
-type OrderType = "market" | "limit";
+const FEE_PCT = 0.02;
 
-export default function Swap() {
-  const { formatPrice, currency } = useCurrency();
+const Swap = () => {
   const navigate = useNavigate();
-  const [fromToken, setFromToken] = useState<Token>(tokens[0]);
-  const [toToken, setToToken] = useState<Token>(tokens[2]);
-  const [fromAmount, setFromAmount] = useState("");
-  const [showFromSelector, setShowFromSelector] = useState(false);
-  const [showToSelector, setShowToSelector] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [slippage, setSlippage] = useState("0.5");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [swapStep, setSwapStep] = useState<SwapStep>("input");
-  const [orderType, setOrderType] = useState<OrderType>("market");
-  const [limitPrice, setLimitPrice] = useState("");
-  const [stopLoss, setStopLoss] = useState("");
-  const [takeProfit, setTakeProfit] = useState("");
-  const [stopLossEnabled, setStopLossEnabled] = useState(false);
-  const [takeProfitEnabled, setTakeProfitEnabled] = useState(false);
-  const [stopLossPercent, setStopLossPercent] = useState<number | null>(null);
-  const [takeProfitPercent, setTakeProfitPercent] = useState<number | null>(null);
+  const { balance, credit, debit } = useNaira();
 
-  const toAmount = useMemo(() => {
-    if (!fromAmount || isNaN(parseFloat(fromAmount))) return "";
-    const fromValue = parseFloat(fromAmount) * fromToken.price;
-    const result = fromValue / toToken.price;
-    return result.toFixed(6);
-  }, [fromAmount, fromToken, toToken]);
+  const [direction, setDirection] = useState<"buy" | "sell">("buy"); // buy = ₦ -> token
+  const [token, setToken] = useState<Token>(TOKENS[0]);
+  const [amount, setAmount] = useState(""); // ₦ when buying, token qty when selling
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [slippage, setSlippage] = useState(1);
+  const [slipOpen, setSlipOpen] = useState(false);
+  const [holdings, setHoldings] = useState<Record<string, number>>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("kimaex_token_holdings") || "{}");
+    } catch {
+      return {};
+    }
+  });
 
-  const limitToAmount = useMemo(() => {
-    if (!fromAmount || !limitPrice || isNaN(parseFloat(fromAmount)) || isNaN(parseFloat(limitPrice))) return "";
-    const result = parseFloat(fromAmount) * parseFloat(limitPrice);
-    return result.toFixed(6);
-  }, [fromAmount, limitPrice]);
-
-  const exchangeRate = useMemo(() => {
-    return (fromToken.price / toToken.price).toFixed(6);
-  }, [fromToken, toToken]);
-
-  const filteredTokens = useMemo(() => {
-    return tokens.filter(
-      (t) =>
-        t.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [searchQuery]);
-
-  const handleSwapDirection = () => {
-    const temp = fromToken;
-    setFromToken(toToken);
-    setToToken(temp);
-    setFromAmount("");
-    setLimitPrice("");
+  const saveHoldings = (h: Record<string, number>) => {
+    setHoldings(h);
+    localStorage.setItem("kimaex_token_holdings", JSON.stringify(h));
   };
 
-  const handleSelectToken = (token: Token, isFrom: boolean) => {
-    if (isFrom) {
-      if (token.symbol === toToken.symbol) {
-        setToToken(fromToken);
-      }
-      setFromToken(token);
-      setShowFromSelector(false);
+  const value = parseFloat(amount) || 0;
+  const ngnValue = direction === "buy" ? value : value * token.priceNGN;
+  const fee = ngnValue * FEE_PCT;
+  const receiveQty = direction === "buy" ? (ngnValue - fee) / token.priceNGN : 0;
+  const receiveNGN = direction === "sell" ? ngnValue - fee : 0;
+  const owned = holdings[token.symbol] || 0;
+
+  const filtered = useMemo(
+    () =>
+      TOKENS.filter(
+        (t) =>
+          t.symbol.toLowerCase().includes(query.toLowerCase()) ||
+          t.name.toLowerCase().includes(query.toLowerCase())
+      ),
+    [query]
+  );
+
+  const doSwap = () => {
+    if (ngnValue <= 0) return toast.error("Enter an amount");
+    if (direction === "buy") {
+      if (ngnValue > balance) return toast.error("Not enough balance");
+      debit(ngnValue);
+      saveHoldings({ ...holdings, [token.symbol]: owned + receiveQty });
+      toast.success(
+        `Bought ${receiveQty.toLocaleString(undefined, { maximumFractionDigits: 4 })} ${token.symbol}`
+      );
     } else {
-      if (token.symbol === fromToken.symbol) {
-        setFromToken(toToken);
-      }
-      setToToken(token);
-      setShowToSelector(false);
+      if (value > owned) return toast.error(`Not enough ${token.symbol}`);
+      saveHoldings({ ...holdings, [token.symbol]: owned - value });
+      credit(receiveNGN);
+      toast.success(`Sold ${token.symbol} for ${fmtNGN(receiveNGN)}`);
     }
-    setSearchQuery("");
-    setLimitPrice("");
+    setAmount("");
   };
 
-  const handleProceedToConfirm = () => {
-    if (!fromAmount || parseFloat(fromAmount) <= 0) {
-      toast.error("Please enter an amount");
-      return;
-    }
-    if (parseFloat(fromAmount) < 0.5) {
-      toast.error("Minimum swap amount is $0.50");
-      return;
-    }
-    setSwapStep("confirm");
-  };
+  const payLabel = direction === "buy" ? "You Pay" : "You Pay";
+  const memeTokens = TOKENS.filter((t) => t.meme);
 
-  const handleShieldProceed = () => {
-    setSwapStep("confirm");
-  };
-
-  const handleProceedToFinalConfirm = () => {
-    if (orderType === "limit" && (!limitPrice || parseFloat(limitPrice) <= 0)) {
-      toast.error("Please enter a limit price");
-      return;
-    }
-    if (orderType === "limit") {
-      setSwapStep("finalConfirm");
-    } else {
-      handleConfirmSwap();
-    }
-  };
-
-  const handleConfirmSwap = () => {
-    if (orderType === "limit") {
-      let message = `Limit order placed: ${fromAmount} ${fromToken.symbol} → ${limitToAmount} ${toToken.symbol} at ${limitPrice} ${toToken.symbol}/${fromToken.symbol}`;
-      if (stopLoss) message += ` | SL: ${stopLoss}`;
-      if (takeProfit) message += ` | TP: ${takeProfit}`;
-      toast.success(message);
-    } else {
-      toast.success(`Swapping ${fromAmount} ${fromToken.symbol} for ${toAmount} ${toToken.symbol}`, {
-        action: {
-          label: "Share",
-          onClick: () => viralShare(`I just swapped ${fromAmount} ${fromToken.symbol} → ${toAmount} ${toToken.symbol} on Kimaex 🚀`),
-        },
-      });
-      // Auto-prompt share after a moment
-      setTimeout(() => viralShare(`I just swapped ${fromAmount} ${fromToken.symbol} → ${toAmount} ${toToken.symbol} on Kimaex 🚀`), 800);
-    }
-    setSwapStep("input");
-    setFromAmount("");
-    setOrderType("market");
-    setLimitPrice("");
-    setStopLoss("");
-    setTakeProfit("");
-    setStopLossEnabled(false);
-    setTakeProfitEnabled(false);
-    setStopLossPercent(null);
-    setTakeProfitPercent(null);
-  };
-
-  const handleStopLossPercentClick = (percent: number) => {
-    if (!limitPrice) return;
-    setStopLossPercent(percent);
-    const slPrice = parseFloat(limitPrice) * (1 - percent / 100);
-    setStopLoss(slPrice.toFixed(6));
-  };
-
-  const handleTakeProfitPercentClick = (percent: number) => {
-    if (!limitPrice) return;
-    setTakeProfitPercent(percent);
-    const tpPrice = parseFloat(limitPrice) * (1 + percent / 100);
-    setTakeProfit(tpPrice.toFixed(6));
-  };
-
-  const handleCancelConfirm = () => {
-    setSwapStep("input");
-  };
-
-  const handleBackToConfirm = () => {
-    setSwapStep("confirm");
-  };
-
-  const handleMaxAmount = () => {
-    setFromAmount(fromToken.balance.replace(",", ""));
-  };
-
-  const TokenSelector = ({ isFrom }: { isFrom: boolean }) => (
-    <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm">
-      <div className="flex flex-col h-full max-w-md mx-auto">
-        <div className="flex items-center justify-between p-4 border-b border-border">
-          <h2 className="text-lg font-semibold">Select Token</h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              setShowFromSelector(false);
-              setShowToSelector(false);
-              setSearchQuery("");
-            }}
-          >
-            <X className="h-5 w-5" />
+  return (
+    <div className="min-h-screen bg-background pb-24">
+      <div className="max-w-md mx-auto">
+        <div className="px-4 pt-4 pb-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-lg font-bold">Swap</h1>
+          </div>
+          <Button variant="ghost" size="icon" onClick={() => setSlipOpen(true)}>
+            <Settings2 className="h-5 w-5 text-muted-foreground" />
           </Button>
         </div>
 
-        <div className="p-4">
+        <div className="px-4 space-y-2">
+          {/* Pay */}
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-muted-foreground">{payLabel}</span>
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {direction === "buy"
+                  ? `Balance ${fmtNGN(balance, 0)}`
+                  : `You own ${owned.toLocaleString(undefined, { maximumFractionDigits: 4 })} ${token.symbol}`}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Input
+                inputMode="decimal"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.00"
+                className="border-0 bg-transparent p-0 h-auto text-3xl font-bold focus-visible:ring-0"
+              />
+              {direction === "buy" ? (
+                <div className="flex items-center gap-2 rounded-full bg-muted px-3 py-2">
+                  <span className="text-lg">🇳🇬</span>
+                  <span className="text-sm font-semibold">Naira</span>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setPickerOpen(true)}
+                  className="flex items-center gap-2 rounded-full bg-muted px-3 py-2"
+                >
+                  <span className="text-lg">{token.emoji}</span>
+                  <span className="text-sm font-semibold">{token.symbol}</span>
+                </button>
+              )}
+            </div>
+            <div className="flex gap-2 mt-3">
+              {[25, 50, 75, 100].map((p) => (
+                <button
+                  key={p}
+                  onClick={() =>
+                    setAmount(
+                      direction === "buy"
+                        ? ((balance * p) / 100).toFixed(2)
+                        : ((owned * p) / 100).toString()
+                    )
+                  }
+                  className="flex-1 text-[11px] py-1.5 rounded-lg bg-muted text-muted-foreground"
+                >
+                  {p}%
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex justify-center -my-4 relative z-10">
+            <button
+              onClick={() => {
+                setDirection(direction === "buy" ? "sell" : "buy");
+                setAmount("");
+              }}
+              className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-glow"
+            >
+              <ArrowUpDown className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Receive */}
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <span className="text-xs text-muted-foreground">You Receive</span>
+            <div className="flex items-center gap-3 mt-2">
+              <p className="flex-1 text-3xl font-bold tabular-nums truncate">
+                {direction === "buy"
+                  ? receiveQty.toLocaleString(undefined, { maximumFractionDigits: 4 })
+                  : fmtNGN(receiveNGN)}
+              </p>
+              {direction === "buy" ? (
+                <button
+                  onClick={() => setPickerOpen(true)}
+                  className="flex items-center gap-2 rounded-full bg-muted px-3 py-2"
+                >
+                  <span className="text-lg">{token.emoji}</span>
+                  <span className="text-sm font-semibold">{token.symbol}</span>
+                </button>
+              ) : (
+                <div className="flex items-center gap-2 rounded-full bg-muted px-3 py-2">
+                  <span className="text-lg">🇳🇬</span>
+                  <span className="text-sm font-semibold">Naira</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-1 text-[11px] text-muted-foreground pt-2">
+            <div className="flex justify-between">
+              <span>Price</span>
+              <span className="text-foreground tabular-nums">
+                1 {token.symbol} = {fmtNGN(token.priceNGN, token.priceNGN < 1 ? 8 : 2)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span>Trading fee (2%)</span>
+              <span className="text-foreground tabular-nums">{fmtNGN(fee)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Max slippage</span>
+              <span className="text-foreground">{slippage}%</span>
+            </div>
+          </div>
+
+          <Button className="w-full h-12 mt-3 text-base font-semibold" onClick={doSwap}>
+            Swap
+          </Button>
+        </div>
+
+        {/* Meme markets */}
+        <div className="px-4 pt-7">
+          <h2 className="text-sm font-bold mb-3">Meme tokens · priced in ₦</h2>
+          <div className="space-y-2">
+            {memeTokens.map((t) => {
+              const held = holdings[t.symbol] || 0;
+              return (
+                <button
+                  key={t.symbol}
+                  onClick={() => {
+                    setToken(t);
+                    setDirection("buy");
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className="w-full flex items-center gap-3 rounded-xl border border-border bg-card p-3 text-left"
+                >
+                  <span className="text-2xl">{t.emoji}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold">
+                      {t.symbol}/₦{" "}
+                      <Badge variant="outline" className="text-[9px] ml-1">
+                        Meme
+                      </Badge>
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Mkt cap {fmtNGNShort(t.marketCapNGN)}
+                      {held > 0 &&
+                        ` · You own ${held.toLocaleString(undefined, { maximumFractionDigits: 2 })}`}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold tabular-nums">
+                      {fmtNGN(t.priceNGN, t.priceNGN < 1 ? 8 : 2)}
+                    </p>
+                    <p
+                      className={`text-[11px] font-medium tabular-nums flex items-center justify-end gap-1 ${
+                        t.change >= 0 ? "text-success" : "text-destructive"
+                      }`}
+                    >
+                      {t.change >= 0 ? (
+                        <TrendingUp className="h-3 w-3" />
+                      ) : (
+                        <TrendingDown className="h-3 w-3" />
+                      )}
+                      {t.change >= 0 ? "+" : ""}
+                      {t.change.toFixed(2)}%
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <BottomNav />
+      </div>
+
+      {/* Token picker */}
+      <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Select token</DialogTitle>
+            <DialogDescription>Everything is priced in Naira</DialogDescription>
+          </DialogHeader>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name or symbol"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search name or symbol"
+              className="pl-9"
             />
           </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-4 pb-4">
-          <div className="space-y-1">
-            {filteredTokens.map((token) => (
+          <div className="max-h-72 overflow-y-auto space-y-1">
+            {filtered.map((t) => (
               <button
-                key={token.symbol}
-                onClick={() => handleSelectToken(token, isFrom)}
-                className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary/50 transition-colors"
+                key={t.symbol}
+                onClick={() => {
+                  setToken(t);
+                  setPickerOpen(false);
+                  setQuery("");
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted text-left"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-bold">
-                    {token.icon}
-                  </div>
-                  <div className="text-left">
-                    <p className="font-semibold">{token.symbol}</p>
-                    <p className="text-sm text-muted-foreground">{token.name}</p>
-                  </div>
+                <span className="text-xl">{t.emoji}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{t.symbol}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{t.name}</p>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium">{token.balance}</p>
-                  <p className="text-sm text-muted-foreground">{token.network}</p>
-                </div>
+                <span className="text-sm tabular-nums">
+                  {fmtNGN(t.priceNGN, t.priceNGN < 1 ? 8 : 2)}
+                </span>
               </button>
             ))}
           </div>
-        </div>
-      </div>
-    </div>
-  );
+        </DialogContent>
+      </Dialog>
 
-  const SettingsModal = () => (
-    <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-card border border-border rounded-2xl w-full max-w-sm p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Swap Settings</h2>
-          <Button variant="ghost" size="icon" onClick={() => setShowSettings(false)}>
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium mb-2 block">Slippage Tolerance</label>
-            <div className="flex gap-2">
-              {["0.1", "0.5", "1.0"].map((value) => (
-                <Button
-                  key={value}
-                  variant={slippage === value ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSlippage(value)}
-                  className="flex-1"
-                >
-                  {value}%
-                </Button>
-              ))}
-              <div className="flex items-center gap-1">
-                <Input
-                  type="number"
-                  value={slippage}
-                  onChange={(e) => setSlippage(e.target.value)}
-                  className="w-16 text-center"
-                />
-                <span className="text-sm text-muted-foreground">%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <Button onClick={() => setShowSettings(false)} className="w-full">
-          Save Settings
-        </Button>
-      </div>
-    </div>
-  );
-
-  // Confirmation Modal
-  const ConfirmationModal = () => (
-    <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-card border border-border rounded-2xl w-full max-w-sm p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Confirm Swap</h2>
-          <Button variant="ghost" size="icon" onClick={handleCancelConfirm}>
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-
-        {/* Order Type Toggle */}
-        <div className="space-y-3">
-          <label className="text-sm font-medium">Order Type</label>
-          <div className="flex gap-2">
-            <Button
-              variant={orderType === "market" ? "default" : "outline"}
-              size="sm"
-              className="flex-1"
-              onClick={() => setOrderType("market")}
-            >
-              Market
-            </Button>
-            <Button
-              variant={orderType === "limit" ? "default" : "outline"}
-              size="sm"
-              className="flex-1"
-              onClick={() => setOrderType("limit")}
-            >
-              Limit Order
-            </Button>
-          </div>
-        </div>
-
-        {/* Limit Price Input */}
-        {orderType === "limit" && (
-          <div className="space-y-2 max-h-[320px] overflow-y-auto">
-            <div className="space-y-1">
-              <label className="text-xs font-medium">Limit Price ({toToken.symbol}/{fromToken.symbol})</label>
-              <div className="bg-secondary/30 rounded-lg p-2">
-                <Input
-                  type="number"
-                  placeholder={`Current: ${exchangeRate}`}
-                  value={limitPrice}
-                  onChange={(e) => setLimitPrice(e.target.value)}
-                  className="text-sm font-semibold bg-transparent border-none p-0 h-auto focus-visible:ring-0"
-                />
-              </div>
-            </div>
-
-            {/* Stop Loss Toggle - Compact */}
-            <div className="space-y-1.5 border border-red-500/20 rounded-lg p-2 bg-red-500/5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-                  <label className="text-xs font-medium">Stop Loss</label>
-                </div>
-                <button
-                  onClick={() => {
-                    setStopLossEnabled(!stopLossEnabled);
-                    if (stopLossEnabled) {
-                      setStopLoss("");
-                      setStopLossPercent(null);
-                    }
-                  }}
-                  className={`w-9 h-5 rounded-full transition-colors ${stopLossEnabled ? 'bg-red-500' : 'bg-secondary'}`}
-                >
-                  <div className={`w-4 h-4 rounded-full bg-white shadow transform transition-transform ${stopLossEnabled ? 'translate-x-4' : 'translate-x-0.5'}`}></div>
-                </button>
-              </div>
-              {stopLossEnabled && (
-                <>
-                  <div className="flex gap-1">
-                    {[5, 10, 15, 25].map((percent) => (
-                      <button
-                        key={percent}
-                        onClick={() => handleStopLossPercentClick(percent)}
-                        className={`flex-1 py-1 text-[10px] font-medium rounded transition-colors ${
-                          stopLossPercent === percent
-                            ? 'bg-red-500 text-white'
-                            : 'bg-secondary hover:bg-secondary/80'
-                        }`}
-                      >
-                        -{percent}%
-                      </button>
-                    ))}
-                  </div>
-                  <div className="bg-secondary/50 rounded p-1.5">
-                    <Input
-                      type="number"
-                      placeholder="Custom price"
-                      value={stopLoss}
-                      onChange={(e) => {
-                        setStopLoss(e.target.value);
-                        setStopLossPercent(null);
-                      }}
-                      className="text-xs bg-transparent border-none p-0 h-auto focus-visible:ring-0"
-                    />
-                  </div>
-                  {stopLoss && (
-                    <p className="text-[10px] text-red-400">
-                      Sell at {stopLoss} {toToken.symbol}
-                    </p>
-                  )}
-                </>
-              )}
-            </div>
-
-            {/* Take Profit Toggle - Compact */}
-            <div className="space-y-1.5 border border-green-500/20 rounded-lg p-2 bg-green-500/5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                  <label className="text-xs font-medium">Take Profit</label>
-                </div>
-                <button
-                  onClick={() => {
-                    setTakeProfitEnabled(!takeProfitEnabled);
-                    if (takeProfitEnabled) {
-                      setTakeProfit("");
-                      setTakeProfitPercent(null);
-                    }
-                  }}
-                  className={`w-9 h-5 rounded-full transition-colors ${takeProfitEnabled ? 'bg-green-500' : 'bg-secondary'}`}
-                >
-                  <div className={`w-4 h-4 rounded-full bg-white shadow transform transition-transform ${takeProfitEnabled ? 'translate-x-4' : 'translate-x-0.5'}`}></div>
-                </button>
-              </div>
-              {takeProfitEnabled && (
-                <>
-                  <div className="flex gap-1">
-                    {[10, 25, 50, 100].map((percent) => (
-                      <button
-                        key={percent}
-                        onClick={() => handleTakeProfitPercentClick(percent)}
-                        className={`flex-1 py-1 text-[10px] font-medium rounded transition-colors ${
-                          takeProfitPercent === percent
-                            ? 'bg-green-500 text-white'
-                            : 'bg-secondary hover:bg-secondary/80'
-                        }`}
-                      >
-                        +{percent}%
-                      </button>
-                    ))}
-                  </div>
-                  <div className="bg-secondary/50 rounded p-1.5">
-                    <Input
-                      type="number"
-                      placeholder="Custom price"
-                      value={takeProfit}
-                      onChange={(e) => {
-                        setTakeProfit(e.target.value);
-                        setTakeProfitPercent(null);
-                      }}
-                      className="text-xs bg-transparent border-none p-0 h-auto focus-visible:ring-0"
-                    />
-                  </div>
-                  {takeProfit && (
-                    <p className="text-[10px] text-green-400">
-                      Sell at {takeProfit} {toToken.symbol}
-                    </p>
-                  )}
-                </>
-              )}
-            </div>
-
-            <p className="text-[10px] text-muted-foreground border-t border-border pt-2">
-              Executes at {limitPrice || "..."} {toToken.symbol}/{fromToken.symbol}
-            </p>
-          </div>
-        )}
-
-        {/* Swap Summary */}
-        <div className="bg-secondary/30 rounded-xl p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">You pay</span>
-            <div className="text-right">
-              <div className="flex items-center gap-2 justify-end">
-                <div className="w-6 h-6 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-bold text-xs">
-                  {fromToken.icon}
-                </div>
-                <span className="font-semibold">{fromAmount} {fromToken.symbol}</span>
-              </div>
-              <span className="text-xs text-muted-foreground">
-                ≈ {formatPrice(parseFloat(fromAmount || "0") * fromToken.price)}
-              </span>
-            </div>
-          </div>
-          <div className="flex justify-center">
-            <ArrowDownUp className="h-4 w-4 text-muted-foreground" />
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">You receive</span>
-            <div className="text-right">
-              <div className="flex items-center gap-2 justify-end">
-                <div className="w-6 h-6 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-bold text-xs">
-                  {toToken.icon}
-                </div>
-                <span className="font-semibold">
-                  {orderType === "limit" ? (limitToAmount || "...") : toAmount} {toToken.symbol}
-                </span>
-              </div>
-              <span className="text-xs text-muted-foreground">
-                ≈ {formatPrice(parseFloat(orderType === "limit" ? (limitToAmount || "0") : (toAmount || "0")) * toToken.price)}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Details */}
-        <div className="space-y-2 text-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Rate</span>
-            <span>
-              1 {fromToken.symbol} = {orderType === "limit" && limitPrice ? limitPrice : exchangeRate} {toToken.symbol}
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Slippage</span>
-            <span>{slippage}%</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Service Fee (2%)</span>
-            <span className="flex items-center gap-1">
-              <Zap className="h-3 w-3 text-green-500" />
-              ~{formatPrice(parseFloat(fromAmount || "0") * fromToken.price * 0.02)}
-            </span>
-          </div>
-          {orderType === "limit" && (
-            <>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Order Type</span>
-                <span className="text-amber-500">Limit Order</span>
-              </div>
-              {stopLoss && (
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Stop Loss</span>
-                  <span className="text-red-500">{stopLoss} {toToken.symbol}</span>
-                </div>
-              )}
-              {takeProfit && (
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Take Profit</span>
-                  <span className="text-green-500">{takeProfit} {toToken.symbol}</span>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={handleCancelConfirm} className="flex-1">
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleProceedToFinalConfirm} 
-            className="flex-1"
-            disabled={orderType === "limit" && (!limitPrice || parseFloat(limitPrice) <= 0)}
-          >
-            {orderType === "limit" ? "Review Order" : "Confirm Swap"}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Final Confirmation Modal for Limit Orders
-  const FinalConfirmationModal = () => (
-    <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-card border border-border rounded-2xl w-full max-w-sm p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Confirm Limit Order</h2>
-          <Button variant="ghost" size="icon" onClick={handleCancelConfirm}>
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-
-        {/* Order Summary */}
-        <div className="text-center space-y-2">
-          <p className="text-sm text-muted-foreground">You are about to place a limit order</p>
-          <div className="flex items-center justify-center gap-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
-                {fromToken.icon}
-              </div>
-              <span className="text-xl font-bold">{fromAmount} {fromToken.symbol}</span>
-            </div>
-            <ArrowDownUp className="h-5 w-5 text-muted-foreground" />
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
-                {toToken.icon}
-              </div>
-              <span className="text-xl font-bold">{limitToAmount} {toToken.symbol}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Order Details */}
-        <div className="bg-secondary/30 rounded-xl p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Limit Price</span>
-            <span className="font-semibold text-amber-500">{limitPrice} {toToken.symbol}/{fromToken.symbol}</span>
-          </div>
-          {stopLoss && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Stop Loss</span>
-              <span className="font-semibold text-red-500">{stopLoss} {toToken.symbol}</span>
-            </div>
-          )}
-          {takeProfit && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Take Profit</span>
-              <span className="font-semibold text-green-500">{takeProfit} {toToken.symbol}</span>
-            </div>
-          )}
-          <div className="flex items-center justify-between border-t border-border pt-3">
-            <span className="text-sm text-muted-foreground">Service Fee (2%)</span>
-            <span className="flex items-center gap-1">
-              <Zap className="h-3 w-3 text-green-500" />
-              ~{formatPrice(parseFloat(fromAmount || "0") * fromToken.price * 0.02)}
-            </span>
-          </div>
-        </div>
-
-        {/* Warning */}
-        <div className="flex items-start gap-3 p-3 bg-amber-500/10 rounded-xl border border-amber-500/20">
-          <Info className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-muted-foreground">
-            This order will execute when {fromToken.symbol} reaches {limitPrice} {toToken.symbol}. Make sure you have reviewed all details before confirming.
-          </p>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={handleBackToConfirm} className="flex-1">
-            Back
-          </Button>
-          <Button onClick={handleConfirmSwap} className="flex-1">
-            Place Order
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="min-h-screen bg-background pb-24 pt-6">
-      <div className="max-w-md mx-auto px-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">Swap</h1>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => navigate('/copy-trading')} 
-              className="flex items-center gap-1.5 border-primary/50 text-primary hover:bg-primary/10"
-            >
-              <Users className="h-4 w-4" />
-              <span className="text-xs font-semibold">Pump Detector</span>
-            </Button>
-            <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)}>
-              <Settings className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Swap Card */}
-        <div className="bg-card border border-border rounded-2xl p-4 space-y-3 mt-3">
-          {/* From Token */}
-          <div className="bg-secondary/30 rounded-xl p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">You pay</span>
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-muted-foreground">Balance: {fromToken.balance}</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2 text-primary"
-                  onClick={handleMaxAmount}
-                >
-                  MAX
-                </Button>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Input
-                type="number"
-                placeholder="0.00"
-                value={fromAmount}
-                onChange={(e) => setFromAmount(e.target.value)}
-                className="flex-1 text-2xl font-semibold bg-transparent border-none p-0 h-auto focus-visible:ring-0"
-              />
+      {/* Slippage */}
+      <Dialog open={slipOpen} onOpenChange={setSlipOpen}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle>Max slippage</DialogTitle>
+            <DialogDescription>How much price movement you accept</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-4 gap-2">
+            {[0.5, 1, 2, 5].map((s) => (
               <button
-                onClick={() => setShowFromSelector(true)}
-                className="flex items-center gap-2 bg-secondary hover:bg-secondary/80 px-3 py-2 rounded-xl transition-colors"
+                key={s}
+                onClick={() => {
+                  setSlippage(s);
+                  setSlipOpen(false);
+                }}
+                className={`h-10 rounded-lg text-sm font-semibold ${
+                  slippage === s
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground"
+                }`}
               >
-                <div className="w-7 h-7 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
-                  {fromToken.icon}
-                </div>
-                <span className="font-semibold">{fromToken.symbol}</span>
-                <ChevronDown className="h-4 w-4" />
+                {s}%
               </button>
-            </div>
-            {fromAmount && (
-              <p className="text-sm text-muted-foreground">
-                ≈ ${(parseFloat(fromAmount || "0") * fromToken.price).toLocaleString(undefined, { maximumFractionDigits: 2 })}
-              </p>
-            )}
+            ))}
           </div>
-
-          {/* Swap Direction Button */}
-          <div className="flex justify-center -my-1 relative z-10">
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full h-10 w-10 bg-background border-2"
-              onClick={handleSwapDirection}
-            >
-              <ArrowDownUp className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* To Token */}
-          <div className="bg-secondary/30 rounded-xl p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">You receive</span>
-              <span className="text-sm text-muted-foreground">Balance: {toToken.balance}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Input
-                type="number"
-                placeholder="0.00"
-                value={toAmount}
-                readOnly
-                className="flex-1 text-2xl font-semibold bg-transparent border-none p-0 h-auto focus-visible:ring-0"
-              />
-              <button
-                onClick={() => setShowToSelector(true)}
-                className="flex items-center gap-2 bg-secondary hover:bg-secondary/80 px-3 py-2 rounded-xl transition-colors"
-              >
-                <div className="w-7 h-7 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
-                  {toToken.icon}
-                </div>
-                <span className="font-semibold">{toToken.symbol}</span>
-                <ChevronDown className="h-4 w-4" />
-              </button>
-            </div>
-            {toAmount && (
-              <p className="text-sm text-muted-foreground">
-                ≈ ${(parseFloat(toAmount || "0") * toToken.price).toLocaleString(undefined, { maximumFractionDigits: 2 })}
-              </p>
-            )}
-          </div>
-
-          {/* Rate Info */}
-          {fromAmount && parseFloat(fromAmount) > 0 && (
-            <div className="bg-secondary/20 rounded-xl p-3 space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground flex items-center gap-1">
-                  <Info className="h-3 w-3" />
-                  Rate
-                </span>
-                <span>1 {fromToken.symbol} = {exchangeRate} {toToken.symbol}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Slippage</span>
-                <span>{slippage}%</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Service Fee (2%)</span>
-                <span className="flex items-center gap-1">
-                  <Zap className="h-3 w-3 text-green-500" />
-                  ~{formatPrice(parseFloat(fromAmount || "0") * fromToken.price * 0.02)}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Proceed Button */}
-          <Button
-            onClick={handleProceedToConfirm}
-            className="w-full h-14 text-lg font-semibold"
-            disabled={!fromAmount || parseFloat(fromAmount) <= 0}
-          >
-            {!fromAmount || parseFloat(fromAmount) <= 0 ? "Enter amount" : "Swap"}
-          </Button>
-        </div>
-
-        {/* Recent Swaps */}
-        <div className="mt-6 space-y-3">
-          <h2 className="text-lg font-semibold">Recent Activity</h2>
-          {[
-            { from: "0.1 BTC", to: "4,325 USDC", time: "2 min ago", status: "completed" },
-            { from: "500 USDC", to: "0.188 ETH", time: "1 hour ago", status: "completed" },
-            { from: "2.5 SOL", to: "246.25 USDC", time: "3 hours ago", status: "completed" },
-          ].map((swap, i) => (
-            <div key={i} className="bg-card border border-border rounded-xl p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">{swap.from} → {swap.to}</p>
-                  <p className="text-sm text-muted-foreground">{swap.time}</p>
-                </div>
-                <span className="text-xs font-medium text-green-500 bg-green-500/10 px-2 py-1 rounded-full">
-                  {swap.status}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Token Selectors */}
-      {showFromSelector && <TokenSelector isFrom={true} />}
-      {showToSelector && <TokenSelector isFrom={false} />}
-      {showSettings && <SettingsModal />}
-      {swapStep === "shield" && (
-        <KimaexShield
-          tokenSymbol={toToken.symbol}
-          tokenName={toToken.name}
-          onClose={() => setSwapStep("input")}
-          onProceed={handleShieldProceed}
-        />
-      )}
-      {swapStep === "confirm" && <ConfirmationModal />}
-      {swapStep === "finalConfirm" && <FinalConfirmationModal />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
-}
+};
+
+export default Swap;
