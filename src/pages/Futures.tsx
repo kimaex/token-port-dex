@@ -14,16 +14,8 @@ import {
 import { ChevronDown, Search, TrendingUp, TrendingDown, X } from "lucide-react";
 import { toast } from "sonner";
 import { getUsdcBalance, setUsdcBalance, usePortfolio } from "@/lib/portfolioStore";
-
-/** All futures markets are quoted and settled in Nigerian Naira. */
-const NGN_PER_USD = 1580;
-
-const fmtNGN = (v: number, dp = 2) =>
-  "₦" +
-  new Intl.NumberFormat("en-NG", {
-    minimumFractionDigits: dp,
-    maximumFractionDigits: dp,
-  }).format(v);
+import { NGN_PER_USD, fmtNGN } from "@/lib/naira";
+import { WinningPoster, PosterData } from "@/components/WinningPoster";
 
 interface Pair {
   symbol: string;
@@ -54,6 +46,7 @@ interface Position {
   size: number; // NGN notional
   margin: number; // NGN
   liq: number; // NGN
+  mode: "cross" | "isolated";
   tp?: number;
   sl?: number;
   at: number;
@@ -83,6 +76,18 @@ const Futures = () => {
   const [tab, setTab] = useState<"positions" | "orders">("positions");
   const [positions, setPositions] = useState<Position[]>(readPositions);
   const [tick, setTick] = useState(0);
+  const [marginMode, setMarginMode] = useState<"cross" | "isolated">("cross");
+  const [poster, setPoster] = useState<PosterData | null>(null);
+  const [realized, setRealized] = useState<number>(() => {
+    try {
+      return (JSON.parse(localStorage.getItem(HIST_KEY) || "[]") as { pnl: number }[]).reduce(
+        (a, h) => a + (h.pnl || 0),
+        0
+      );
+    } catch {
+      return 0;
+    }
+  });
   const [tpslFor, setTpslFor] = useState<Position | null>(null);
   const [tpInput, setTpInput] = useState("");
   const [slInput, setSlInput] = useState("");
@@ -177,6 +182,7 @@ const Futures = () => {
       size: notional,
       margin: marginNGN,
       liq,
+      mode: marginMode,
       at: Date.now(),
     };
     persist([pos, ...positions]);
@@ -208,7 +214,17 @@ const Futures = () => {
       });
       localStorage.setItem(HIST_KEY, JSON.stringify(hist.slice(0, 100)));
     } catch {}
+    setRealized((r) => r + pnl - closeFee);
     toast.success(`Position closed · ${pnl >= 0 ? "+" : ""}${fmtNGN(pnl)}`);
+    if (pnl - closeFee > 0) {
+      setPoster({
+        symbol: p.symbol,
+        side: p.side,
+        leverage: p.leverage,
+        pnl: pnl - closeFee,
+        roi: ((pnl - closeFee) / p.margin) * 100,
+      });
+    }
   };
 
   const saveTpSl = () => {
@@ -234,6 +250,9 @@ const Futures = () => {
       p.base.toLowerCase().includes(query.toLowerCase())
   );
 
+  const unrealized = positions.reduce((a, p) => a + pnlOf(p), 0);
+  const totalMargin = positions.reduce((a, p) => a + p.margin, 0);
+  const totalSize = positions.reduce((a, p) => a + p.size, 0);
   const up = pair.change >= 0;
 
   return (
@@ -328,6 +347,22 @@ const Futures = () => {
         {/* Order entry + book */}
         <div className="px-4 pt-3 grid grid-cols-5 gap-3">
           <div className="col-span-3 space-y-3">
+            <div className="grid grid-cols-2 gap-2 p-1 rounded-lg bg-muted">
+              {(["cross", "isolated"] as const).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setMarginMode(m)}
+                  className={`h-8 rounded-md text-xs font-semibold capitalize transition-colors ${
+                    marginMode === m
+                      ? "bg-card text-foreground shadow-card"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  {m} margin
+                </button>
+              ))}
+            </div>
+
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setSide("long")}
@@ -494,6 +529,49 @@ const Futures = () => {
           </Button>
         </div>
 
+        {/* P&L summary */}
+        <div className="px-4 pt-5">
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground mb-3">Profit & Loss</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-[11px] text-muted-foreground">Unrealized P&L</p>
+                <p
+                  className={`text-lg font-bold tabular-nums ${
+                    unrealized >= 0 ? "text-emerald-500" : "text-rose-500"
+                  }`}
+                >
+                  {unrealized >= 0 ? "+" : ""}
+                  {fmtNGN(unrealized)}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-muted-foreground">Realized P&L</p>
+                <p
+                  className={`text-lg font-bold tabular-nums ${
+                    realized >= 0 ? "text-emerald-500" : "text-rose-500"
+                  }`}
+                >
+                  {realized >= 0 ? "+" : ""}
+                  {fmtNGN(realized)}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-muted-foreground">Total margin</p>
+                <p className="text-sm font-semibold tabular-nums">
+                  {fmtNGN(totalMargin)}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-muted-foreground">Position size</p>
+                <p className="text-sm font-semibold tabular-nums">
+                  {fmtNGN(totalSize)}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Positions */}
         <div className="px-4 pt-5">
           <div className="flex gap-4 border-b border-border">
@@ -539,6 +617,9 @@ const Futures = () => {
                           >
                             {p.side === "long" ? "Long" : "Short"} {p.leverage}x
                           </Badge>
+                          <Badge variant="outline" className="text-[10px] capitalize">
+                            {p.mode ?? "cross"}
+                          </Badge>
                         </div>
                         <div className="text-right">
                           <p
@@ -578,6 +659,29 @@ const Futures = () => {
                             {fmtNGN(p.liq, 0)}
                           </p>
                         </div>
+                        <div>
+                          <p>Mark price</p>
+                          <p className="text-foreground tabular-nums">
+                            {fmtNGN(
+                              priceOf(
+                                PAIRS.find((x) => x.symbol === p.symbol) || pair
+                              ),
+                              0
+                            )}
+                          </p>
+                        </div>
+                        <div>
+                          <p>Position size</p>
+                          <p className="text-foreground tabular-nums">
+                            {fmtNGN(p.size, 0)}
+                          </p>
+                        </div>
+                        <div>
+                          <p>Fees</p>
+                          <p className="text-foreground tabular-nums">
+                            {fmtNGN(p.size * 0.0012, 0)}
+                          </p>
+                        </div>
                       </div>
                       {(p.tp || p.sl) && (
                         <p className="text-[10px] text-muted-foreground mt-2">
@@ -597,6 +701,23 @@ const Futures = () => {
                         >
                           TP/SL
                         </Button>
+                        {pnl > 0 && (
+                          <Button
+                            variant="secondary"
+                            className="flex-1 h-9 text-xs"
+                            onClick={() =>
+                              setPoster({
+                                symbol: p.symbol,
+                                side: p.side,
+                                leverage: p.leverage,
+                                pnl,
+                                roi: (pnl / p.margin) * 100,
+                              })
+                            }
+                          >
+                            Share Winning
+                          </Button>
+                        )}
                         <Button
                           className="flex-1 h-9 text-xs"
                           onClick={() => closePosition(p)}
@@ -698,6 +819,8 @@ const Futures = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <WinningPoster data={poster} onOpenChange={(o) => !o && setPoster(null)} />
 
       <span className="hidden">{tick}</span>
     </div>

@@ -47,7 +47,7 @@ const getDefaultWallets = (): WalletData[] => [
     id: "1",
     name: "Main Wallet",
     address: generateWalletAddress(),
-    balance: "$24,582.50",
+    balance: "₦38,840,350.00",
     color: WALLET_COLORS[0],
   },
 ];
@@ -102,7 +102,7 @@ export const WalletSelector = () => {
       id: Date.now().toString(),
       name: newWalletName,
       address: generateWalletAddress(),
-      balance: "$0.00",
+      balance: "₦0.00",
       color: WALLET_COLORS[wallets.length % WALLET_COLORS.length],
     };
 
