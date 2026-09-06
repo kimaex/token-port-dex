@@ -7,8 +7,9 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import { buyStock, usePortfolio } from "@/lib/portfolioStore";
 import { STOCKS } from "@/data/stocksData";
+import { NGN_PER_USD, fmtNGN } from "@/lib/naira";
 
-const TRADING_FEE = 1; // USDC
+const TRADING_FEE = 1; // internal (USD) — shown to users in ₦
 
 export default function BuyStock() {
   const { ticker } = useParams();
@@ -16,6 +17,7 @@ export default function BuyStock() {
   const stock = STOCKS.find((s) => s.ticker === ticker);
   const { usdc } = usePortfolio();
   const [mode, setMode] = useState<"usdc" | "shares">("usdc");
+  const toNgn = (usd: number) => usd * NGN_PER_USD;
   const [usdcAmt, setUsdcAmt] = useState("");
   const [sharesAmt, setSharesAmt] = useState("");
   const [success, setSuccess] = useState<null | {
@@ -36,7 +38,7 @@ export default function BuyStock() {
 
   const { shares, cost } = useMemo(() => {
     if (mode === "usdc") {
-      const u = parseFloat(usdcAmt) || 0;
+      const u = (parseFloat(usdcAmt) || 0) / NGN_PER_USD;
       const tradable = Math.max(0, u - TRADING_FEE);
       const sh = tradable / price;
       return { shares: sh, cost: u };
@@ -73,9 +75,9 @@ export default function BuyStock() {
           <div className="mt-8 bg-card border border-border rounded-2xl p-5 space-y-3">
             <Row label="Stock" value={`${stock.name} (${stock.ticker})`} />
             <Row label="Shares Received" value={success.shares.toFixed(4)} />
-            <Row label="Price / share" value={`$${price.toFixed(2)}`} />
-            <Row label="Trading Fee" value={`${TRADING_FEE.toFixed(2)} USDC`} />
-            <Row label="Total Cost" value={`${success.cost.toFixed(2)} USDC`} bold />
+            <Row label="Price / share" value={fmtNGN(toNgn(price))} />
+            <Row label="Trading Fee" value={fmtNGN(toNgn(TRADING_FEE))} />
+            <Row label="Total Cost" value={fmtNGN(toNgn(success.cost))} bold />
             <div className="flex items-center justify-between text-sm pt-2 border-t border-border">
               <span className="text-muted-foreground">Transaction ID</span>
               <button
@@ -128,7 +130,7 @@ export default function BuyStock() {
               <p className="text-xs text-muted-foreground">{stock.ticker}</p>
             </div>
             <div className="text-right">
-              <p className="font-bold tabular-nums">${price.toFixed(2)}</p>
+              <p className="font-bold tabular-nums">{fmtNGN(toNgn(price))}</p>
               <p className={`text-xs ${stock.change >= 0 ? "text-success" : "text-destructive"}`}>
                 {stock.change >= 0 ? "+" : ""}
                 {stock.change}%
@@ -143,7 +145,7 @@ export default function BuyStock() {
                 mode === "usdc" ? "bg-background shadow-sm" : "text-muted-foreground"
               }`}
             >
-              Buy by USDC
+              Buy by ₦
             </button>
             <button
               onClick={() => setMode("shares")}
@@ -158,7 +160,7 @@ export default function BuyStock() {
           <div className="mt-4 bg-card border border-border rounded-2xl p-4">
             {mode === "usdc" ? (
               <>
-                <label className="text-xs text-muted-foreground">USDC Amount</label>
+                <label className="text-xs text-muted-foreground">Amount (₦)</label>
                 <div className="flex items-center gap-2 mt-1">
                   <Input
                     type="number"
@@ -167,7 +169,7 @@ export default function BuyStock() {
                     onChange={(e) => setUsdcAmt(e.target.value)}
                     className="text-2xl font-bold h-14 border-0 bg-transparent p-0 focus-visible:ring-0"
                   />
-                  <span className="font-semibold text-muted-foreground">USDC</span>
+                  <span className="font-semibold text-muted-foreground">₦</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
                   Estimated Shares:{" "}
@@ -177,10 +179,10 @@ export default function BuyStock() {
                 </p>
                 <div className="flex items-center justify-between mt-2 text-xs">
                   <span className="text-muted-foreground">
-                    Available: {usdc.toFixed(2)} USDC
+                    Available: {fmtNGN(toNgn(usdc))}
                   </span>
                   <button
-                    onClick={() => setUsdcAmt(usdc.toFixed(2))}
+                    onClick={() => setUsdcAmt(toNgn(usdc).toFixed(2))}
                     className="text-primary font-medium"
                   >
                     MAX
@@ -203,7 +205,7 @@ export default function BuyStock() {
                 <p className="text-xs text-muted-foreground mt-2">
                   Estimated Cost:{" "}
                   <span className="text-foreground font-medium">
-                    {cost.toFixed(2)} USDC
+                    {fmtNGN(toNgn(cost))}
                   </span>
                 </p>
               </>
@@ -212,18 +214,18 @@ export default function BuyStock() {
 
           <div className="mt-4 bg-card border border-border rounded-2xl p-4 space-y-2.5">
             <h3 className="font-semibold text-sm mb-1">Order Review</h3>
-            <Row label="Stock Price" value={`$${price.toFixed(2)}`} />
+            <Row label="Stock Price" value={fmtNGN(toNgn(price))} />
             <Row label="Number of Shares" value={shares.toFixed(4)} />
-            <Row label="Trading Fee" value={`${TRADING_FEE.toFixed(2)} USDC`} />
-            <Row label="Network Fee" value="0.00 USDC" />
+            <Row label="Trading Fee" value={fmtNGN(toNgn(TRADING_FEE))} />
+            <Row label="Network Fee" value={fmtNGN(0)} />
             <div className="pt-2 border-t border-border">
-              <Row label="Total Cost" value={`${cost.toFixed(2)} USDC`} bold />
+              <Row label="Total Cost" value={fmtNGN(toNgn(cost))} bold />
             </div>
           </div>
 
           {cost > usdc && (
             <p className="mt-3 text-xs text-destructive text-center">
-              Insufficient USDC balance
+              Insufficient balance
             </p>
           )}
 
