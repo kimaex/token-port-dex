@@ -26,14 +26,14 @@ interface Asset {
 
 const assets: Asset[] = [
   {
-    id: "1", name: "Bitcoin", symbol: "BTC", balance: "0.5432", value: "$23,456.78", icon: "₿", price: "$43,215.67",
+    id: "1", name: "Bitcoin", symbol: "BTC", balance: "0.5432", value: "₦37,061,712.40", icon: "₿", price: "₦68,280,758.60",
     networks: [
       { id: "btc-main", name: "Bitcoin", fee: "0.0001 BTC" },
       { id: "btc-bep20", name: "BNB Smart Chain (BEP20)", fee: "0.000005 BNB" },
     ],
   },
   {
-    id: "2", name: "Ethereum", symbol: "ETH", balance: "3.2145", value: "$8,234.50", icon: "Ξ", price: "$2,561.23",
+    id: "2", name: "Ethereum", symbol: "ETH", balance: "3.2145", value: "₦13,010,510.00", icon: "Ξ", price: "₦4,046,743.40",
     networks: [
       { id: "eth-main", name: "Ethereum (ERC20)", fee: "0.001 ETH" },
       { id: "eth-bep20", name: "BNB Smart Chain (BEP20)", fee: "0.000005 BNB" },
@@ -41,11 +41,11 @@ const assets: Asset[] = [
     ],
   },
   {
-    id: "3", name: "Solana", symbol: "SOL", balance: "125.50", value: "$5,678.90", icon: "◎", price: "$45.25",
+    id: "3", name: "Solana", symbol: "SOL", balance: "125.50", value: "₦8,972,662.00", icon: "◎", price: "₦71,495.00",
     networks: [{ id: "sol-main", name: "Solana", fee: "0.000005 SOL" }],
   },
   {
-    id: "5", name: "USD Coin", symbol: "USDC", balance: "5,234.56", value: "$5,234.56", icon: "◈", price: "$1.00",
+    id: "5", name: "USD Coin", symbol: "USDC", balance: "5,234.56", value: "₦8,270,604.80", icon: "◈", price: "₦1,580.00",
     networks: [
       { id: "usdc-eth", name: "Ethereum (ERC20)", fee: "5 USDC" },
       { id: "usdc-bep20", name: "BNB Smart Chain (BEP20)", fee: "0.1 USDC" },
@@ -172,7 +172,7 @@ const Send = () => {
               {selectedAsset.symbol}
             </span>
           </div>
-          <p className="text-xs text-muted-foreground">Min: $0.50 • 2% service fee applies</p>
+          <p className="text-xs text-muted-foreground">Min: ₦500 • 2% service fee applies</p>
         </div>
 
         <Button onClick={handleSend} className="w-full h-12 text-base font-semibold bg-gradient-primary shadow-glow">

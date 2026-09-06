@@ -7,6 +7,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import { sellStock, usePortfolio } from "@/lib/portfolioStore";
 import { STOCKS } from "@/data/stocksData";
+import { NGN_PER_USD, fmtNGN } from "@/lib/naira";
 
 const TRADING_FEE = 1;
 
@@ -38,6 +39,8 @@ export default function SellStock() {
   const net = Math.max(0, gross - TRADING_FEE);
   const canSubmit = sellShares > 0 && sellShares <= owned;
 
+  const toNgn = (usd: number) => usd * NGN_PER_USD;
+
   const handleConfirm = () => {
     try {
       const tx = sellStock(stock.ticker, sellShares, price, TRADING_FEE);
@@ -57,15 +60,15 @@ export default function SellStock() {
             </div>
             <h1 className="text-2xl font-bold">Sell Order Completed</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              USDC has been credited to your wallet balance.
+              Money has been credited to your ₦ wallet balance.
             </p>
           </div>
           <div className="mt-8 bg-card border border-border rounded-2xl p-5 space-y-3">
             <Row label="Stock" value={`${stock.name} (${stock.ticker})`} />
             <Row label="Shares Sold" value={success.shares.toFixed(4)} />
-            <Row label="Price / share" value={`$${price.toFixed(2)}`} />
-            <Row label="Trading Fee" value={`${TRADING_FEE.toFixed(2)} USDC`} />
-            <Row label="USDC Received" value={`${success.net.toFixed(2)} USDC`} bold />
+            <Row label="Price / share" value={fmtNGN(toNgn(price))} />
+            <Row label="Trading Fee" value={fmtNGN(toNgn(TRADING_FEE))} />
+            <Row label="Amount Received" value={fmtNGN(toNgn(success.net))} bold />
             <div className="flex items-center justify-between text-sm pt-2 border-t border-border">
               <span className="text-muted-foreground">Transaction ID</span>
               <button
@@ -115,7 +118,7 @@ export default function SellStock() {
               </p>
             </div>
             <div className="text-right">
-              <p className="font-bold tabular-nums">${price.toFixed(2)}</p>
+              <p className="font-bold tabular-nums">{fmtNGN(toNgn(price))}</p>
               <p className={`text-xs ${stock.change >= 0 ? "text-success" : "text-destructive"}`}>
                 {stock.change >= 0 ? "+" : ""}
                 {stock.change}%
@@ -150,12 +153,12 @@ export default function SellStock() {
 
           <div className="mt-4 bg-card border border-border rounded-2xl p-4 space-y-2.5">
             <h3 className="font-semibold text-sm mb-1">Order Review</h3>
-            <Row label="Current Price" value={`$${price.toFixed(2)}`} />
+            <Row label="Current Price" value={fmtNGN(toNgn(price))} />
             <Row label="Shares Selling" value={sellShares.toFixed(4)} />
-            <Row label="Gross Value" value={`${gross.toFixed(2)} USDC`} />
-            <Row label="Trading Fee" value={`${TRADING_FEE.toFixed(2)} USDC`} />
+            <Row label="Gross Value" value={fmtNGN(toNgn(gross))} />
+            <Row label="Trading Fee" value={fmtNGN(toNgn(TRADING_FEE))} />
             <div className="pt-2 border-t border-border">
-              <Row label="You Receive" value={`${net.toFixed(2)} USDC`} bold />
+              <Row label="You Receive" value={fmtNGN(toNgn(net))} bold />
             </div>
           </div>
 
