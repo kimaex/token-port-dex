@@ -43,10 +43,10 @@ const baseAssets: Asset[] = [
     name: "Bitcoin",
     symbol: "BTC",
     balance: "0.5432",
-    value: "$23,456.78",
+    value: "₦37,061,712.40",
     change: 5.2,
     icon: "₿",
-    price: "$43,215.67",
+    price: "₦68,280,758.60",
     networks: [
       { id: "btc-main", name: "Bitcoin", symbol: "BTC", address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh", fee: "0.0001 BTC" },
       { id: "btc-bep20", name: "BNB Smart Chain (BEP20)", symbol: "BTC", address: generateWalletAddress(), fee: "0.000005 BNB" },
@@ -57,10 +57,10 @@ const baseAssets: Asset[] = [
     name: "Ethereum",
     symbol: "ETH",
     balance: "3.2145",
-    value: "$8,234.50",
+    value: "₦13,010,510.00",
     change: 3.8,
     icon: "Ξ",
-    price: "$2,561.23",
+    price: "₦4,046,743.40",
     networks: [
       { id: "eth-main", name: "Ethereum (ERC20)", symbol: "ETH", address: generateWalletAddress(), fee: "0.001 ETH" },
       { id: "eth-bep20", name: "BNB Smart Chain (BEP20)", symbol: "ETH", address: generateWalletAddress(), fee: "0.000005 BNB" },
@@ -72,10 +72,10 @@ const baseAssets: Asset[] = [
     name: "Solana",
     symbol: "SOL",
     balance: "125.50",
-    value: "$5,678.90",
+    value: "₦8,972,662.00",
     change: -2.1,
     icon: "◎",
-    price: "$45.25",
+    price: "₦71,495.00",
     networks: [
       { id: "sol-main", name: "Solana", symbol: "SOL", address: "7Np41oeYqPefeNQEHSv1UDhYrehxin3NStELsSKCT4K2", fee: "0.000005 SOL" },
     ]
@@ -85,10 +85,10 @@ const baseAssets: Asset[] = [
     name: "Cardano",
     symbol: "ADA",
     balance: "2450.00",
-    value: "$1,890.00",
+    value: "₦2,986,200.00",
     change: 1.5,
     icon: "₳",
-    price: "$0.77",
+    price: "₦1,216.60",
     networks: [
       { id: "ada-main", name: "Cardano", symbol: "ADA", address: "addr1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh", fee: "0.17 ADA" },
     ]
@@ -98,10 +98,10 @@ const baseAssets: Asset[] = [
     name: "USD Coin",
     symbol: "USDC",
     balance: "5,234.56",
-    value: "$5,234.56",
+    value: "₦8,270,604.80",
     change: 0.01,
     icon: "◈",
-    price: "$1.00",
+    price: "₦1,580.00",
     networks: [
       { id: "usdc-eth", name: "Ethereum (ERC20)", symbol: "USDC", address: generateWalletAddress(), fee: "5 USDC" },
       { id: "usdc-bep20", name: "BNB Smart Chain (BEP20)", symbol: "USDC", address: generateWalletAddress(), fee: "0.1 USDC" },
@@ -153,7 +153,7 @@ export const AssetList = () => {
           ? {
               ...a,
               balance: usdc.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-              value: `$${usdc.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+              value: `₦${(usdc * 1580).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
             }
           : a
       ),
@@ -170,7 +170,7 @@ export const AssetList = () => {
       return;
     }
     toast.success(
-      `TP/SL set on ${selectedAsset?.symbol}: ${tpPrice ? `TP $${tpPrice}` : ""}${tpPrice && slPrice ? " · " : ""}${slPrice ? `SL $${slPrice}` : ""}`
+      `TP/SL set on ${selectedAsset?.symbol}: ${tpPrice ? `TP ₦${tpPrice}` : ""}${tpPrice && slPrice ? " · " : ""}${slPrice ? `SL ₦${slPrice}` : ""}`
     );
     setShowTPSLModal(false);
     setTpPrice("");

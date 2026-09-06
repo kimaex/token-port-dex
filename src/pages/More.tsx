@@ -29,13 +29,6 @@ export default function More() {
       path: "/utilities-bills",
     },
     {
-      id: "stake",
-      icon: TrendingUp,
-      label: "Stake and Earn Crypto",
-      description: "Stake your crypto and earn rewards",
-      path: "/stake-earn",
-    },
-    {
       id: "bonds",
       icon: Landmark,
       label: "Buy Government Bond",
