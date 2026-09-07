@@ -931,7 +931,7 @@ export default function Settings() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-foreground">Recent Earnings</h3>
-                  <span className="text-xs text-muted-foreground">Total: <span className="text-green-500 font-bold">${referralData.totalEarnings.toFixed(2)}</span></span>
+                  <span className="text-xs text-muted-foreground">Total: <span className="text-green-500 font-bold">{fmtNGN(referralData.totalEarnings * NGN_PER_USD)}</span></span>
                 </div>
                 <div className="rounded-lg border border-border overflow-hidden">
                   <Table>
