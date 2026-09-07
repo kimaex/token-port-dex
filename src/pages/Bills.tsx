@@ -10,30 +10,32 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { BottomNav } from "@/components/BottomNav";
 import { TransactionPinDialog } from "@/components/TransactionPinDialog";
+import { fmtNGN } from "@/lib/naira";
 
 type BillTab = "airtime" | "data" | "electricity" | "card";
 
 const AIRTIME_NETWORKS = ["MTN", "Airtel", "Glo", "9mobile"];
+// Prices in Naira (₦)
 const DATA_PLANS: Record<string, { label: string; price: number }[]> = {
   MTN: [
-    { label: "1GB - 30 days", price: 2.5 },
-    { label: "3GB - 30 days", price: 6 },
-    { label: "10GB - 30 days", price: 15 },
+    { label: "1GB - 30 days", price: 3500 },
+    { label: "3GB - 30 days", price: 8000 },
+    { label: "10GB - 30 days", price: 20000 },
   ],
   Airtel: [
-    { label: "1.5GB - 30 days", price: 3 },
-    { label: "6GB - 30 days", price: 8 },
-    { label: "15GB - 30 days", price: 18 },
+    { label: "1.5GB - 30 days", price: 4000 },
+    { label: "6GB - 30 days", price: 10500 },
+    { label: "15GB - 30 days", price: 24000 },
   ],
   Glo: [
-    { label: "2GB - 30 days", price: 2.8 },
-    { label: "7GB - 30 days", price: 7 },
-    { label: "12GB - 30 days", price: 13 },
+    { label: "2GB - 30 days", price: 3800 },
+    { label: "7GB - 30 days", price: 9500 },
+    { label: "12GB - 30 days", price: 18000 },
   ],
   "9mobile": [
-    { label: "1GB - 30 days", price: 2.6 },
-    { label: "4.5GB - 30 days", price: 7 },
-    { label: "11GB - 30 days", price: 14 },
+    { label: "1GB - 30 days", price: 3600 },
+    { label: "4.5GB - 30 days", price: 9500 },
+    { label: "11GB - 30 days", price: 19500 },
   ],
 };
 const DISCOS = [
