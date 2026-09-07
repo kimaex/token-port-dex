@@ -23,6 +23,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCurrency, africanCurrencies } from "@/contexts/CurrencyContext";
+import { fmtNGN, NGN_PER_USD } from "@/lib/naira";
 import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
