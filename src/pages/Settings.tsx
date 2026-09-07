@@ -23,7 +23,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCurrency, africanCurrencies } from "@/contexts/CurrencyContext";
-import { fmtNGN, NGN_PER_USD } from "@/lib/naira";
+import { fmtNGN, fmtNGNShort, NGN_PER_USD } from "@/lib/naira";
 import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,6 +64,22 @@ const ibTiers = [
 ];
 
 // Earnings history with source (Futures / Fiat / Swap) and commission %
+// Monthly leadership board — top 15 traders share ₦1,000,000
+const LEADERBOARD_POOL_NGN = 1000000;
+const leaderboardShares = [0.20, 0.15, 0.12, 0.09, 0.08, 0.07, 0.06, 0.05, 0.04, 0.035, 0.03, 0.025, 0.02, 0.015, 0.01];
+const traderNames = [
+  "CryptoNaija", "AbdulFX", "ZeeTrades", "Chidi_9ja", "MamaPips",
+  "SolKing", "AishaTrades", "TundeX", "BullRunBen", "NairaWhale",
+  "EmekaFX", "FatimaP", "LagosLion", "jibkidkhakima", "KofiCharts",
+];
+const topTraders = traderNames.map((name, i) => ({
+  rank: i + 1,
+  name,
+  you: name === "jibkidkhakima",
+  volume: Math.round(48_000_000 * Math.pow(0.87, i)),
+  prize: Math.round(LEADERBOARD_POOL_NGN * leaderboardShares[i]),
+}));
+
 const referralEarnings = [
   { id: 1, date: "2024-01-15", username: "user***42", amount: 45.20, source: "Futures", pct: 25, contractAddress: "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD35" },
   { id: 2, date: "2024-01-12", username: "trad***89", amount: 32.50, source: "Fiat", pct: 15, contractAddress: "0x8Ba1f109551bD432803012645Ac136ddd64DBA72" },
@@ -927,7 +943,55 @@ export default function Settings() {
                 </div>
               </div>
 
+              {/* Leadership Board */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                    <Award className="h-4 w-4 text-primary" /> Leadership Board
+                  </h3>
+                  <span className="text-[10px] text-muted-foreground">Resets monthly</span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-gradient-to-br from-primary/25 to-primary/5 border border-primary/30 text-center">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Monthly prize pool</p>
+                  <p className="text-2xl font-bold text-foreground">{fmtNGN(1000000, 0)}</p>
+                  <p className="text-[11px] text-muted-foreground">Shared by the Top 15 traders on Kimaex every month</p>
+                </div>
+
+                <div className="rounded-lg border border-border overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-border bg-muted/50 hover:bg-muted/50">
+                        <TableHead className="text-muted-foreground text-xs h-9 w-10">#</TableHead>
+                        <TableHead className="text-muted-foreground text-xs h-9">Trader</TableHead>
+                        <TableHead className="text-right text-muted-foreground text-xs h-9">Volume</TableHead>
+                        <TableHead className="text-right text-muted-foreground text-xs h-9">Prize</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {topTraders.map((t) => (
+                        <TableRow key={t.rank} className={`border-border ${t.you ? "bg-primary/10" : ""}`}>
+                          <TableCell className="py-2 text-xs font-bold text-foreground">
+                            {t.rank === 1 ? "🥇" : t.rank === 2 ? "🥈" : t.rank === 3 ? "🥉" : t.rank}
+                          </TableCell>
+                          <TableCell className="py-2 text-xs text-foreground">
+                            {t.name}
+                            {t.you && <span className="ml-1.5 px-1.5 py-0.5 rounded bg-primary/20 text-primary text-[9px] font-semibold">YOU</span>}
+                          </TableCell>
+                          <TableCell className="py-2 text-right text-xs text-muted-foreground">{fmtNGNShort(t.volume)}</TableCell>
+                          <TableCell className="py-2 text-right text-xs font-semibold text-green-500">{fmtNGNShort(t.prize)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                <p className="text-[10px] text-muted-foreground text-center">
+                  Ranking is based on total trading volume in the current month. Prizes are paid to your ₦ wallet on the 1st.
+                </p>
+              </div>
+
               {/* Earnings History */}
+
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-foreground">Recent Earnings</h3>
