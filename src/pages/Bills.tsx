@@ -10,30 +10,32 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { BottomNav } from "@/components/BottomNav";
 import { TransactionPinDialog } from "@/components/TransactionPinDialog";
+import { fmtNGN } from "@/lib/naira";
 
 type BillTab = "airtime" | "data" | "electricity" | "card";
 
 const AIRTIME_NETWORKS = ["MTN", "Airtel", "Glo", "9mobile"];
+// Prices in Naira (₦)
 const DATA_PLANS: Record<string, { label: string; price: number }[]> = {
   MTN: [
-    { label: "1GB - 30 days", price: 2.5 },
-    { label: "3GB - 30 days", price: 6 },
-    { label: "10GB - 30 days", price: 15 },
+    { label: "1GB - 30 days", price: 3500 },
+    { label: "3GB - 30 days", price: 8000 },
+    { label: "10GB - 30 days", price: 20000 },
   ],
   Airtel: [
-    { label: "1.5GB - 30 days", price: 3 },
-    { label: "6GB - 30 days", price: 8 },
-    { label: "15GB - 30 days", price: 18 },
+    { label: "1.5GB - 30 days", price: 4000 },
+    { label: "6GB - 30 days", price: 10500 },
+    { label: "15GB - 30 days", price: 24000 },
   ],
   Glo: [
-    { label: "2GB - 30 days", price: 2.8 },
-    { label: "7GB - 30 days", price: 7 },
-    { label: "12GB - 30 days", price: 13 },
+    { label: "2GB - 30 days", price: 3800 },
+    { label: "7GB - 30 days", price: 9500 },
+    { label: "12GB - 30 days", price: 18000 },
   ],
   "9mobile": [
-    { label: "1GB - 30 days", price: 2.6 },
-    { label: "4.5GB - 30 days", price: 7 },
-    { label: "11GB - 30 days", price: 14 },
+    { label: "1GB - 30 days", price: 3600 },
+    { label: "4.5GB - 30 days", price: 9500 },
+    { label: "11GB - 30 days", price: 19500 },
   ],
 };
 const DISCOS = [
@@ -75,7 +77,7 @@ export default function Bills() {
   const pay = (label: string, amount: string | number) => {
     toast({
       title: "Payment Successful",
-      description: `${label} purchase of $${amount} completed.`,
+      description: `${label} purchase of ${fmtNGN(Number(amount) || 0, 0)} completed.`,
     });
   };
 
@@ -118,7 +120,7 @@ export default function Bills() {
     } else {
       toast({
         title: "Virtual Card Created",
-        description: `Your ${cardBrand} virtual card for ${cardName} is ready with a $${cardAmount} balance.`,
+        description: `Your ${cardBrand} virtual card for ${cardName} is ready with a ${fmtNGN(Number(cardAmount) || 0, 0)} balance.`,
       });
       setCardName(""); setCardAmount("");
     }
@@ -182,7 +184,7 @@ export default function Bills() {
                 <Input value={airPhone} onChange={(e) => setAirPhone(e.target.value)} placeholder="08012345678" className="bg-background border-border" />
               </div>
               <div>
-                <Label className="text-foreground">Amount (USD)</Label>
+                <Label className="text-foreground">Amount (₦)</Label>
                 <Input type="number" value={airAmount} onChange={(e) => setAirAmount(e.target.value)} placeholder="0.00" className="bg-background border-border" />
               </div>
             </Card>
@@ -205,7 +207,7 @@ export default function Bills() {
                   <SelectTrigger className="bg-background border-border"><SelectValue placeholder={dataNet ? "Select plan" : "Pick network first"} /></SelectTrigger>
                   <SelectContent>
                     {(DATA_PLANS[dataNet] ?? []).map((p) => (
-                      <SelectItem key={p.label} value={p.label}>{p.label} — ${p.price}</SelectItem>
+                      <SelectItem key={p.label} value={p.label}>{p.label} — {fmtNGN(p.price, 0)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -243,7 +245,7 @@ export default function Bills() {
                 <Input value={meter} onChange={(e) => setMeter(e.target.value)} placeholder="Enter meter number" className="bg-background border-border" />
               </div>
               <div>
-                <Label className="text-foreground">Amount (USD)</Label>
+                <Label className="text-foreground">Amount (₦)</Label>
                 <Input type="number" value={elecAmount} onChange={(e) => setElecAmount(e.target.value)} placeholder="0.00" className="bg-background border-border" />
               </div>
             </Card>
@@ -275,7 +277,7 @@ export default function Bills() {
                 <Input value={cardName} onChange={(e) => setCardName(e.target.value.toUpperCase())} placeholder="e.g. ADE BALOGUN" className="bg-background border-border" />
               </div>
               <div>
-                <Label className="text-foreground">Initial Load Amount (USD)</Label>
+                <Label className="text-foreground">Initial Load Amount (₦)</Label>
                 <Input type="number" value={cardAmount} onChange={(e) => setCardAmount(e.target.value)} placeholder="0.00" className="bg-background border-border" />
               </div>
               <p className="text-xs text-muted-foreground">Card is issued instantly and can be used for online payments, subscriptions and ATM withdrawals worldwide.</p>
