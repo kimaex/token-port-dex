@@ -568,8 +568,9 @@ export default function Settings() {
               localStorage.removeItem("walletSeedPhrase");
               localStorage.removeItem("walletType");
               localStorage.removeItem("kimaex_authenticated");
+              localStorage.removeItem("hasSeenOnboarding");
               toast.success("Logged out");
-              navigate("/auth", { replace: true });
+              navigate("/", { replace: true });
             }}
           >
             <LogOut className="h-4 w-4" />
