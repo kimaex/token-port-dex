@@ -112,9 +112,15 @@ export default function Bills() {
       const plan = DATA_PLANS[dataNet]?.find((p) => p.label === dataPlan);
       pay(`${dataNet} ${dataPlan}`, plan?.price ?? 0);
       setDataPhone("");
-    } else {
+    } else if (tab === "electricity") {
       pay(`${disco} (${meterType})`, elecAmount);
       setMeter(""); setElecAmount("");
+    } else {
+      toast({
+        title: "Virtual Card Created",
+        description: `Your ${cardBrand} virtual card for ${cardName} is ready with a $${cardAmount} balance.`,
+      });
+      setCardName(""); setCardAmount("");
     }
   };
 
@@ -127,6 +133,7 @@ export default function Bills() {
     { id: "airtime", label: "Airtime", icon: Phone },
     { id: "data", label: "Data", icon: Wifi },
     { id: "electricity", label: "Electricity", icon: Zap },
+    { id: "card", label: "Virtual Card", icon: CreditCard },
   ];
 
   return (
