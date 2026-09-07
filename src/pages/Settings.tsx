@@ -921,7 +921,7 @@ export default function Settings() {
 
                 <div className="p-3 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 text-center">
                   <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Reached all goals?</p>
-                  <p className="text-sm font-bold text-foreground">Get extra <span className="text-primary">$100k</span></p>
+                  <p className="text-sm font-bold text-foreground">Get extra <span className="text-primary">₦158M</span></p>
                   <p className="text-[10px] text-muted-foreground">for every 500 bln in volume</p>
                 </div>
               </div>
