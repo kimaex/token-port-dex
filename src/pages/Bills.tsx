@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Phone, Wifi, Zap } from "lucide-react";
+import { ArrowLeft, Phone, Wifi, Zap, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { BottomNav } from "@/components/BottomNav";
 import { TransactionPinDialog } from "@/components/TransactionPinDialog";
 
-type BillTab = "airtime" | "data" | "electricity";
+type BillTab = "airtime" | "data" | "electricity" | "card";
 
 const AIRTIME_NETWORKS = ["MTN", "Airtel", "Glo", "9mobile"];
 const DATA_PLANS: Record<string, { label: string; price: number }[]> = {
