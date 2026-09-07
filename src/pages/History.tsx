@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowDownLeft, ArrowUpRight, Clock, Repeat, TrendingUp } from "lucide-react";
-
+import { NGN_PER_USD, fmtNGN } from "@/lib/naira";
 
 interface FuturesHistoryEntry {
   id: string;
@@ -15,14 +15,6 @@ interface FuturesHistoryEntry {
   pnl: number;
   at: number;
 }
-
-const NGN_PER_USD = 1580;
-const fmtNGN = (v: number, dp = 2) =>
-  "₦" +
-  new Intl.NumberFormat("en-NG", {
-    minimumFractionDigits: dp,
-    maximumFractionDigits: dp,
-  }).format(v);
 
 const History = () => {
   const [futures, setFutures] = useState<FuturesHistoryEntry[]>([]);
@@ -39,7 +31,7 @@ const History = () => {
     { id: 2, type: "send", asset: "ETH", amount: "-1.5", valueUSD: 4500, time: "5 hours ago", status: "completed" },
     { id: 3, type: "swap", asset: "₦ → BNB", amount: "500", valueUSD: 500, time: "1 day ago", status: "completed" },
     { id: 4, type: "receive", asset: "SOL", amount: "+25", valueUSD: 2000, time: "2 days ago", status: "completed" },
-    { id: 5, type: "send", asset: "USDC", amount: "-1000", valueUSD: 1000, time: "3 days ago", status: "completed" },
+    { id: 5, type: "send", asset: "Naira", amount: "-1000", valueUSD: 1580000, time: "3 days ago", status: "completed" },
     { id: 6, type: "swap", asset: "ETH → BTC", amount: "0.5", valueUSD: 1500, time: "4 days ago", status: "pending" },
   ];
 

@@ -636,20 +636,7 @@ export const AssetList = () => {
 
   return (
     <div className="px-6 pb-24">
-      <div className="flex items-center gap-2 mb-4 bg-muted/50 rounded-xl p-1">
-        <button
-          className="flex-1 py-2 text-sm font-semibold rounded-lg bg-primary text-primary-foreground"
-        >
-          Assets
-        </button>
-        <button
-          onClick={() => navigate("/stocks")}
-          className="flex-1 py-2 text-sm font-semibold rounded-lg text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Stocks
-        </button>
-      </div>
-
+      <h2 className="text-lg font-semibold mb-4">Assets</h2>
 
       <div className="space-y-3">
         {assets.map((asset) => (

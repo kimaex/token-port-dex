@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BottomNav } from "@/components/BottomNav";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { fmtNGN, NGN_PER_USD } from "@/lib/naira";
 import { useToast } from "@/hooks/use-toast";
 
 type Tab = "pumps" | "active" | "settings";
@@ -124,8 +125,8 @@ export default function CopyTrading() {
 
   const handleCopyTrader = () => {
     if (!selectedTrader) return;
-    if (!investAmount || parseFloat(investAmount) < 0.5) {
-      toast({ title: "Minimum amount is $0.50", variant: "destructive" });
+    if (!investAmount || parseFloat(investAmount) < 500 / NGN_PER_USD) {
+      toast({ title: `Minimum amount is ${fmtNGN(500)}`, variant: "destructive" });
       return;
     }
     const fee = parseFloat(investAmount) * 0.02;
@@ -138,8 +139,8 @@ export default function CopyTrading() {
 
   const handleCopyPump = () => {
     if (!selectedPump) return;
-    if (!investAmount || parseFloat(investAmount) < 0.5) {
-      toast({ title: "Minimum amount is $0.50", variant: "destructive" });
+    if (!investAmount || parseFloat(investAmount) < 500 / NGN_PER_USD) {
+      toast({ title: `Minimum amount is ${fmtNGN(500)}`, variant: "destructive" });
       return;
     }
     toast({

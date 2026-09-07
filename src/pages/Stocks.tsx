@@ -6,6 +6,7 @@ import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from "rec
 import { BottomNav } from "@/components/BottomNav";
 import { STOCKS, IPOS, type Stock } from "@/data/stocksData";
 import { usePortfolio } from "@/lib/portfolioStore";
+import { NGN_PER_USD, fmtNGN } from "@/lib/naira";
 
 const seededRandom = (seed: number) => {
   const x = Math.sin(seed) * 10000;
@@ -87,6 +88,7 @@ export default function Stocks() {
   };
 
   const { holdings } = usePortfolio();
+  const toNgn = (usd: number) => usd * NGN_PER_USD;
 
   const portfolioValue = holdings.reduce(
     (sum, h) => sum + h.shares * (prices[h.ticker] ?? STOCKS.find((s) => s.ticker === h.ticker)?.price ?? 0),
@@ -130,7 +132,7 @@ export default function Stocks() {
           </div>
 
           <div className="p-6 text-center">
-            <p className="text-4xl font-bold tabular-nums">${livePrice.toFixed(2)}</p>
+            <p className="text-4xl font-bold tabular-nums">{fmtNGN(toNgn(livePrice))}</p>
             <div className="flex items-center justify-center gap-2 mt-2">
               <span className={`text-lg font-medium ${positive ? "text-success" : "text-destructive"}`}>
                 {positive ? "+" : ""}
@@ -153,7 +155,7 @@ export default function Stocks() {
                 <YAxis hide domain={["dataMin - 5", "dataMax + 5"]} />
                 <Tooltip
                   contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
-                  formatter={(v: number) => [`$${v.toFixed(2)}`, "Price"]}
+                  formatter={(v: number) => [fmtNGN(toNgn(v)), "Price"]}
                   labelFormatter={() => ""}
                 />
                 <Area type="monotone" dataKey="v" stroke={chartColor} strokeWidth={2} fill="url(#stockGrad)" />
@@ -277,7 +279,7 @@ export default function Stocks() {
           <div className="relative">
             <p className="text-xs uppercase tracking-wider text-purple-200/70 font-medium">Portfolio Value</p>
             <p className="text-4xl font-bold tabular-nums mt-1 text-white drop-shadow-[0_0_20px_rgba(168,85,247,0.6)]">
-              ${displayValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {fmtNGN(toNgn(displayValue))}
             </p>
             <div className="flex items-center gap-1.5 mt-1.5">
               <TrendingUp className="h-4 w-4 text-emerald-400" />
@@ -435,7 +437,7 @@ export default function Stocks() {
                     <p className="text-xs text-muted-foreground">{s.ticker}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-sm tabular-nums">${live.toFixed(2)}</p>
+                    <p className="font-semibold text-sm tabular-nums">{fmtNGN(toNgn(live))}</p>
                     <p className={`text-xs font-medium ${positive ? "text-emerald-500" : "text-rose-500"}`}>
                       {positive ? "+" : ""}
                       {s.change}%

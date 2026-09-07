@@ -76,16 +76,16 @@ const referralEarnings = [
 // Kimaex Partners Benefit Program — volume milestones & rewards
 const benefitMilestones = [
   { volume: "200K", reward: "Partner badge & merchandise", icon: "🎖️" },
-  { volume: "200M", reward: "Digital gift cards for $200", icon: "🎁" },
-  { volume: "500M", reward: "$700 in Cash", icon: "💵" },
+  { volume: "200M", reward: "Digital gift cards for ₦316,000", icon: "🎁" },
+  { volume: "500M", reward: "₦1,106,000 in Cash", icon: "💵" },
   { volume: "1B", reward: "Top Model Phone", icon: "📱" },
-  { volume: "2B", reward: "$2,000 in Cash", icon: "💰" },
-  { volume: "5B", reward: "$4,000 in Cash", icon: "💰" },
+  { volume: "2B", reward: "₦3,160,000 in Cash", icon: "💰" },
+  { volume: "5B", reward: "₦6,320,000 in Cash", icon: "💰" },
   { volume: "10B", reward: "Luxury trip for 2 people", icon: "✈️" },
-  { volume: "20B", reward: "$15,000 in Cash", icon: "💎" },
+  { volume: "20B", reward: "₦23,700,000 in Cash", icon: "💎" },
   { volume: "50B", reward: "Luxury Watch", icon: "⌚" },
-  { volume: "100B", reward: "$40,000 in Cash", icon: "🏆" },
-  { volume: "200B", reward: "$80,000 in Cash", icon: "👑" },
+  { volume: "100B", reward: "₦63,200,000 in Cash", icon: "🏆" },
+  { volume: "200B", reward: "₦126,400,000 in Cash", icon: "👑" },
   { volume: "400B", reward: "Premium Sports Car", icon: "🏎️" },
 ];
 
@@ -859,7 +859,7 @@ export default function Settings() {
                   </Table>
                 </div>
                 <p className="text-[10px] text-muted-foreground leading-relaxed">
-                  Earn % of trading fees from every client you refer — paid in USDC. Tier upgrades unlock automatically.
+                  Earn % of trading fees from every client you refer — paid in Naira. Tier upgrades unlock automatically.
                 </p>
               </div>
 
