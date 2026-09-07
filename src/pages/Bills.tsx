@@ -67,6 +67,11 @@ export default function Bills() {
   const [meter, setMeter] = useState("");
   const [elecAmount, setElecAmount] = useState("");
 
+  // Virtual Card
+  const [cardBrand, setCardBrand] = useState("");
+  const [cardName, setCardName] = useState("");
+  const [cardAmount, setCardAmount] = useState("");
+
   const pay = (label: string, amount: string | number) => {
     toast({
       title: "Payment Successful",
@@ -85,8 +90,13 @@ export default function Bills() {
         toast({ title: "Missing Information", description: "Fill all fields", variant: "destructive" });
         return false;
       }
-    } else {
+    } else if (tab === "electricity") {
       if (!disco || !meter || !elecAmount) {
+        toast({ title: "Missing Information", description: "Fill all fields", variant: "destructive" });
+        return false;
+      }
+    } else {
+      if (!cardBrand || !cardName || !cardAmount) {
         toast({ title: "Missing Information", description: "Fill all fields", variant: "destructive" });
         return false;
       }
