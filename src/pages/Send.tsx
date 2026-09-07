@@ -47,14 +47,14 @@ const assets: Asset[] = [
   {
     id: "5", name: "USD Coin", symbol: "USDC", balance: "5,234.56", value: "₦8,270,604.80", icon: "◈", price: "₦1,580.00",
     networks: [
-      { id: "usdc-eth", name: "Ethereum (ERC20)", fee: "5 USDC" },
-      { id: "usdc-bep20", name: "BNB Smart Chain (BEP20)", fee: "0.1 USDC" },
-      { id: "usdc-sol", name: "Solana (SPL)", fee: "0.01 USDC" },
-      { id: "usdc-polygon", name: "Polygon", fee: "0.01 USDC" },
-      { id: "usdc-arb", name: "Arbitrum One", fee: "0.1 USDC" },
-      { id: "usdc-avax", name: "Avalanche C-Chain", fee: "0.1 USDC" },
-      { id: "usdc-tron", name: "Tron (TRC20)", fee: "1 USDC" },
-      { id: "usdc-base", name: "Base", fee: "0.01 USDC" },
+      { id: "usdc-eth", name: "Ethereum (ERC20)", fee: "₦7900.00" },
+      { id: "usdc-bep20", name: "BNB Smart Chain (BEP20)", fee: "₦158.00" },
+      { id: "usdc-sol", name: "Solana (SPL)", fee: "₦15.80" },
+      { id: "usdc-polygon", name: "Polygon", fee: "₦15.80" },
+      { id: "usdc-arb", name: "Arbitrum One", fee: "₦158.00" },
+      { id: "usdc-avax", name: "Avalanche C-Chain", fee: "₦158.00" },
+      { id: "usdc-tron", name: "Tron (TRC20)", fee: "₦1580.00" },
+      { id: "usdc-base", name: "Base", fee: "₦15.80" },
     ],
   },
 ];

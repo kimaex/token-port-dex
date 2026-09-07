@@ -23,6 +23,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCurrency, africanCurrencies } from "@/contexts/CurrencyContext";
+import { fmtNGN, NGN_PER_USD } from "@/lib/naira";
 import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -76,16 +77,16 @@ const referralEarnings = [
 // Kimaex Partners Benefit Program — volume milestones & rewards
 const benefitMilestones = [
   { volume: "200K", reward: "Partner badge & merchandise", icon: "🎖️" },
-  { volume: "200M", reward: "Digital gift cards for $200", icon: "🎁" },
-  { volume: "500M", reward: "$700 in Cash", icon: "💵" },
+  { volume: "200M", reward: "Digital gift cards for ₦316,000", icon: "🎁" },
+  { volume: "500M", reward: "₦1,106,000 in Cash", icon: "💵" },
   { volume: "1B", reward: "Top Model Phone", icon: "📱" },
-  { volume: "2B", reward: "$2,000 in Cash", icon: "💰" },
-  { volume: "5B", reward: "$4,000 in Cash", icon: "💰" },
+  { volume: "2B", reward: "₦3,160,000 in Cash", icon: "💰" },
+  { volume: "5B", reward: "₦6,320,000 in Cash", icon: "💰" },
   { volume: "10B", reward: "Luxury trip for 2 people", icon: "✈️" },
-  { volume: "20B", reward: "$15,000 in Cash", icon: "💎" },
+  { volume: "20B", reward: "₦23,700,000 in Cash", icon: "💎" },
   { volume: "50B", reward: "Luxury Watch", icon: "⌚" },
-  { volume: "100B", reward: "$40,000 in Cash", icon: "🏆" },
-  { volume: "200B", reward: "$80,000 in Cash", icon: "👑" },
+  { volume: "100B", reward: "₦63,200,000 in Cash", icon: "🏆" },
+  { volume: "200B", reward: "₦126,400,000 in Cash", icon: "👑" },
   { volume: "400B", reward: "Premium Sports Car", icon: "🏎️" },
 ];
 
@@ -859,7 +860,7 @@ export default function Settings() {
                   </Table>
                 </div>
                 <p className="text-[10px] text-muted-foreground leading-relaxed">
-                  Earn % of trading fees from every client you refer — paid in USDC. Tier upgrades unlock automatically.
+                  Earn % of trading fees from every client you refer — paid in Naira. Tier upgrades unlock automatically.
                 </p>
               </div>
 
@@ -921,7 +922,7 @@ export default function Settings() {
 
                 <div className="p-3 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 text-center">
                   <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Reached all goals?</p>
-                  <p className="text-sm font-bold text-foreground">Get extra <span className="text-primary">$100k</span></p>
+                  <p className="text-sm font-bold text-foreground">Get extra <span className="text-primary">₦158M</span></p>
                   <p className="text-[10px] text-muted-foreground">for every 500 bln in volume</p>
                 </div>
               </div>
@@ -930,7 +931,7 @@ export default function Settings() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-foreground">Recent Earnings</h3>
-                  <span className="text-xs text-muted-foreground">Total: <span className="text-green-500 font-bold">${referralData.totalEarnings.toFixed(2)}</span></span>
+                  <span className="text-xs text-muted-foreground">Total: <span className="text-green-500 font-bold">{fmtNGN(referralData.totalEarnings * NGN_PER_USD)}</span></span>
                 </div>
                 <div className="rounded-lg border border-border overflow-hidden">
                   <Table>

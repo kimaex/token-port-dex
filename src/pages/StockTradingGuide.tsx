@@ -8,7 +8,7 @@ const BUY_STEPS = [
   { icon: Search, text: "Search for a stock (AAPL, TSLA, MSFT)" },
   { icon: ArrowRight, text: "Select the stock" },
   { icon: ShoppingCart, text: "Click Buy" },
-  { icon: DollarSign, text: "Enter amount in USDC or number of shares" },
+  { icon: DollarSign, text: "Enter amount in ₦ or number of shares" },
   { icon: ClipboardCheck, text: "Review order: price, fees, shares" },
   { icon: CheckCircle2, text: "Confirm purchase" },
   { icon: Wallet, text: "Stock appears in Portfolio" },
@@ -21,7 +21,7 @@ const SELL_STEPS = [
   { icon: BarChart3, text: "Enter quantity (e.g. 2 shares)" },
   { icon: ClipboardCheck, text: "Review market price, total value, fees" },
   { icon: CheckCircle2, text: "Confirm sell order" },
-  { icon: Landmark, text: "Receive USDC instantly after settlement" },
+  { icon: Landmark, text: "Receive ₦ instantly after settlement" },
 ];
 
 export default function StockTradingGuide() {
