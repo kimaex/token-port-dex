@@ -77,7 +77,7 @@ export default function Bills() {
   const pay = (label: string, amount: string | number) => {
     toast({
       title: "Payment Successful",
-      description: `${label} purchase of $${amount} completed.`,
+      description: `${label} purchase of ${fmtNGN(Number(amount) || 0, 0)} completed.`,
     });
   };
 
@@ -120,7 +120,7 @@ export default function Bills() {
     } else {
       toast({
         title: "Virtual Card Created",
-        description: `Your ${cardBrand} virtual card for ${cardName} is ready with a $${cardAmount} balance.`,
+        description: `Your ${cardBrand} virtual card for ${cardName} is ready with a ${fmtNGN(Number(cardAmount) || 0, 0)} balance.`,
       });
       setCardName(""); setCardAmount("");
     }
