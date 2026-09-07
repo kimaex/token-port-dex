@@ -988,14 +988,6 @@ export default function Settings() {
                 </div>
               </div>
 
-              {/* Withdraw button */}
-              <Button
-                className="w-full h-12 bg-gradient-primary hover:opacity-90 font-semibold"
-                onClick={() => toast.success(`Requesting withdrawal of $${referralData.pendingRewards.toFixed(2)}`)}
-              >
-                <Wallet2 className="h-4 w-4 mr-2" />
-                Withdraw ${referralData.pendingRewards.toFixed(2)} USDC
-              </Button>
             </div>
           </ScrollArea>
         </DialogContent>
