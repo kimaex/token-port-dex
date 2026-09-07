@@ -472,16 +472,16 @@ const Futures = () => {
             <div className="space-y-0.5">
               {book.asks.map((a, i) => (
                 <div key={i} className="flex justify-between text-[10px] tabular-nums">
-                  <span className="text-rose-500">{a.price.toFixed(0)}</span>
+                  <span className="text-rose-500">{fmtNGN(a.price, 0)}</span>
                   <span className="text-muted-foreground">{a.size.toFixed(2)}</span>
                 </div>
               ))}
               <div className="py-1 text-xs font-bold tabular-nums text-center">
-                {mark.toFixed(0)}
+                {fmtNGN(mark, 0)}
               </div>
               {book.bids.map((b, i) => (
                 <div key={i} className="flex justify-between text-[10px] tabular-nums">
-                  <span className="text-emerald-500">{b.price.toFixed(0)}</span>
+                  <span className="text-emerald-500">{fmtNGN(b.price, 0)}</span>
                   <span className="text-muted-foreground">{b.size.toFixed(2)}</span>
                 </div>
               ))}
