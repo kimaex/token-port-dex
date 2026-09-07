@@ -13,4 +13,5 @@
 - [ ] Futures: Cross/Isolated margin, full P&L panel
 - [ ] Share Winning poster
 - [ ] Remove staking completely
+- [ ] Remove Withdraw option from home and stocks
 - [ ] Consistent design system
