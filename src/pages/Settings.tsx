@@ -927,7 +927,55 @@ export default function Settings() {
                 </div>
               </div>
 
+              {/* Leadership Board */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                    <Award className="h-4 w-4 text-primary" /> Leadership Board
+                  </h3>
+                  <span className="text-[10px] text-muted-foreground">Resets monthly</span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-gradient-to-br from-primary/25 to-primary/5 border border-primary/30 text-center">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Monthly prize pool</p>
+                  <p className="text-2xl font-bold text-foreground">{fmtNGN(1000000, 0)}</p>
+                  <p className="text-[11px] text-muted-foreground">Shared by the Top 15 traders on Kimaex every month</p>
+                </div>
+
+                <div className="rounded-lg border border-border overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-border bg-muted/50 hover:bg-muted/50">
+                        <TableHead className="text-muted-foreground text-xs h-9 w-10">#</TableHead>
+                        <TableHead className="text-muted-foreground text-xs h-9">Trader</TableHead>
+                        <TableHead className="text-right text-muted-foreground text-xs h-9">Volume</TableHead>
+                        <TableHead className="text-right text-muted-foreground text-xs h-9">Prize</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {topTraders.map((t) => (
+                        <TableRow key={t.rank} className={`border-border ${t.you ? "bg-primary/10" : ""}`}>
+                          <TableCell className="py-2 text-xs font-bold text-foreground">
+                            {t.rank === 1 ? "🥇" : t.rank === 2 ? "🥈" : t.rank === 3 ? "🥉" : t.rank}
+                          </TableCell>
+                          <TableCell className="py-2 text-xs text-foreground">
+                            {t.name}
+                            {t.you && <span className="ml-1.5 px-1.5 py-0.5 rounded bg-primary/20 text-primary text-[9px] font-semibold">YOU</span>}
+                          </TableCell>
+                          <TableCell className="py-2 text-right text-xs text-muted-foreground">{fmtNGNShort(t.volume)}</TableCell>
+                          <TableCell className="py-2 text-right text-xs font-semibold text-green-500">{fmtNGNShort(t.prize)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                <p className="text-[10px] text-muted-foreground text-center">
+                  Ranking is based on total trading volume in the current month. Prizes are paid to your ₦ wallet on the 1st.
+                </p>
+              </div>
+
               {/* Earnings History */}
+
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-foreground">Recent Earnings</h3>
