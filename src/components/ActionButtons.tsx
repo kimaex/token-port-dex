@@ -1,4 +1,4 @@
-import { Send, Download, ArrowDownToLine, ArrowUpFromLine, Receipt } from "lucide-react";
+import { Send, Download, ArrowDownToLine, Receipt } from "lucide-react";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -7,7 +7,6 @@ export const ActionButtons = () => {
 
   const actions = [
     { label: "Add", icon: ArrowDownToLine, path: "/fiat" },
-    { label: "Withdraw", icon: ArrowUpFromLine, path: "/fiat" },
     { label: "Send", icon: Send, path: "/send" },
     { label: "Receive", icon: Download, path: "/receive" },
     { label: "Bills", icon: Receipt, path: "/bills" },
