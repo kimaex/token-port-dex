@@ -184,7 +184,7 @@ export default function Bills() {
                 <Input value={airPhone} onChange={(e) => setAirPhone(e.target.value)} placeholder="08012345678" className="bg-background border-border" />
               </div>
               <div>
-                <Label className="text-foreground">Amount (USD)</Label>
+                <Label className="text-foreground">Amount (₦)</Label>
                 <Input type="number" value={airAmount} onChange={(e) => setAirAmount(e.target.value)} placeholder="0.00" className="bg-background border-border" />
               </div>
             </Card>
@@ -207,7 +207,7 @@ export default function Bills() {
                   <SelectTrigger className="bg-background border-border"><SelectValue placeholder={dataNet ? "Select plan" : "Pick network first"} /></SelectTrigger>
                   <SelectContent>
                     {(DATA_PLANS[dataNet] ?? []).map((p) => (
-                      <SelectItem key={p.label} value={p.label}>{p.label} — ${p.price}</SelectItem>
+                      <SelectItem key={p.label} value={p.label}>{p.label} — {fmtNGN(p.price, 0)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -245,7 +245,7 @@ export default function Bills() {
                 <Input value={meter} onChange={(e) => setMeter(e.target.value)} placeholder="Enter meter number" className="bg-background border-border" />
               </div>
               <div>
-                <Label className="text-foreground">Amount (USD)</Label>
+                <Label className="text-foreground">Amount (₦)</Label>
                 <Input type="number" value={elecAmount} onChange={(e) => setElecAmount(e.target.value)} placeholder="0.00" className="bg-background border-border" />
               </div>
             </Card>
@@ -277,7 +277,7 @@ export default function Bills() {
                 <Input value={cardName} onChange={(e) => setCardName(e.target.value.toUpperCase())} placeholder="e.g. ADE BALOGUN" className="bg-background border-border" />
               </div>
               <div>
-                <Label className="text-foreground">Initial Load Amount (USD)</Label>
+                <Label className="text-foreground">Initial Load Amount (₦)</Label>
                 <Input type="number" value={cardAmount} onChange={(e) => setCardAmount(e.target.value)} placeholder="0.00" className="bg-background border-border" />
               </div>
               <p className="text-xs text-muted-foreground">Card is issued instantly and can be used for online payments, subscriptions and ATM withdrawals worldwide.</p>
