@@ -23,7 +23,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCurrency, africanCurrencies } from "@/contexts/CurrencyContext";
-import { fmtNGN, NGN_PER_USD } from "@/lib/naira";
+import { fmtNGN, fmtNGNShort, NGN_PER_USD } from "@/lib/naira";
 import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,6 +64,22 @@ const ibTiers = [
 ];
 
 // Earnings history with source (Futures / Fiat / Swap) and commission %
+// Monthly leadership board — top 15 traders share ₦1,000,000
+const LEADERBOARD_POOL_NGN = 1000000;
+const leaderboardShares = [0.20, 0.15, 0.12, 0.09, 0.08, 0.07, 0.06, 0.05, 0.04, 0.035, 0.03, 0.025, 0.02, 0.015, 0.01];
+const traderNames = [
+  "CryptoNaija", "AbdulFX", "ZeeTrades", "Chidi_9ja", "MamaPips",
+  "SolKing", "AishaTrades", "TundeX", "BullRunBen", "NairaWhale",
+  "EmekaFX", "FatimaP", "LagosLion", "jibkidkhakima", "KofiCharts",
+];
+const topTraders = traderNames.map((name, i) => ({
+  rank: i + 1,
+  name,
+  you: name === "jibkidkhakima",
+  volume: Math.round(48_000_000 * Math.pow(0.87, i)),
+  prize: Math.round(LEADERBOARD_POOL_NGN * leaderboardShares[i]),
+}));
+
 const referralEarnings = [
   { id: 1, date: "2024-01-15", username: "user***42", amount: 45.20, source: "Futures", pct: 25, contractAddress: "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD35" },
   { id: 2, date: "2024-01-12", username: "trad***89", amount: 32.50, source: "Fiat", pct: 15, contractAddress: "0x8Ba1f109551bD432803012645Ac136ddd64DBA72" },
