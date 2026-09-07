@@ -154,7 +154,7 @@ export default function Bills() {
         </Card>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as BillTab)}>
-          <TabsList className="grid grid-cols-3 w-full bg-secondary mb-4">
+          <TabsList className="grid grid-cols-4 w-full bg-secondary mb-4">
             {tabs.map((t) => {
               const Icon = t.icon;
               return (
@@ -248,10 +248,43 @@ export default function Bills() {
               </div>
             </Card>
           </TabsContent>
+
+          <TabsContent value="card">
+            <Card className="p-6 mb-4 bg-gradient-primary border-0 shadow-glow">
+              <div className="flex items-center justify-between mb-6">
+                <CreditCard className="h-8 w-8 text-primary-foreground" />
+                <span className="text-primary-foreground font-semibold">kimaex</span>
+              </div>
+              <p className="text-primary-foreground/80 text-xs tracking-widest mb-1">•••• •••• •••• ••••</p>
+              <p className="text-primary-foreground font-semibold">{cardName || "CARD HOLDER"}</p>
+            </Card>
+            <Card className="p-6 bg-card border-border space-y-4">
+              <div>
+                <Label className="text-foreground">Card Brand</Label>
+                <Select value={cardBrand} onValueChange={setCardBrand}>
+                  <SelectTrigger className="bg-background border-border"><SelectValue placeholder="Select brand" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Visa">Visa</SelectItem>
+                    <SelectItem value="Mastercard">Mastercard</SelectItem>
+                    <SelectItem value="Verve">Verve</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-foreground">Name on Card</Label>
+                <Input value={cardName} onChange={(e) => setCardName(e.target.value.toUpperCase())} placeholder="e.g. ADE BALOGUN" className="bg-background border-border" />
+              </div>
+              <div>
+                <Label className="text-foreground">Initial Load Amount (USD)</Label>
+                <Input type="number" value={cardAmount} onChange={(e) => setCardAmount(e.target.value)} placeholder="0.00" className="bg-background border-border" />
+              </div>
+              <p className="text-xs text-muted-foreground">Card is issued instantly and can be used for online payments, subscriptions and ATM withdrawals worldwide.</p>
+            </Card>
+          </TabsContent>
         </Tabs>
 
         <Button onClick={submit} className="w-full mt-6 bg-gradient-primary text-primary-foreground shadow-glow h-12 text-base font-semibold">
-          Pay Now
+          {tab === "card" ? "Create Card" : "Pay Now"}
         </Button>
       </div>
       <TransactionPinDialog
