@@ -14,13 +14,13 @@ export const ActionButtons = () => {
 
   return (
     <div className="px-6 pb-6">
-      <div className="grid grid-cols-5 gap-2">
+      <div className="flex justify-center gap-3">
         {actions.map((a) => {
           const Icon = a.icon;
           return (
             <Button
               key={a.label}
-              className="flex flex-col h-auto py-3 px-1 bg-card hover:bg-card/80 border border-border"
+              className="flex flex-col h-auto w-20 py-3 px-1 bg-card hover:bg-card/80 border border-border"
               variant="ghost"
               onClick={() => navigate(a.path)}
             >
