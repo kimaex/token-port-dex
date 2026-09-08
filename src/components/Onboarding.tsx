@@ -25,8 +25,8 @@ export const Onboarding = ({ onComplete }: OnboardingProps) => {
     },
     {
       icon: Wallet,
-      title: "Your Solana Wallet",
-      description: "Built for memecoins and prediction markets. Trade, swap, and bet on Solana — all in one place.",
+      title: "Futures Trading",
+      description: "Trade crypto futures with up to 500x leverage. Long or short BTC, ETH, SOL and more with Naira margin.",
     },
     {
       icon: Banknote,
