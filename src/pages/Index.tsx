@@ -36,7 +36,7 @@ const Index = () => {
     check();
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
+      if (!session && localStorage.getItem("hasSeenOnboarding")) {
         navigate("/auth", { replace: true });
       }
     });
