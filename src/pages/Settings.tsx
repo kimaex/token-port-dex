@@ -371,21 +371,12 @@ export default function Settings() {
       items: [
         { icon: Lock, label: "Change Password", onClick: () => comingSoon("Change Password") },
         { icon: Shield, label: "Biometric Login", onClick: () => comingSoon("Biometric Login") },
-        { icon: ShieldAlert, label: "Two-Factor Authentication (2FA)", onClick: () => comingSoon("2FA") },
-        { icon: Eye, label: "Recovery Phrase Backup", onClick: () => comingSoon("Recovery Phrase Backup") },
       ],
     },
     {
       title: "Verification",
       items: [
         { icon: CheckCircle, label: "KYC Status", hint: profile.kycStatus === "verified" ? "Verified" : profile.kycStatus === "pending" ? "Pending" : "Unverified", onClick: () => setShowProfileModal(true) },
-        { icon: IdCard, label: "Identity Verification", onClick: () => setShowProfileModal(true) },
-      ],
-    },
-    {
-      title: "Wallet Settings",
-      items: [
-        { icon: Wallet2, label: "Manage Wallets", onClick: () => comingSoon("Manage Wallets") },
       ],
     },
     {
@@ -401,9 +392,6 @@ export default function Settings() {
       title: "Support",
       items: [
         { icon: HelpCircle, label: "Help Center", onClick: () => setShowCustomerCareModal(true) },
-        { icon: Headphones, label: "Contact Support", onClick: () => setShowCustomerCareModal(true) },
-        { icon: FileText, label: "Terms & Conditions", onClick: () => comingSoon("Terms & Conditions") },
-        { icon: Shield, label: "Privacy Policy", onClick: () => comingSoon("Privacy Policy") },
       ],
     },
   ];
