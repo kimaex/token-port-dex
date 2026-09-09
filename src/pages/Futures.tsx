@@ -554,23 +554,25 @@ const Futures = () => {
         </div>
 
         {/* Order entry + book */}
-        <div className="px-4 pt-3 grid grid-cols-5 gap-3">
-          <div className="col-span-3 space-y-3">
-            <div className="grid grid-cols-2 gap-2 p-1 rounded-lg bg-muted">
-              {(["cross", "isolated"] as const).map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setMarginMode(m)}
-                  className={`h-8 rounded-md text-xs font-semibold capitalize transition-colors ${
-                    marginMode === m
-                      ? "bg-card text-foreground shadow-card"
-                      : "text-muted-foreground"
-                  }`}
-                >
-                  {m} margin
-                </button>
-              ))}
-            </div>
+        <div className={`px-4 pt-3 grid gap-3 ${pro ? "grid-cols-5" : "grid-cols-1"}`}>
+          <div className={`space-y-3 ${pro ? "col-span-3" : ""}`}>
+            {pro && (
+              <div className="grid grid-cols-2 gap-2 p-1 rounded-lg bg-muted">
+                {(["cross", "isolated"] as const).map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setMarginMode(m)}
+                    className={`h-8 rounded-md text-xs font-semibold capitalize transition-colors ${
+                      marginMode === m
+                        ? "bg-card text-foreground shadow-card"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    {m} margin
+                  </button>
+                ))}
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-2">
               <button
@@ -581,7 +583,7 @@ const Futures = () => {
                     : "bg-muted text-muted-foreground"
                 }`}
               >
-                Long
+                {pro ? "Long" : "Up / Long"}
               </button>
               <button
                 onClick={() => setSide("short")}
@@ -591,27 +593,29 @@ const Futures = () => {
                     : "bg-muted text-muted-foreground"
                 }`}
               >
-                Short
+                {pro ? "Short" : "Down / Short"}
               </button>
             </div>
 
-            <div className="flex gap-3 text-xs">
-              {(["market", "limit"] as const).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setOrderType(t)}
-                  className={`capitalize pb-1 border-b-2 ${
-                    orderType === t
-                      ? "border-primary text-foreground font-semibold"
-                      : "border-transparent text-muted-foreground"
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
+            {pro && (
+              <div className="flex gap-3 text-xs">
+                {(["market", "limit"] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setOrderType(t)}
+                    className={`capitalize pb-1 border-b-2 ${
+                      orderType === t
+                        ? "border-primary text-foreground font-semibold"
+                        : "border-transparent text-muted-foreground"
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            )}
 
-            {orderType === "limit" && (
+            {pro && orderType === "limit" && (
               <div>
                 <label className="text-[11px] text-muted-foreground">
                   Limit price (₦)
@@ -628,7 +632,7 @@ const Futures = () => {
 
             <div>
               <label className="text-[11px] text-muted-foreground">
-                Margin (₦)
+                Margin (₦ from Futures Wallet)
               </label>
               <Input
                 inputMode="decimal"
@@ -661,42 +665,69 @@ const Futures = () => {
                   {leverage}x
                 </span>
               </div>
-              <Slider
-                value={[LEVERAGES.indexOf(leverage) < 0 ? 4 : LEVERAGES.indexOf(leverage)]}
-                min={0}
-                max={LEVERAGES.length - 1}
-                step={1}
-                onValueChange={(v) => setLeverage(LEVERAGES[v[0]])}
-              />
-              <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
-                <span>1x</span>
-                <span>125x</span>
-              </div>
+              {pro ? (
+                <>
+                  <Slider
+                    value={[
+                      LEVERAGES.indexOf(leverage) < 0
+                        ? 4
+                        : LEVERAGES.indexOf(leverage),
+                    ]}
+                    min={0}
+                    max={LEVERAGES.length - 1}
+                    step={1}
+                    onValueChange={(v) => setLeverage(LEVERAGES[v[0]])}
+                  />
+                  <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+                    <span>1x</span>
+                    <span>125x</span>
+                  </div>
+                </>
+              ) : (
+                <div className="flex gap-2">
+                  {[2, 5, 10, 20].map((l) => (
+                    <button
+                      key={l}
+                      onClick={() => setLeverage(l)}
+                      className={`flex-1 h-9 rounded-lg text-xs font-semibold ${
+                        leverage === l
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {l}x
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Order book */}
-          <div className="col-span-2">
-            <p className="text-[10px] text-muted-foreground mb-1">Order book</p>
-            <div className="space-y-0.5">
-              {book.asks.map((a, i) => (
-                <div key={i} className="flex justify-between text-[10px] tabular-nums">
-                  <span className="text-rose-500">{fmtNGN(a.price, 0)}</span>
-                  <span className="text-muted-foreground">{a.size.toFixed(2)}</span>
+          {pro && (
+            <div className="col-span-2">
+              <p className="text-[10px] text-muted-foreground mb-1">Order book</p>
+              <div className="space-y-0.5">
+                {book.asks.map((a, i) => (
+                  <div key={i} className="flex justify-between text-[10px] tabular-nums">
+                    <span className="text-rose-500">{fmtNGN(a.price, 0)}</span>
+                    <span className="text-muted-foreground">{a.size.toFixed(2)}</span>
+                  </div>
+                ))}
+                <div className="py-1 text-xs font-bold tabular-nums text-center">
+                  {fmtNGN(mark, 0)}
                 </div>
-              ))}
-              <div className="py-1 text-xs font-bold tabular-nums text-center">
-                {fmtNGN(mark, 0)}
+                {book.bids.map((b, i) => (
+                  <div key={i} className="flex justify-between text-[10px] tabular-nums">
+                    <span className="text-emerald-500">{fmtNGN(b.price, 0)}</span>
+                    <span className="text-muted-foreground">{b.size.toFixed(2)}</span>
+                  </div>
+                ))}
               </div>
-              {book.bids.map((b, i) => (
-                <div key={i} className="flex justify-between text-[10px] tabular-nums">
-                  <span className="text-emerald-500">{fmtNGN(b.price, 0)}</span>
-                  <span className="text-muted-foreground">{b.size.toFixed(2)}</span>
-                </div>
-              ))}
             </div>
-          </div>
+          )}
         </div>
+
 
         {/* Summary + submit */}
         <div className="px-4 pt-3 space-y-1 text-[11px] text-muted-foreground">
