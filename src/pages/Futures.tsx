@@ -67,8 +67,21 @@ interface Position {
   at: number;
 }
 
+interface OpenOrder {
+  id: string;
+  symbol: string;
+  side: "long" | "short";
+  leverage: number;
+  price: number;
+  margin: number;
+  mode: "cross" | "isolated";
+  at: number;
+}
+
 const POS_KEY = "futures_positions";
 const HIST_KEY = "futures_history";
+const ORD_KEY = "futures_open_orders";
+const MODE_KEY = "kimaex_futures_ui_mode";
 
 const readPositions = (): Position[] => {
   try {
@@ -78,8 +91,40 @@ const readPositions = (): Position[] => {
   }
 };
 
+const readOrders = (): OpenOrder[] => {
+  try {
+    return JSON.parse(localStorage.getItem(ORD_KEY) || "[]");
+  } catch {
+    return [];
+  }
+};
+
+interface HistoryEntry {
+  id: string;
+  symbol: string;
+  side: "long" | "short";
+  leverage: number;
+  entry: number;
+  exit: number;
+  proceeds: number;
+  pnl: number;
+  at: number;
+}
+
+const readHistory = (): HistoryEntry[] => {
+  try {
+    return JSON.parse(localStorage.getItem(HIST_KEY) || "[]");
+  } catch {
+    return [];
+  }
+};
+
 const Futures = () => {
-  const { usdc } = usePortfolio();
+  usePortfolio();
+  const { futuresNGN, mainNGN } = useFuturesWallet();
+  const [uiMode, setUiMode] = useState<"simple" | "pro">(
+    () => (localStorage.getItem(MODE_KEY) as "simple" | "pro") || "simple"
+  );
   const [pair, setPair] = useState<Pair>(PAIRS[0]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -88,25 +133,34 @@ const Futures = () => {
   const [leverage, setLeverage] = useState(20);
   const [limitPrice, setLimitPrice] = useState("");
   const [amount, setAmount] = useState(""); // margin in NGN
-  const [tab, setTab] = useState<"positions" | "orders">("positions");
+  const [tab, setTab] = useState<"positions" | "orders" | "history">("positions");
   const [positions, setPositions] = useState<Position[]>(readPositions);
+  const [orders, setOrders] = useState<OpenOrder[]>(readOrders);
+  const [history, setHistory] = useState<HistoryEntry[]>(readHistory);
   const [tick, setTick] = useState(0);
   const [marginMode, setMarginMode] = useState<"cross" | "isolated">("cross");
   const [poster, setPoster] = useState<PosterData | null>(null);
-  const [realized, setRealized] = useState<number>(() => {
-    try {
-      return (JSON.parse(localStorage.getItem(HIST_KEY) || "[]") as { pnl: number }[]).reduce(
-        (a, h) => a + (h.pnl || 0),
-        0
-      );
-    } catch {
-      return 0;
-    }
-  });
+  const [transferOpen, setTransferOpen] = useState(false);
+  const [transferDir, setTransferDir] = useState<"toFutures" | "toMain">("toFutures");
+  const [transferAmt, setTransferAmt] = useState("");
+  const [realized, setRealized] = useState<number>(() =>
+    readHistory().reduce((a, h) => a + (h.pnl || 0), 0)
+  );
   const [tpslFor, setTpslFor] = useState<Position | null>(null);
   const [tpInput, setTpInput] = useState("");
   const [slInput, setSlInput] = useState("");
   const driftRef = useRef<Record<string, number>>({});
+
+  const pro = uiMode === "pro";
+
+  useEffect(() => {
+    localStorage.setItem(MODE_KEY, uiMode);
+    if (uiMode === "simple") {
+      setOrderType("market");
+      setMarginMode("cross");
+      if (tab === "orders") setTab("positions");
+    }
+  }, [uiMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // live-ish price drift
   useEffect(() => {
@@ -124,12 +178,24 @@ const Futures = () => {
     p.usd * NGN_PER_USD * (1 + (driftRef.current[p.symbol] ?? 0));
 
   const mark = priceOf(pair);
-  const balanceNGN = usdc * NGN_PER_USD;
+  const balanceNGN = futuresNGN;
+
+  /** Funding rate per 8h, drifts slightly with the market. */
+  const fundingRate = useMemo(
+    () => (pair.change / 100) * 0.012 + 0.0001,
+    [pair]
+  );
 
   const persist = (next: Position[]) => {
     setPositions(next);
     localStorage.setItem(POS_KEY, JSON.stringify(next));
   };
+
+  const persistOrders = (next: OpenOrder[]) => {
+    setOrders(next);
+    localStorage.setItem(ORD_KEY, JSON.stringify(next));
+  };
+
 
   const series = useMemo(() => {
     const pts: number[] = [];
