@@ -11,11 +11,26 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { ChevronDown, Search, TrendingUp, TrendingDown, X } from "lucide-react";
+import {
+  ChevronDown,
+  Search,
+  TrendingUp,
+  TrendingDown,
+  ArrowLeftRight,
+  Wallet,
+} from "lucide-react";
 import { toast } from "sonner";
-import { getUsdcBalance, setUsdcBalance, usePortfolio } from "@/lib/portfolioStore";
+import { usePortfolio } from "@/lib/portfolioStore";
 import { NGN_PER_USD, fmtNGN } from "@/lib/naira";
+import {
+  useFuturesWallet,
+  creditFutures,
+  debitFutures,
+  transferToFutures,
+  transferToMain,
+} from "@/lib/futuresWallet";
 import { WinningPoster, PosterData } from "@/components/WinningPoster";
+
 
 interface Pair {
   symbol: string;
