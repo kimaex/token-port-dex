@@ -422,11 +422,20 @@ const Futures = () => {
               </Badge>
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </button>
-            <div className="text-right">
-              <p className="text-xs text-muted-foreground">Balance</p>
-              <p className="text-sm font-semibold tabular-nums">
-                {fmtNGN(balanceNGN, 0)}
-              </p>
+            <div className="flex p-0.5 rounded-lg bg-muted">
+              {(["simple", "pro"] as const).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setUiMode(m)}
+                  className={`px-3 h-7 rounded-md text-[11px] font-semibold capitalize transition-colors ${
+                    uiMode === m
+                      ? "bg-card text-foreground shadow-card"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  {m} mode
+                </button>
+              ))}
             </div>
           </div>
           <div className="flex items-end gap-3 mt-2">
@@ -445,8 +454,57 @@ const Futures = () => {
               {up ? "+" : ""}
               {pair.change.toFixed(2)}%
             </span>
+            {pro && (
+              <span className="text-[10px] text-muted-foreground mb-1 ml-auto">
+                Funding{" "}
+                <span
+                  className={
+                    fundingRate >= 0 ? "text-emerald-500" : "text-rose-500"
+                  }
+                >
+                  {(fundingRate * 100).toFixed(4)}%
+                </span>{" "}
+                / 8h
+              </span>
+            )}
           </div>
         </div>
+
+        {/* Wallets + transfer */}
+        <div className="px-4 pt-3">
+          <div className="rounded-2xl border border-border bg-card p-3">
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <p className="text-[10px] text-muted-foreground">Main Wallet</p>
+                <p className="text-sm font-semibold tabular-nums">
+                  {fmtNGN(mainNGN, 2)}
+                </p>
+              </div>
+              <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
+              <div className="flex-1">
+                <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                  <Wallet className="h-3 w-3" /> Futures Wallet
+                </p>
+                <p className="text-sm font-semibold tabular-nums text-primary">
+                  {fmtNGN(futuresNGN, 2)}
+                </p>
+              </div>
+              <Button
+                size="sm"
+                className="h-8 text-xs"
+                onClick={() => setTransferOpen(true)}
+              >
+                Transfer
+              </Button>
+            </div>
+            {futuresNGN <= 0 && (
+              <p className="text-[10px] text-muted-foreground mt-2">
+                Move Naira into your Futures Wallet to start trading.
+              </p>
+            )}
+          </div>
+        </div>
+
 
         {/* Chart */}
         <div className="px-4 pt-3">
