@@ -250,10 +250,31 @@ const Futures = () => {
 
   const openPosition = () => {
     if (marginNGN <= 0) return toast.error("Enter an amount");
-    if (marginNGN > balanceNGN) return toast.error("Insufficient balance");
+    if (marginNGN + fee > balanceNGN)
+      return toast.error("Insufficient Futures Wallet balance");
     if (marginNGN < 0.5 * NGN_PER_USD)
       return toast.error(`Minimum margin is ${fmtNGN(0.5 * NGN_PER_USD, 0)}`);
-    setUsdcBalance(getUsdcBalance() - (marginNGN + fee) / NGN_PER_USD);
+
+    if (orderType === "limit") {
+      debitFutures(marginNGN + fee);
+      const ord: OpenOrder = {
+        id: "ORD-" + Date.now().toString(36).toUpperCase(),
+        symbol: pair.symbol,
+        side,
+        leverage,
+        price: entry,
+        margin: marginNGN,
+        mode: marginMode,
+        at: Date.now(),
+      };
+      persistOrders([ord, ...orders]);
+      setAmount("");
+      setTab("orders");
+      toast.success(`Limit ${side} placed at ${fmtNGN(entry, 0)}`);
+      return;
+    }
+
+    debitFutures(marginNGN + fee);
     const pos: Position = {
       id: "FUT-" + Date.now().toString(36).toUpperCase(),
       symbol: pair.symbol,
@@ -274,26 +295,57 @@ const Futures = () => {
     );
   };
 
+  const cancelOrder = (o: OpenOrder) => {
+    creditFutures(o.margin);
+    persistOrders(orders.filter((x) => x.id !== o.id));
+    toast.success("Order cancelled");
+  };
+
+  const fillOrder = (o: OpenOrder) => {
+    const pos: Position = {
+      id: "FUT-" + Date.now().toString(36).toUpperCase(),
+      symbol: o.symbol,
+      side: o.side,
+      leverage: o.leverage,
+      entry: o.price,
+      size: o.margin * o.leverage,
+      margin: o.margin,
+      liq:
+        o.side === "long"
+          ? o.price * (1 - 1 / o.leverage)
+          : o.price * (1 + 1 / o.leverage),
+      mode: o.mode,
+      at: Date.now(),
+    };
+    persist([pos, ...positions]);
+    persistOrders(orders.filter((x) => x.id !== o.id));
+    setTab("positions");
+    toast.success("Limit order filled");
+  };
+
   const closePosition = (p: Position) => {
     const pnl = pnlOf(p);
     const closeFee = p.size * 0.0006;
     const proceeds = Math.max(0, p.margin + pnl - closeFee);
-    setUsdcBalance(getUsdcBalance() + proceeds / NGN_PER_USD);
+    creditFutures(proceeds);
     persist(positions.filter((x) => x.id !== p.id));
+    const entryRec: HistoryEntry = {
+      id: p.id,
+      symbol: p.symbol,
+      side: p.side,
+      leverage: p.leverage,
+      entry: p.entry,
+      exit: priceOf(PAIRS.find((x) => x.symbol === p.symbol) || pair),
+      proceeds,
+      pnl: pnl - closeFee,
+      at: Date.now(),
+    };
     try {
-      const hist = JSON.parse(localStorage.getItem(HIST_KEY) || "[]");
-      hist.unshift({
-        id: p.id,
-        symbol: p.symbol,
-        side: p.side,
-        leverage: p.leverage,
-        entry: p.entry,
-        exit: priceOf(PAIRS.find((x) => x.symbol === p.symbol) || pair),
-        proceeds,
-        pnl: pnl - closeFee,
-        at: Date.now(),
-      });
-      localStorage.setItem(HIST_KEY, JSON.stringify(hist.slice(0, 100)));
+      const hist = readHistory();
+      hist.unshift(entryRec);
+      const trimmed = hist.slice(0, 100);
+      localStorage.setItem(HIST_KEY, JSON.stringify(trimmed));
+      setHistory(trimmed);
     } catch {}
     setRealized((r) => r + pnl - closeFee);
     toast.success(`Position closed · ${pnl >= 0 ? "+" : ""}${fmtNGN(pnl)}`);
@@ -307,6 +359,24 @@ const Futures = () => {
       });
     }
   };
+
+  const doTransfer = () => {
+    const v = parseFloat(transferAmt) || 0;
+    try {
+      if (transferDir === "toFutures") transferToFutures(v);
+      else transferToMain(v);
+      toast.success(
+        `${fmtNGN(v)} moved to ${
+          transferDir === "toFutures" ? "Futures Wallet" : "Main Wallet"
+        }`
+      );
+      setTransferAmt("");
+      setTransferOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Transfer failed");
+    }
+  };
+
 
   const saveTpSl = () => {
     if (!tpslFor) return;
