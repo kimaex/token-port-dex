@@ -11,11 +11,26 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { ChevronDown, Search, TrendingUp, TrendingDown, X } from "lucide-react";
+import {
+  ChevronDown,
+  Search,
+  TrendingUp,
+  TrendingDown,
+  ArrowLeftRight,
+  Wallet,
+} from "lucide-react";
 import { toast } from "sonner";
-import { getUsdcBalance, setUsdcBalance, usePortfolio } from "@/lib/portfolioStore";
+import { usePortfolio } from "@/lib/portfolioStore";
 import { NGN_PER_USD, fmtNGN } from "@/lib/naira";
+import {
+  useFuturesWallet,
+  creditFutures,
+  debitFutures,
+  transferToFutures,
+  transferToMain,
+} from "@/lib/futuresWallet";
 import { WinningPoster, PosterData } from "@/components/WinningPoster";
+
 
 interface Pair {
   symbol: string;
@@ -52,8 +67,21 @@ interface Position {
   at: number;
 }
 
+interface OpenOrder {
+  id: string;
+  symbol: string;
+  side: "long" | "short";
+  leverage: number;
+  price: number;
+  margin: number;
+  mode: "cross" | "isolated";
+  at: number;
+}
+
 const POS_KEY = "futures_positions";
 const HIST_KEY = "futures_history";
+const ORD_KEY = "futures_open_orders";
+const MODE_KEY = "kimaex_futures_ui_mode";
 
 const readPositions = (): Position[] => {
   try {
@@ -63,8 +91,40 @@ const readPositions = (): Position[] => {
   }
 };
 
+const readOrders = (): OpenOrder[] => {
+  try {
+    return JSON.parse(localStorage.getItem(ORD_KEY) || "[]");
+  } catch {
+    return [];
+  }
+};
+
+interface HistoryEntry {
+  id: string;
+  symbol: string;
+  side: "long" | "short";
+  leverage: number;
+  entry: number;
+  exit: number;
+  proceeds: number;
+  pnl: number;
+  at: number;
+}
+
+const readHistory = (): HistoryEntry[] => {
+  try {
+    return JSON.parse(localStorage.getItem(HIST_KEY) || "[]");
+  } catch {
+    return [];
+  }
+};
+
 const Futures = () => {
-  const { usdc } = usePortfolio();
+  usePortfolio();
+  const { futuresNGN, mainNGN } = useFuturesWallet();
+  const [uiMode, setUiMode] = useState<"simple" | "pro">(
+    () => (localStorage.getItem(MODE_KEY) as "simple" | "pro") || "simple"
+  );
   const [pair, setPair] = useState<Pair>(PAIRS[0]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -73,25 +133,34 @@ const Futures = () => {
   const [leverage, setLeverage] = useState(20);
   const [limitPrice, setLimitPrice] = useState("");
   const [amount, setAmount] = useState(""); // margin in NGN
-  const [tab, setTab] = useState<"positions" | "orders">("positions");
+  const [tab, setTab] = useState<"positions" | "orders" | "history">("positions");
   const [positions, setPositions] = useState<Position[]>(readPositions);
+  const [orders, setOrders] = useState<OpenOrder[]>(readOrders);
+  const [history, setHistory] = useState<HistoryEntry[]>(readHistory);
   const [tick, setTick] = useState(0);
   const [marginMode, setMarginMode] = useState<"cross" | "isolated">("cross");
   const [poster, setPoster] = useState<PosterData | null>(null);
-  const [realized, setRealized] = useState<number>(() => {
-    try {
-      return (JSON.parse(localStorage.getItem(HIST_KEY) || "[]") as { pnl: number }[]).reduce(
-        (a, h) => a + (h.pnl || 0),
-        0
-      );
-    } catch {
-      return 0;
-    }
-  });
+  const [transferOpen, setTransferOpen] = useState(false);
+  const [transferDir, setTransferDir] = useState<"toFutures" | "toMain">("toFutures");
+  const [transferAmt, setTransferAmt] = useState("");
+  const [realized, setRealized] = useState<number>(() =>
+    readHistory().reduce((a, h) => a + (h.pnl || 0), 0)
+  );
   const [tpslFor, setTpslFor] = useState<Position | null>(null);
   const [tpInput, setTpInput] = useState("");
   const [slInput, setSlInput] = useState("");
   const driftRef = useRef<Record<string, number>>({});
+
+  const pro = uiMode === "pro";
+
+  useEffect(() => {
+    localStorage.setItem(MODE_KEY, uiMode);
+    if (uiMode === "simple") {
+      setOrderType("market");
+      setMarginMode("cross");
+      if (tab === "orders") setTab("positions");
+    }
+  }, [uiMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // live-ish price drift
   useEffect(() => {
@@ -109,12 +178,24 @@ const Futures = () => {
     p.usd * NGN_PER_USD * (1 + (driftRef.current[p.symbol] ?? 0));
 
   const mark = priceOf(pair);
-  const balanceNGN = usdc * NGN_PER_USD;
+  const balanceNGN = futuresNGN;
+
+  /** Funding rate per 8h, drifts slightly with the market. */
+  const fundingRate = useMemo(
+    () => (pair.change / 100) * 0.012 + 0.0001,
+    [pair]
+  );
 
   const persist = (next: Position[]) => {
     setPositions(next);
     localStorage.setItem(POS_KEY, JSON.stringify(next));
   };
+
+  const persistOrders = (next: OpenOrder[]) => {
+    setOrders(next);
+    localStorage.setItem(ORD_KEY, JSON.stringify(next));
+  };
+
 
   const series = useMemo(() => {
     const pts: number[] = [];
@@ -169,10 +250,31 @@ const Futures = () => {
 
   const openPosition = () => {
     if (marginNGN <= 0) return toast.error("Enter an amount");
-    if (marginNGN > balanceNGN) return toast.error("Insufficient balance");
+    if (marginNGN + fee > balanceNGN)
+      return toast.error("Insufficient Futures Wallet balance");
     if (marginNGN < 0.5 * NGN_PER_USD)
       return toast.error(`Minimum margin is ${fmtNGN(0.5 * NGN_PER_USD, 0)}`);
-    setUsdcBalance(getUsdcBalance() - (marginNGN + fee) / NGN_PER_USD);
+
+    if (orderType === "limit") {
+      debitFutures(marginNGN + fee);
+      const ord: OpenOrder = {
+        id: "ORD-" + Date.now().toString(36).toUpperCase(),
+        symbol: pair.symbol,
+        side,
+        leverage,
+        price: entry,
+        margin: marginNGN,
+        mode: marginMode,
+        at: Date.now(),
+      };
+      persistOrders([ord, ...orders]);
+      setAmount("");
+      setTab("orders");
+      toast.success(`Limit ${side} placed at ${fmtNGN(entry, 0)}`);
+      return;
+    }
+
+    debitFutures(marginNGN + fee);
     const pos: Position = {
       id: "FUT-" + Date.now().toString(36).toUpperCase(),
       symbol: pair.symbol,
@@ -193,26 +295,57 @@ const Futures = () => {
     );
   };
 
+  const cancelOrder = (o: OpenOrder) => {
+    creditFutures(o.margin);
+    persistOrders(orders.filter((x) => x.id !== o.id));
+    toast.success("Order cancelled");
+  };
+
+  const fillOrder = (o: OpenOrder) => {
+    const pos: Position = {
+      id: "FUT-" + Date.now().toString(36).toUpperCase(),
+      symbol: o.symbol,
+      side: o.side,
+      leverage: o.leverage,
+      entry: o.price,
+      size: o.margin * o.leverage,
+      margin: o.margin,
+      liq:
+        o.side === "long"
+          ? o.price * (1 - 1 / o.leverage)
+          : o.price * (1 + 1 / o.leverage),
+      mode: o.mode,
+      at: Date.now(),
+    };
+    persist([pos, ...positions]);
+    persistOrders(orders.filter((x) => x.id !== o.id));
+    setTab("positions");
+    toast.success("Limit order filled");
+  };
+
   const closePosition = (p: Position) => {
     const pnl = pnlOf(p);
     const closeFee = p.size * 0.0006;
     const proceeds = Math.max(0, p.margin + pnl - closeFee);
-    setUsdcBalance(getUsdcBalance() + proceeds / NGN_PER_USD);
+    creditFutures(proceeds);
     persist(positions.filter((x) => x.id !== p.id));
+    const entryRec: HistoryEntry = {
+      id: p.id,
+      symbol: p.symbol,
+      side: p.side,
+      leverage: p.leverage,
+      entry: p.entry,
+      exit: priceOf(PAIRS.find((x) => x.symbol === p.symbol) || pair),
+      proceeds,
+      pnl: pnl - closeFee,
+      at: Date.now(),
+    };
     try {
-      const hist = JSON.parse(localStorage.getItem(HIST_KEY) || "[]");
-      hist.unshift({
-        id: p.id,
-        symbol: p.symbol,
-        side: p.side,
-        leverage: p.leverage,
-        entry: p.entry,
-        exit: priceOf(PAIRS.find((x) => x.symbol === p.symbol) || pair),
-        proceeds,
-        pnl: pnl - closeFee,
-        at: Date.now(),
-      });
-      localStorage.setItem(HIST_KEY, JSON.stringify(hist.slice(0, 100)));
+      const hist = readHistory();
+      hist.unshift(entryRec);
+      const trimmed = hist.slice(0, 100);
+      localStorage.setItem(HIST_KEY, JSON.stringify(trimmed));
+      setHistory(trimmed);
     } catch {}
     setRealized((r) => r + pnl - closeFee);
     toast.success(`Position closed · ${pnl >= 0 ? "+" : ""}${fmtNGN(pnl)}`);
@@ -226,6 +359,24 @@ const Futures = () => {
       });
     }
   };
+
+  const doTransfer = () => {
+    const v = parseFloat(transferAmt) || 0;
+    try {
+      if (transferDir === "toFutures") transferToFutures(v);
+      else transferToMain(v);
+      toast.success(
+        `${fmtNGN(v)} moved to ${
+          transferDir === "toFutures" ? "Futures Wallet" : "Main Wallet"
+        }`
+      );
+      setTransferAmt("");
+      setTransferOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Transfer failed");
+    }
+  };
+
 
   const saveTpSl = () => {
     if (!tpslFor) return;
@@ -271,11 +422,20 @@ const Futures = () => {
               </Badge>
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </button>
-            <div className="text-right">
-              <p className="text-xs text-muted-foreground">Balance</p>
-              <p className="text-sm font-semibold tabular-nums">
-                {fmtNGN(balanceNGN, 0)}
-              </p>
+            <div className="flex p-0.5 rounded-lg bg-muted">
+              {(["simple", "pro"] as const).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setUiMode(m)}
+                  className={`px-3 h-7 rounded-md text-[11px] font-semibold capitalize transition-colors ${
+                    uiMode === m
+                      ? "bg-card text-foreground shadow-card"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  {m} mode
+                </button>
+              ))}
             </div>
           </div>
           <div className="flex items-end gap-3 mt-2">
@@ -294,8 +454,57 @@ const Futures = () => {
               {up ? "+" : ""}
               {pair.change.toFixed(2)}%
             </span>
+            {pro && (
+              <span className="text-[10px] text-muted-foreground mb-1 ml-auto">
+                Funding{" "}
+                <span
+                  className={
+                    fundingRate >= 0 ? "text-emerald-500" : "text-rose-500"
+                  }
+                >
+                  {(fundingRate * 100).toFixed(4)}%
+                </span>{" "}
+                / 8h
+              </span>
+            )}
           </div>
         </div>
+
+        {/* Wallets + transfer */}
+        <div className="px-4 pt-3">
+          <div className="rounded-2xl border border-border bg-card p-3">
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <p className="text-[10px] text-muted-foreground">Main Wallet</p>
+                <p className="text-sm font-semibold tabular-nums">
+                  {fmtNGN(mainNGN, 2)}
+                </p>
+              </div>
+              <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
+              <div className="flex-1">
+                <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                  <Wallet className="h-3 w-3" /> Futures Wallet
+                </p>
+                <p className="text-sm font-semibold tabular-nums text-primary">
+                  {fmtNGN(futuresNGN, 2)}
+                </p>
+              </div>
+              <Button
+                size="sm"
+                className="h-8 text-xs"
+                onClick={() => setTransferOpen(true)}
+              >
+                Transfer
+              </Button>
+            </div>
+            {futuresNGN <= 0 && (
+              <p className="text-[10px] text-muted-foreground mt-2">
+                Move Naira into your Futures Wallet to start trading.
+              </p>
+            )}
+          </div>
+        </div>
+
 
         {/* Chart */}
         <div className="px-4 pt-3">
@@ -345,23 +554,25 @@ const Futures = () => {
         </div>
 
         {/* Order entry + book */}
-        <div className="px-4 pt-3 grid grid-cols-5 gap-3">
-          <div className="col-span-3 space-y-3">
-            <div className="grid grid-cols-2 gap-2 p-1 rounded-lg bg-muted">
-              {(["cross", "isolated"] as const).map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setMarginMode(m)}
-                  className={`h-8 rounded-md text-xs font-semibold capitalize transition-colors ${
-                    marginMode === m
-                      ? "bg-card text-foreground shadow-card"
-                      : "text-muted-foreground"
-                  }`}
-                >
-                  {m} margin
-                </button>
-              ))}
-            </div>
+        <div className={`px-4 pt-3 grid gap-3 ${pro ? "grid-cols-5" : "grid-cols-1"}`}>
+          <div className={`space-y-3 ${pro ? "col-span-3" : ""}`}>
+            {pro && (
+              <div className="grid grid-cols-2 gap-2 p-1 rounded-lg bg-muted">
+                {(["cross", "isolated"] as const).map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setMarginMode(m)}
+                    className={`h-8 rounded-md text-xs font-semibold capitalize transition-colors ${
+                      marginMode === m
+                        ? "bg-card text-foreground shadow-card"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    {m} margin
+                  </button>
+                ))}
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-2">
               <button
@@ -372,7 +583,7 @@ const Futures = () => {
                     : "bg-muted text-muted-foreground"
                 }`}
               >
-                Long
+                {pro ? "Long" : "Up / Long"}
               </button>
               <button
                 onClick={() => setSide("short")}
@@ -382,27 +593,29 @@ const Futures = () => {
                     : "bg-muted text-muted-foreground"
                 }`}
               >
-                Short
+                {pro ? "Short" : "Down / Short"}
               </button>
             </div>
 
-            <div className="flex gap-3 text-xs">
-              {(["market", "limit"] as const).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setOrderType(t)}
-                  className={`capitalize pb-1 border-b-2 ${
-                    orderType === t
-                      ? "border-primary text-foreground font-semibold"
-                      : "border-transparent text-muted-foreground"
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
+            {pro && (
+              <div className="flex gap-3 text-xs">
+                {(["market", "limit"] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setOrderType(t)}
+                    className={`capitalize pb-1 border-b-2 ${
+                      orderType === t
+                        ? "border-primary text-foreground font-semibold"
+                        : "border-transparent text-muted-foreground"
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            )}
 
-            {orderType === "limit" && (
+            {pro && orderType === "limit" && (
               <div>
                 <label className="text-[11px] text-muted-foreground">
                   Limit price (₦)
@@ -419,7 +632,7 @@ const Futures = () => {
 
             <div>
               <label className="text-[11px] text-muted-foreground">
-                Margin (₦)
+                Margin (₦ from Futures Wallet)
               </label>
               <Input
                 inputMode="decimal"
@@ -452,42 +665,69 @@ const Futures = () => {
                   {leverage}x
                 </span>
               </div>
-              <Slider
-                value={[LEVERAGES.indexOf(leverage) < 0 ? 4 : LEVERAGES.indexOf(leverage)]}
-                min={0}
-                max={LEVERAGES.length - 1}
-                step={1}
-                onValueChange={(v) => setLeverage(LEVERAGES[v[0]])}
-              />
-              <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
-                <span>1x</span>
-                <span>125x</span>
-              </div>
+              {pro ? (
+                <>
+                  <Slider
+                    value={[
+                      LEVERAGES.indexOf(leverage) < 0
+                        ? 4
+                        : LEVERAGES.indexOf(leverage),
+                    ]}
+                    min={0}
+                    max={LEVERAGES.length - 1}
+                    step={1}
+                    onValueChange={(v) => setLeverage(LEVERAGES[v[0]])}
+                  />
+                  <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+                    <span>1x</span>
+                    <span>125x</span>
+                  </div>
+                </>
+              ) : (
+                <div className="flex gap-2">
+                  {[2, 5, 10, 20].map((l) => (
+                    <button
+                      key={l}
+                      onClick={() => setLeverage(l)}
+                      className={`flex-1 h-9 rounded-lg text-xs font-semibold ${
+                        leverage === l
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {l}x
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Order book */}
-          <div className="col-span-2">
-            <p className="text-[10px] text-muted-foreground mb-1">Order book</p>
-            <div className="space-y-0.5">
-              {book.asks.map((a, i) => (
-                <div key={i} className="flex justify-between text-[10px] tabular-nums">
-                  <span className="text-rose-500">{fmtNGN(a.price, 0)}</span>
-                  <span className="text-muted-foreground">{a.size.toFixed(2)}</span>
+          {pro && (
+            <div className="col-span-2">
+              <p className="text-[10px] text-muted-foreground mb-1">Order book</p>
+              <div className="space-y-0.5">
+                {book.asks.map((a, i) => (
+                  <div key={i} className="flex justify-between text-[10px] tabular-nums">
+                    <span className="text-rose-500">{fmtNGN(a.price, 0)}</span>
+                    <span className="text-muted-foreground">{a.size.toFixed(2)}</span>
+                  </div>
+                ))}
+                <div className="py-1 text-xs font-bold tabular-nums text-center">
+                  {fmtNGN(mark, 0)}
                 </div>
-              ))}
-              <div className="py-1 text-xs font-bold tabular-nums text-center">
-                {fmtNGN(mark, 0)}
+                {book.bids.map((b, i) => (
+                  <div key={i} className="flex justify-between text-[10px] tabular-nums">
+                    <span className="text-emerald-500">{fmtNGN(b.price, 0)}</span>
+                    <span className="text-muted-foreground">{b.size.toFixed(2)}</span>
+                  </div>
+                ))}
               </div>
-              {book.bids.map((b, i) => (
-                <div key={i} className="flex justify-between text-[10px] tabular-nums">
-                  <span className="text-emerald-500">{fmtNGN(b.price, 0)}</span>
-                  <span className="text-muted-foreground">{b.size.toFixed(2)}</span>
-                </div>
-              ))}
             </div>
-          </div>
+          )}
         </div>
+
 
         {/* Summary + submit */}
         <div className="px-4 pt-3 space-y-1 text-[11px] text-muted-foreground">
