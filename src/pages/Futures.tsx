@@ -935,11 +935,97 @@ const Futures = () => {
                 })}
               </div>
             )
-          ) : (
+          ) : tab === "orders" ? (
+            orders.length === 0 ? (
+              <p className="text-center text-sm text-muted-foreground py-10">
+                No open orders
+              </p>
+            ) : (
+              <div className="space-y-3 pt-3">
+                {orders.map((o) => (
+                  <div key={o.id} className="rounded-xl border border-border bg-card p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold">{o.symbol}</span>
+                        <Badge
+                          className={`text-[10px] border-0 ${
+                            o.side === "long"
+                              ? "bg-emerald-500/15 text-emerald-500"
+                              : "bg-rose-500/15 text-rose-500"
+                          }`}
+                        >
+                          {o.side === "long" ? "Long" : "Short"} {o.leverage}x
+                        </Badge>
+                        <Badge variant="outline" className="text-[10px]">
+                          Limit
+                        </Badge>
+                      </div>
+                      <p className="text-sm font-semibold tabular-nums">
+                        {fmtNGN(o.price, 0)}
+                      </p>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-1 tabular-nums">
+                      Margin {fmtNGN(o.margin, 0)} · Order value{" "}
+                      {fmtNGN(o.margin * o.leverage, 0)}
+                    </p>
+                    <div className="flex gap-2 mt-3">
+                      <Button
+                        variant="secondary"
+                        className="flex-1 h-9 text-xs"
+                        onClick={() => cancelOrder(o)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        className="flex-1 h-9 text-xs"
+                        onClick={() => fillOrder(o)}
+                      >
+                        Fill now
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          ) : history.length === 0 ? (
             <p className="text-center text-sm text-muted-foreground py-10">
-              No open orders
+              No order history yet
             </p>
+          ) : (
+            <div className="space-y-3 pt-3">
+              {history.map((h) => (
+                <div key={h.id + h.at} className="rounded-xl border border-border bg-card p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold">{h.symbol}</span>
+                      <Badge
+                        className={`text-[10px] border-0 ${
+                          h.side === "long"
+                            ? "bg-emerald-500/15 text-emerald-500"
+                            : "bg-rose-500/15 text-rose-500"
+                        }`}
+                      >
+                        {h.side === "long" ? "Long" : "Short"} {h.leverage}x
+                      </Badge>
+                    </div>
+                    <p
+                      className={`text-sm font-bold tabular-nums ${
+                        h.pnl >= 0 ? "text-emerald-500" : "text-rose-500"
+                      }`}
+                    >
+                      {h.pnl >= 0 ? "+" : ""}
+                      {fmtNGN(h.pnl)}
+                    </p>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-1 tabular-nums">
+                    Entry {fmtNGN(h.entry, 0)} → Exit {fmtNGN(h.exit, 0)} ·{" "}
+                    {new Date(h.at).toLocaleString()}
+                  </p>
+                </div>
+              ))}
+            </div>
           )}
+
         </div>
 
         <BottomNav />
