@@ -769,53 +769,13 @@ const Futures = () => {
           </Button>
         </div>
 
-        {/* P&L summary */}
-        <div className="px-4 pt-5">
-          <div className="rounded-2xl border border-border bg-card p-4">
-            <p className="text-xs text-muted-foreground mb-3">Profit & Loss</p>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <p className="text-[11px] text-muted-foreground">Unrealized P&L</p>
-                <p
-                  className={`text-lg font-bold tabular-nums ${
-                    unrealized >= 0 ? "text-emerald-500" : "text-rose-500"
-                  }`}
-                >
-                  {unrealized >= 0 ? "+" : ""}
-                  {fmtNGN(unrealized)}
-                </p>
-              </div>
-              <div>
-                <p className="text-[11px] text-muted-foreground">Realized P&L</p>
-                <p
-                  className={`text-lg font-bold tabular-nums ${
-                    realized >= 0 ? "text-emerald-500" : "text-rose-500"
-                  }`}
-                >
-                  {realized >= 0 ? "+" : ""}
-                  {fmtNGN(realized)}
-                </p>
-              </div>
-              <div>
-                <p className="text-[11px] text-muted-foreground">Total margin</p>
-                <p className="text-sm font-semibold tabular-nums">
-                  {fmtNGN(totalMargin)}
-                </p>
-              </div>
-              <div>
-                <p className="text-[11px] text-muted-foreground">Position size</p>
-                <p className="text-sm font-semibold tabular-nums">
-                  {fmtNGN(totalSize)}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Positions */}
         <div className="px-4 pt-5">
           <div className="flex gap-4 border-b border-border">
-            {(["positions", "orders"] as const).map((t) => (
+            {(pro
+              ? (["positions", "orders", "history"] as const)
+              : (["positions", "history"] as const)
+            ).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
@@ -825,10 +785,15 @@ const Futures = () => {
                     : "border-transparent text-muted-foreground"
                 }`}
               >
-                {t === "positions" ? `Positions (${positions.length})` : "Open orders"}
+                {t === "positions"
+                  ? `Positions (${positions.length})`
+                  : t === "orders"
+                  ? `Open orders (${orders.length})`
+                  : "Order history"}
               </button>
             ))}
           </div>
+
 
           {tab === "positions" ? (
             positions.length === 0 ? (
