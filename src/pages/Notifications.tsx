@@ -2,6 +2,7 @@ import { ArrowLeft, Bell, CheckCircle, AlertCircle, Info, Trash2 } from "lucide-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { getNotifs, saveNotifs, getSettings } from "@/lib/kimaout";
 
 
 interface Notification {
@@ -50,6 +51,8 @@ const Notifications = () => {
     },
   ]);
 
+  const [kNotifs, setK] = useState(() => (getSettings().muteAll ? [] : getNotifs()));
+  const dropK = (id: string) => { const n = getNotifs().filter((x) => x.id !== id); saveNotifs(n); setK(n); };
   const getIcon = (type: string) => {
     switch (type) {
       case "success":
@@ -90,6 +93,19 @@ const Notifications = () => {
       </div>
 
       <div className="p-4 space-y-3">
+        {kNotifs.map((k) => (
+          <div key={k.id} className="p-4 rounded-xl border bg-primary/5 border-primary/20">
+            <div className="flex justify-between gap-2">
+              <h3 className="font-medium text-foreground">📣 @{k.user} KimaOut</h3>
+              <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground" onClick={() => dropK(k.id)}><Trash2 className="h-4 w-4" /></Button>
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">{k.text}</p>
+            <div className="flex gap-2 mt-3">
+              <Button size="sm" variant="outline" onClick={() => navigate(`/kimaout/u/${k.user}`)}>View KimaOut</Button>
+              <Button size="sm" onClick={() => navigate(k.route)}>Trade</Button>
+            </div>
+          </div>
+        ))}
         {notifications.length === 0 ? (
           <div className="text-center py-12">
             <Bell className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
