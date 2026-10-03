@@ -1,3 +1,4 @@
+import { autoShareFutures } from "@/lib/kimaout";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
