@@ -7,6 +7,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import { viralShare } from "@/lib/viralShare";
+import { Switch } from "@/components/ui/switch";
+import { Settings as Cog, Bell } from "lucide-react";
+import { getSettings, saveSettings, getSubs, setSubs, getNotifs, saveNotifs, shouldNotify, traderAutoShare, type KimaOutSettings, type NotifKind } from "@/lib/kimaout";
 
 type CallType = "MEME" | "LONG" | "SHORT";
 interface Comment { user: string; text: string; ts: number }
@@ -14,6 +17,7 @@ interface Call {
   id: string; user: string; type: CallType; token: string;
   entry: number; target: number; stop: number; leverage: number;
   note: string; createdAt: number; likes: string[]; comments: Comment[]; shares: number;
+  auto?: "swap" | "futures"; ngn?: boolean; route?: string;
 }
 
 const ME = "you";
@@ -49,6 +53,7 @@ const perf = (c: Call) => {
   return { price: p, roi, status: hitTarget ? "Target Hit" : hitStop ? "Stopped" : "Live" };
 };
 
+const fmtN = (n: number) => `₦${n < 1 ? n.toPrecision(3) : n.toLocaleString(undefined, { maximumFractionDigits: n < 100 ? 2 : 0 })}`;
 const fmt = (n: number) => n < 0.01 ? `$${n.toPrecision(3)}` : `$${n.toLocaleString(undefined, { maximumFractionDigits: n < 10 ? 4 : 2 })}`;
 const ago = (t: number) => { const s = (Date.now() - t) / 1000; if (s < 3600) return `${Math.max(1, Math.floor(s / 60))}m`; if (s < 86400) return `${Math.floor(s / 3600)}h`; return `${Math.floor(s / 86400)}d`; };
 
@@ -91,7 +96,32 @@ export default function KimaOut() {
   const toggleLike = (c: Call) => updateSocial(c.id, (x) => ({ likes: x.likes.includes(ME) ? x.likes.filter((u) => u !== ME) : [...x.likes, ME] }));
   const toggleFollow = (u: string) => setFollows((f) => (f.includes(u) ? f.filter((x) => x !== u) : [...f, u]));
   const share = (c: Call) => { updateSocial(c.id, (x) => ({ shares: x.shares + 1 })); viralShare(`📣 KimaOut: ${c.type} $${c.token} @ ${fmt(c.entry)} → target ${fmt(c.target)} by @${c.user}`); };
-  const tradeNow = (c: Call) => navigate(c.type === "MEME" ? "/swap" : "/futures");
+  const tradeNow = (c: Call) => navigate(c.route || (c.type === "MEME" ? "/swap" : "/futures"));
+  const [subs, setSubsState] = useState<string[]>(getSubs);
+  const [settings, setSettingsState] = useState<KimaOutSettings>(getSettings);
+  const updSettings = (s: KimaOutSettings) => { setSettingsState(s); saveSettings(s); };
+  const toggleSub = (u: string) => { const n = subs.includes(u) ? subs.filter((x) => x !== u) : [...subs, u]; setSubsState(n); setSubs(n); };
+  // Simulated activity from followed traders: notify only if trader Auto Share ON AND follower follows + Trade Notifications ON.
+  useEffect(() => {
+    const t = setInterval(() => {
+      const pool = follows.filter((u) => u !== ME);
+      if (!pool.length) return;
+      const u = pool[Math.floor(Math.random() * pool.length)];
+      if (!traderAutoShare(u)) return;
+      const fut = Math.random() < 0.5; const kind: NotifKind = fut ? "futures" : "swap";
+      const token = fut ? PERPS[Math.floor(Math.random() * 3)] : MEMES[Math.floor(Math.random() * MEMES.length)];
+      const long = Math.random() < 0.6; const entry = PRICES[token] * 1550; const lev = fut ? [5, 10, 20][Math.floor(Math.random() * 3)] : 1;
+      const c: Call = { id: `auto${Date.now()}`, user: u, type: fut ? (long ? "LONG" : "SHORT") : "MEME", token, entry, target: entry * (fut ? (long ? 1.1 : 0.9) : 1.5), stop: entry * (fut ? (long ? 0.95 : 1.05) : 0.7), leverage: lev, note: fut ? `opened a ${long ? "LONG" : "SHORT"} · ${token}/NGN PERP` : `swapped into $${token}`, createdAt: Date.now(), likes: [], comments: [], shares: 0, auto: kind, ngn: true, route: fut ? "/futures" : "/swap" };
+      setCalls((cs) => [c, ...cs]);
+      const s = getSettings();
+      if (shouldNotify(true, true, getSubs().includes(u), s, kind)) {
+        const text = fut ? `Opened a ${long ? "LONG" : "SHORT"} on ${token}/NGN PERP at ${fmtN(entry)}.` : `Bought $${token} at ${fmtN(entry)}.`;
+        saveNotifs([{ id: c.id, user: u, kind, text, callId: c.id, route: c.route!, ts: Date.now(), read: false }, ...getNotifs()]);
+        toast(`📣 @${u} KimaOut`, { description: text, action: { label: "Trade", onClick: () => navigate(c.route!) } });
+      }
+    }, 45000);
+    return () => clearInterval(t);
+  }, [follows]);
 
   const callers = useMemo(() => {
     const m: Record<string, { user: string; calls: number; wins: number; avg: number }> = {};
@@ -104,6 +134,7 @@ export default function KimaOut() {
 
   const CallCard = ({ c }: { c: Call }) => {
     const p = perf(c);
+    const F = c.ngn ? fmtN : fmt;
     const up = p.roi >= 0;
     return (
       <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
@@ -128,9 +159,9 @@ export default function KimaOut() {
           <span className="font-bold">${c.token}{c.type !== "MEME" && <span className="text-muted-foreground text-xs font-normal"> PERP · {c.leverage}x</span>}</span>
           <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${p.status === "Target Hit" ? "bg-success/15 text-success" : p.status === "Stopped" ? "bg-destructive/15 text-destructive" : "bg-muted text-muted-foreground"}`}>{p.status}</span>
         </div>
-        {c.note && <p className="text-sm">{c.note}</p>}
+        {c.auto ? <p className="text-sm"><span className="text-primary font-semibold">📣 @{c.user}</span> {c.note}{c.type !== "MEME" && <> · {c.leverage}x</>}</p> : c.note && <p className="text-sm">{c.note}</p>}
         <div className="grid grid-cols-4 gap-2 text-center bg-muted/40 rounded-xl p-2">
-          {[["Entry", fmt(c.entry)], ["Target", fmt(c.target)], ["Stop", fmt(c.stop)], ["Now", fmt(p.price)]].map(([l, v]) => (
+          {(c.auto ? [["Entry", F(c.entry)], ["Time", new Date(c.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })], ["Lev", `${c.leverage}x`], ["Now", F(p.price)]] : [["Entry", F(c.entry)], ["Target", F(c.target)], ["Stop", F(c.stop)], ["Now", F(p.price)]]).map(([l, v]) => (
             <div key={l}><p className="text-[10px] text-muted-foreground flex items-center justify-center gap-0.5">{l === "Entry" && <Lock className="h-2.5 w-2.5" />}{l}</p><p className="text-xs font-semibold">{v}</p></div>
           ))}
         </div>
@@ -138,7 +169,7 @@ export default function KimaOut() {
           <span className={`flex items-center gap-1 font-bold ${up ? "text-success" : "text-destructive"}`}>
             {up ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}{up ? "+" : ""}{p.roi.toFixed(2)}% ROI
           </span>
-          <Button size="sm" className="bg-gradient-primary text-primary-foreground shadow-glow h-8" onClick={() => tradeNow(c)}>Trade Now</Button>
+          <Button size="sm" className="bg-gradient-primary text-primary-foreground shadow-glow h-8" onClick={() => tradeNow(c)}>{c.auto === "swap" ? `Trade $${c.token}` : c.auto === "futures" ? "Trade Futures" : "Trade Now"}</Button>
         </div>
         <div className="flex items-center gap-5 text-muted-foreground text-sm border-t border-border pt-2">
           <button className={`flex items-center gap-1 ${c.likes.includes(ME) ? "text-destructive" : ""}`} onClick={() => toggleLike(c)}><Heart className={`h-4 w-4 ${c.likes.includes(ME) ? "fill-current" : ""}`} />{c.likes.length}</button>
@@ -156,11 +187,12 @@ export default function KimaOut() {
       <div className="max-w-md mx-auto pb-28">
         <div className="flex items-center gap-3 p-4 sticky top-0 bg-background/90 backdrop-blur z-10">
           <Button variant="ghost" size="icon" onClick={() => (handle ? navigate("/kimaout") : navigate("/"))}><ArrowLeft className="h-5 w-5" /></Button>
-          <h1 className="text-xl font-bold">KimaOut 📣</h1>
+          <h1 className="text-xl font-bold flex-1">KimaOut 📣</h1>
+          <Button variant="ghost" size="icon" aria-label="KimaOut settings" onClick={() => navigate(`/kimaout/u/${ME}`)}><Cog className="h-5 w-5" /></Button>
         </div>
 
         {handle ? (
-          <Profile handle={handle} calls={sorted.filter((c) => c.user === handle)} stats={callers.find((r) => r.user === handle)} following={follows.includes(handle)} onFollow={() => toggleFollow(handle)} render={(c) => <CallCard key={c.id} c={c} />} />
+          <Profile handle={handle} calls={sorted.filter((c) => c.user === handle)} stats={callers.find((r) => r.user === handle)} following={follows.includes(handle)} onFollow={() => toggleFollow(handle)} subscribed={subs.includes(handle)} onSub={() => toggleSub(handle)} settings={settings} onSettings={updSettings} render={(c) => <CallCard key={c.id} c={c} />} />
         ) : (
           <>
             <div className="flex gap-2 px-4 mb-4">
@@ -266,7 +298,8 @@ function CreateDialog({ open, onOpenChange, onCreate }: { open: boolean; onOpenC
   );
 }
 
-function Profile({ handle, calls, stats, following, onFollow, render }: { handle: string; calls: Call[]; stats?: { calls: number; winRate: number; avg: number }; following: boolean; onFollow: () => void; render: (c: Call) => JSX.Element }) {
+function Profile({ handle, calls, stats, following, onFollow, subscribed, onSub, settings, onSettings, render }: { handle: string; calls: Call[]; stats?: { calls: number; winRate: number; avg: number }; following: boolean; onFollow: () => void; subscribed: boolean; onSub: () => void; settings: KimaOutSettings; onSettings: (s: KimaOutSettings) => void; render: (c: Call) => JSX.Element }) {
+  const kinds: [NotifKind, string][] = [["swap", "Token swaps"], ["futures", "Futures positions"], ["closed", "Position closed"], ["tp", "Take-profit reached"], ["sl", "Stop-loss reached"]];
   const followers = (hash(handle) % 5000) + (following ? 1 : 0);
   return (
     <div className="px-4 space-y-4">
@@ -281,6 +314,29 @@ function Profile({ handle, calls, stats, following, onFollow, render }: { handle
           <div><p className={`font-bold ${(stats?.avg ?? 0) >= 0 ? "text-success" : "text-destructive"}`}>{(stats?.avg ?? 0).toFixed(1)}%</p><p className="text-xs text-muted-foreground">Avg ROI</p></div>
         </div>
       </div>
+      {handle === ME ? (
+        <div className="bg-card border border-border rounded-2xl p-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <div><p className="font-semibold text-sm">📣 Auto Share to KimaOut</p><p className="text-xs text-muted-foreground">{settings.autoShare ? "Swaps & futures positions post automatically" : "Off — you can still share trades manually"}</p></div>
+            <Switch checked={settings.autoShare} onCheckedChange={(v) => { onSettings({ ...settings, autoShare: v }); toast.success(v ? "Auto Share ON" : "Auto Share OFF"); }} />
+          </div>
+          <p className="text-[11px] text-muted-foreground flex gap-1"><Lock className="h-3 w-3 mt-0.5 shrink-0" />Only token, side, entry price, leverage and time are posted. Balances, amounts, bank details and portfolio value are never shared.</p>
+          <div className="border-t border-border pt-3 space-y-2">
+            <p className="text-sm font-semibold flex items-center gap-1"><Bell className="h-4 w-4" />Notifications I receive</p>
+            {kinds.map(([k, l]) => (
+              <label key={k} className={`flex items-center gap-2 text-sm ${settings.muteAll ? "opacity-50" : ""}`}>
+                <input type="checkbox" className="accent-primary h-4 w-4" disabled={settings.muteAll} checked={settings.kinds[k]} onChange={(e) => onSettings({ ...settings, kinds: { ...settings.kinds, [k]: e.target.checked } })} />{l}
+              </label>
+            ))}
+            <div className="flex items-center justify-between pt-2"><span className="text-sm">Mute KimaOut Notifications</span><Switch checked={settings.muteAll} onCheckedChange={(v) => onSettings({ ...settings, muteAll: v })} /></div>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between">
+          <div><p className="font-semibold text-sm">🔔 Trade Notifications</p><p className="text-xs text-muted-foreground">{!following ? "Follow to enable" : !traderAutoShare(handle) ? "This trader has Auto Share off" : "Get alerted when they trade"}</p></div>
+          <Switch disabled={!following} checked={following && subscribed} onCheckedChange={onSub} />
+        </div>
+      )}
       <h2 className="font-semibold">Call history</h2>
       {calls.length === 0 ? <p className="text-sm text-muted-foreground">No calls yet.</p> : <div className="space-y-3">{calls.map(render)}</div>}
     </div>
