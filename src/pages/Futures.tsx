@@ -293,6 +293,7 @@ const Futures = () => {
     toast.success(
       `${side === "long" ? "Long" : "Short"} ${pair.symbol} ${leverage}x opened`
     );
+    if (autoShareFutures(pair.symbol, side as "long" | "short", entry, leverage)) toast("📣 Auto-shared to KimaOut");
   };
 
   const cancelOrder = (o: OpenOrder) => {

@@ -96,6 +96,7 @@ const Swap = () => {
       toast.success(
         `Bought ${receiveQty.toLocaleString(undefined, { maximumFractionDigits: 4 })} ${token.symbol}`
       );
+      if (autoShareSwap(token.symbol, token.priceNGN)) toast("📣 Auto-shared to KimaOut");
     } else {
       if (value > owned) return toast.error(`Not enough ${token.symbol}`);
       saveHoldings({ ...holdings, [token.symbol]: owned - value });
