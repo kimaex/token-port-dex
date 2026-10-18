@@ -16,9 +16,6 @@ export const WalletHeader = () => {
       <div className="flex items-center justify-between mb-8">
         <WalletSelector />
         <div className="flex gap-2">
-          <Button variant="ghost" size="sm" className="rounded-full bg-gradient-primary text-primary-foreground shadow-glow px-3 h-9" onClick={() => navigate("/kimaout")}>
-            📣 KimaOut
-          </Button>
           <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={() => navigate("/scan")}>
             <ScanLine className="h-5 w-5" />
           </Button>
