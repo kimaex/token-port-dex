@@ -255,8 +255,8 @@ const Swap = () => {
             </div>
           </div>
 
-          <Button className="w-full h-12 mt-3 text-base font-semibold" onClick={doSwap}>
-            Swap
+          <Button className="w-full h-12 mt-3 text-base font-semibold" onClick={openReview}>
+            Review Swap
           </Button>
         </div>
 
