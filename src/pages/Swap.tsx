@@ -133,14 +133,6 @@ const Swap = () => {
             <h1 className="text-lg font-bold">Swap</h1>
           </div>
           <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="rounded-full bg-gradient-primary text-primary-foreground shadow-glow px-3 h-9"
-              onClick={() => navigate("/kimaout")}
-            >
-              📣 KimaOut
-            </Button>
             <Button variant="ghost" size="icon" onClick={() => setSlipOpen(true)}>
               <Settings2 className="h-5 w-5 text-muted-foreground" />
             </Button>
