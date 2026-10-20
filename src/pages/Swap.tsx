@@ -43,6 +43,7 @@ export const TOKENS: Token[] = [
   { symbol: "BTC", name: "Bitcoin", emoji: "₿", priceNGN: 152_343_600, change: 2.4, marketCapNGN: 3_000_000_000_000_000 },
   { symbol: "ETH", name: "Ethereum", emoji: "Ξ", priceNGN: 5_245_600, change: -1.1, marketCapNGN: 630_000_000_000_000 },
   { symbol: "SOL", name: "Solana", emoji: "◎", priceNGN: 313_472, change: 4.9, marketCapNGN: 150_000_000_000_000 },
+  { symbol: "NEAR", name: "NEAR Protocol", emoji: "Ⓝ", priceNGN: 8_184, change: 3.2, marketCapNGN: 10_600_000_000_000 },
 ];
 
 const FEE_PCT = 0.02;

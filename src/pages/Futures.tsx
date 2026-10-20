@@ -44,6 +44,7 @@ const PAIRS: Pair[] = [
   { symbol: "BTC/NGN", base: "BTC", usd: 96420, change: 2.41 },
   { symbol: "ETH/NGN", base: "ETH", usd: 3320, change: -1.12 },
   { symbol: "SOL/NGN", base: "SOL", usd: 198.4, change: 4.85 },
+  { symbol: "NEAR/NGN", base: "NEAR", usd: 5.18, change: 3.2 },
   { symbol: "BNB/NGN", base: "BNB", usd: 612.3, change: 0.74 },
   { symbol: "XRP/NGN", base: "XRP", usd: 2.31, change: -2.06 },
   { symbol: "DOGE/NGN", base: "DOGE", usd: 0.3812, change: 5.9 },
