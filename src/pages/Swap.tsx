@@ -89,7 +89,9 @@ const Swap = () => {
     [query]
   );
 
-  const doSwap = () => {
+  const [reviewOpen, setReviewOpen] = useState(false);
+
+  const executeSwap = () => {
     if (ngnValue <= 0) return toast.error("Enter an amount");
     if (direction === "buy") {
       if (ngnValue > balance) return toast.error("Not enough balance");
@@ -106,6 +108,15 @@ const Swap = () => {
       toast.success(`Sold ${token.symbol} for ${fmtNGN(receiveNGN)}`);
     }
     setAmount("");
+    setReviewOpen(false);
+  };
+
+  const openReview = () => {
+    if (ngnValue <= 0) return toast.error("Enter an amount");
+    if (direction === "buy" && ngnValue > balance) return toast.error("Not enough balance");
+    if (direction === "sell" && value > owned)
+      return toast.error(`Not enough ${token.symbol}`);
+    setReviewOpen(true);
   };
 
   const payLabel = direction === "buy" ? "You Pay" : "You Pay";
