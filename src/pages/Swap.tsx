@@ -89,7 +89,9 @@ const Swap = () => {
     [query]
   );
 
-  const doSwap = () => {
+  const [reviewOpen, setReviewOpen] = useState(false);
+
+  const executeSwap = () => {
     if (ngnValue <= 0) return toast.error("Enter an amount");
     if (direction === "buy") {
       if (ngnValue > balance) return toast.error("Not enough balance");
@@ -106,6 +108,15 @@ const Swap = () => {
       toast.success(`Sold ${token.symbol} for ${fmtNGN(receiveNGN)}`);
     }
     setAmount("");
+    setReviewOpen(false);
+  };
+
+  const openReview = () => {
+    if (ngnValue <= 0) return toast.error("Enter an amount");
+    if (direction === "buy" && ngnValue > balance) return toast.error("Not enough balance");
+    if (direction === "sell" && value > owned)
+      return toast.error(`Not enough ${token.symbol}`);
+    setReviewOpen(true);
   };
 
   const payLabel = direction === "buy" ? "You Pay" : "You Pay";
@@ -244,8 +255,8 @@ const Swap = () => {
             </div>
           </div>
 
-          <Button className="w-full h-12 mt-3 text-base font-semibold" onClick={doSwap}>
-            Swap
+          <Button className="w-full h-12 mt-3 text-base font-semibold" onClick={openReview}>
+            Review Swap
           </Button>
         </div>
 
@@ -371,6 +382,76 @@ const Swap = () => {
                 {s}%
               </button>
             ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Review before swap */}
+      <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Review swap</DialogTitle>
+            <DialogDescription>Check the details before you confirm</DialogDescription>
+          </DialogHeader>
+
+          <div className="rounded-xl border border-border bg-card p-3 space-y-2 text-sm">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">{direction === "buy" ? "🇳🇬" : token.emoji}</span>
+                <div>
+                  <p className="text-[11px] text-muted-foreground">You pay</p>
+                  <p className="font-semibold tabular-nums">
+                    {direction === "buy"
+                      ? fmtNGN(value)
+                      : `${value.toLocaleString(undefined, { maximumFractionDigits: 8 })} ${token.symbol}`}
+                  </p>
+                </div>
+              </div>
+              <ArrowUpDown className="h-4 w-4 text-muted-foreground rotate-90" />
+              <div className="flex items-center gap-2 text-right">
+                <div>
+                  <p className="text-[11px] text-muted-foreground">You receive</p>
+                  <p className="font-semibold tabular-nums">
+                    {direction === "buy"
+                      ? `${receiveQty.toLocaleString(undefined, { maximumFractionDigits: 4 })} ${token.symbol}`
+                      : fmtNGN(receiveNGN)}
+                  </p>
+                </div>
+                <span className="text-lg">{direction === "buy" ? token.emoji : "🇳🇬"}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-1.5 text-[12px]">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Rate</span>
+              <span className="tabular-nums">
+                1 {token.symbol} = {fmtNGN(token.priceNGN, token.priceNGN < 1 ? 8 : 2)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Trading fee (2%)</span>
+              <span className="tabular-nums">{fmtNGN(fee)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Max slippage</span>
+              <span>{slippage}%</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Total</span>
+              <span className="font-semibold tabular-nums">
+                {direction === "buy" ? fmtNGN(ngnValue) : fmtNGN(ngnValue)}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-1">
+            <Button variant="outline" className="flex-1" onClick={() => setReviewOpen(false)}>
+              Cancel
+            </Button>
+            <Button className="flex-1" onClick={executeSwap}>
+              Confirm Swap
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
