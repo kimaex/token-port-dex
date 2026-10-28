@@ -240,7 +240,7 @@ const Futures = () => {
   const entry = orderType === "limit" ? parseFloat(limitPrice) || mark : mark;
   const notional = marginNGN * leverage;
   const qty = entry > 0 ? notional / entry : 0;
-  const fee = notional * 0.0006;
+  const fee = notional * 0.0009; // 0.09% taker fee
   const liq =
     side === "long" ? entry * (1 - 1 / leverage) : entry * (1 + 1 / leverage);
 
@@ -328,7 +328,7 @@ const Futures = () => {
 
   const closePosition = (p: Position) => {
     const pnl = pnlOf(p);
-    const closeFee = p.size * 0.0006;
+    const closeFee = p.size * 0.0009;
     const proceeds = Math.max(0, p.margin + pnl - closeFee);
     creditFutures(proceeds);
     persist(positions.filter((x) => x.id !== p.id));
@@ -749,7 +749,7 @@ const Futures = () => {
             <span className="text-rose-500 tabular-nums">{fmtNGN(liq)}</span>
           </div>
           <div className="flex justify-between">
-            <span>Fee (0.06%)</span>
+            <span>Fee (0.09%)</span>
             <span className="text-foreground tabular-nums">{fmtNGN(fee)}</span>
           </div>
         </div>
@@ -885,9 +885,9 @@ const Futures = () => {
                           </p>
                         </div>
                         <div>
-                          <p>Fees</p>
+                          <p>Fees (round trip)</p>
                           <p className="text-foreground tabular-nums">
-                            {fmtNGN(p.size * 0.0012, 0)}
+                            {fmtNGN(p.size * 0.0018, 0)}
                           </p>
                         </div>
                       </div>
