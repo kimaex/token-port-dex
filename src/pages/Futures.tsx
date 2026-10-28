@@ -240,7 +240,7 @@ const Futures = () => {
   const entry = orderType === "limit" ? parseFloat(limitPrice) || mark : mark;
   const notional = marginNGN * leverage;
   const qty = entry > 0 ? notional / entry : 0;
-  const fee = notional * 0.0006;
+  const fee = notional * 0.0009; // 0.09% taker fee
   const liq =
     side === "long" ? entry * (1 - 1 / leverage) : entry * (1 + 1 / leverage);
 
@@ -328,7 +328,7 @@ const Futures = () => {
 
   const closePosition = (p: Position) => {
     const pnl = pnlOf(p);
-    const closeFee = p.size * 0.0006;
+    const closeFee = p.size * 0.0009;
     const proceeds = Math.max(0, p.margin + pnl - closeFee);
     creditFutures(proceeds);
     persist(positions.filter((x) => x.id !== p.id));
@@ -749,7 +749,7 @@ const Futures = () => {
             <span className="text-rose-500 tabular-nums">{fmtNGN(liq)}</span>
           </div>
           <div className="flex justify-between">
-            <span>Fee (0.06%)</span>
+            <span>Fee (0.09%)</span>
             <span className="text-foreground tabular-nums">{fmtNGN(fee)}</span>
           </div>
         </div>
@@ -885,9 +885,9 @@ const Futures = () => {
                           </p>
                         </div>
                         <div>
-                          <p>Fees</p>
+                          <p>Fees (round trip)</p>
                           <p className="text-foreground tabular-nums">
-                            {fmtNGN(p.size * 0.0012, 0)}
+                            {fmtNGN(p.size * 0.0018, 0)}
                           </p>
                         </div>
                       </div>
@@ -1077,6 +1077,79 @@ const Futures = () => {
                 </span>
               </button>
             ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Transfer */}
+      <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Transfer Funds</DialogTitle>
+            <DialogDescription>
+              Instant · no fee · between Main Wallet and Futures Wallet
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2 rounded-xl border border-border p-1">
+              <button
+                onClick={() => setTransferDir("toFutures")}
+                className={`rounded-lg py-2 text-xs font-medium transition-colors ${
+                  transferDir === "toFutures"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground"
+                }`}
+              >
+                Main → Futures
+              </button>
+              <button
+                onClick={() => setTransferDir("toMain")}
+                className={`rounded-lg py-2 text-xs font-medium transition-colors ${
+                  transferDir === "toMain"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground"
+                }`}
+              >
+                Futures → Main
+              </button>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Available</span>
+              <span className="font-semibold tabular-nums">
+                {fmtNGN(transferDir === "toFutures" ? mainNGN : futuresNGN, 2)}
+              </span>
+            </div>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                ₦
+              </span>
+              <Input
+                inputMode="decimal"
+                className="pl-8"
+                value={transferAmt}
+                onChange={(e) => setTransferAmt(e.target.value)}
+                placeholder="0.00"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full text-xs"
+              onClick={() =>
+                setTransferAmt(
+                  String(
+                    Math.floor(
+                      (transferDir === "toFutures" ? mainNGN : futuresNGN) * 100
+                    ) / 100
+                  )
+                )
+              }
+            >
+              Max
+            </Button>
+            <Button className="w-full" onClick={doTransfer}>
+              Confirm Transfer
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
