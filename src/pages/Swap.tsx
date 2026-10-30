@@ -1,4 +1,5 @@
 import { autoShareSwap } from "@/lib/kimaout";
+import { useLivePrices } from "@/lib/livePrices";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -51,6 +52,24 @@ const FEE_PCT = 0.02;
 const Swap = () => {
   const navigate = useNavigate();
   const { balance, credit, debit } = useNaira();
+  const live = useLivePrices();
+
+  // Live market prices (refreshed every ~20s) override the base token list.
+  const liveTokens = useMemo<Token[]>(
+    () =>
+      TOKENS.map((t) => {
+        const L = live.prices[t.symbol];
+        return L
+          ? {
+              ...t,
+              priceNGN: L.ngn,
+              change: L.change24h,
+              marketCapNGN: L.ngnMarketCap ?? t.marketCapNGN,
+            }
+          : t;
+      }),
+    [live.prices]
+  );
 
   const [direction, setDirection] = useState<"buy" | "sell">("buy"); // buy = ₦ -> token
   const [token, setToken] = useState<Token>(TOKENS[0]);
