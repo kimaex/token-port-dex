@@ -1,4 +1,5 @@
 import { autoShareFutures } from "@/lib/kimaout";
+import { useLivePrices } from "@/lib/livePrices";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
@@ -127,7 +128,19 @@ const Futures = () => {
   const [uiMode, setUiMode] = useState<"simple" | "pro">(
     () => (localStorage.getItem(MODE_KEY) as "simple" | "pro") || "simple"
   );
-  const [pair, setPair] = useState<Pair>(PAIRS[0]);
+  const live = useLivePrices();
+
+  // Live market prices (refreshed every ~20s) override the base pair list.
+  const livePairs = useMemo<Pair[]>(
+    () =>
+      PAIRS.map((p) => {
+        const L = live.prices[p.base];
+        return L ? { ...p, usd: L.usd, change: L.change24h } : p;
+      }),
+    [live.prices]
+  );
+  const [pairState, setPairState] = useState<Pair>(PAIRS[0]);
+  const pair = livePairs.find((p) => p.symbol === pairState.symbol) ?? pairState;
   const [pickerOpen, setPickerOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [side, setSide] = useState<"long" | "short">("long");
