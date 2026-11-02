@@ -140,7 +140,7 @@ const Swap = () => {
   };
 
   const payLabel = direction === "buy" ? "You Pay" : "You Pay";
-  const memeTokens = TOKENS.filter((t) => t.meme);
+  const memeTokens = liveTokens.filter((t) => t.meme);
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -151,6 +151,15 @@ const Swap = () => {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <h1 className="text-lg font-bold">Swap</h1>
+            {live.live && (
+              <span className="flex items-center gap-1 text-[10px] font-semibold text-success">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+                </span>
+                LIVE
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon" onClick={() => setSlipOpen(true)}>
