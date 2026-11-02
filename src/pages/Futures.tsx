@@ -189,8 +189,13 @@ const Futures = () => {
     return () => clearInterval(t);
   }, []);
 
-  const priceOf = (p: Pair) =>
-    p.usd * NGN_PER_USD * (1 + (driftRef.current[p.symbol] ?? 0));
+  const priceOf = (p: Pair) => {
+    const L = live.prices[p.base];
+    // Live Naira price straight from the market feed; falls back to the
+    // configured USD rate when the feed has no data for this pair yet.
+    const base = L ? L.ngn : p.usd * NGN_PER_USD;
+    return base * (1 + (driftRef.current[p.symbol] ?? 0));
+  };
 
   const mark = priceOf(pair);
   const balanceNGN = futuresNGN;
@@ -411,7 +416,7 @@ const Futures = () => {
     toast.success("TP/SL updated");
   };
 
-  const filtered = PAIRS.filter(
+  const filtered = livePairs.filter(
     (p) =>
       p.symbol.toLowerCase().includes(query.toLowerCase()) ||
       p.base.toLowerCase().includes(query.toLowerCase())
