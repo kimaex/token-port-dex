@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { usePortfolio } from "@/lib/portfolioStore";
+import { useLivePrices } from "@/lib/livePrices";
 
 interface Network {
   id: string;
@@ -146,18 +147,40 @@ export const AssetList = () => {
 
   const timeframes = ["1H", "1D", "1W", "1M", "1Y", "ALL"];
   const { usdc } = usePortfolio();
+  const live = useLivePrices();
+
+  /** ₦ price string, 2dp for ₦1+ and 8dp for sub-naira tokens. */
+  const ngnStr = (v: number) =>
+    "₦" +
+    v.toLocaleString("en-US", {
+      minimumFractionDigits: v < 1 ? 8 : 2,
+      maximumFractionDigits: v < 1 ? 8 : 2,
+    });
+
   const assets = useMemo<Asset[]>(
     () =>
-      baseAssets.map((a) =>
-        a.symbol === "USDC"
-          ? {
-              ...a,
-              balance: usdc.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-              value: `₦${(usdc * 1580).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-            }
-          : a
-      ),
-    [usdc]
+      baseAssets.map((a) => {
+        const L = live.prices[a.symbol];
+        const balNum = parseFloat(a.balance.replace(/,/g, "")) || 0;
+        if (a.symbol === "USDC") {
+          const p = L ? L.ngn : 1580;
+          return {
+            ...a,
+            balance: usdc.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            value: `₦${(usdc * p).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            price: ngnStr(p),
+            change: L ? L.change24h : a.change,
+          };
+        }
+        if (!L) return a;
+        return {
+          ...a,
+          price: ngnStr(L.ngn),
+          value: `₦${(balNum * L.ngn).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+          change: L.change24h,
+        };
+      }),
+    [usdc, live.prices]
   );
 
   const handleSetTPSL = () => {
