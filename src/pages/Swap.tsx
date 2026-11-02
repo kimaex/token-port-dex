@@ -291,7 +291,7 @@ const Swap = () => {
                 <button
                   key={t.symbol}
                   onClick={() => {
-                    setToken(t);
+                    setTokenState(t);
                     setDirection("buy");
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
@@ -359,7 +359,7 @@ const Swap = () => {
               <button
                 key={t.symbol}
                 onClick={() => {
-                  setToken(t);
+                  setTokenState(t);
                   setPickerOpen(false);
                   setQuery("");
                 }}
