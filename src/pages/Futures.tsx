@@ -1090,7 +1090,7 @@ const Futures = () => {
               <button
                 key={p.symbol}
                 onClick={() => {
-                  setPair(p);
+                  setPairState(p);
                   setPickerOpen(false);
                   setQuery("");
                 }}
