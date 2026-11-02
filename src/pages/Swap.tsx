@@ -72,7 +72,8 @@ const Swap = () => {
   );
 
   const [direction, setDirection] = useState<"buy" | "sell">("buy"); // buy = ₦ -> token
-  const [token, setToken] = useState<Token>(TOKENS[0]);
+  const [tokenState, setTokenState] = useState<Token>(TOKENS[0]);
+  const token = liveTokens.find((t) => t.symbol === tokenState.symbol) ?? tokenState;
   const [amount, setAmount] = useState(""); // ₦ when buying, token qty when selling
   const [pickerOpen, setPickerOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -100,12 +101,12 @@ const Swap = () => {
 
   const filtered = useMemo(
     () =>
-      TOKENS.filter(
+      liveTokens.filter(
         (t) =>
           t.symbol.toLowerCase().includes(query.toLowerCase()) ||
           t.name.toLowerCase().includes(query.toLowerCase())
       ),
-    [query]
+    [liveTokens, query]
   );
 
   const [reviewOpen, setReviewOpen] = useState(false);
