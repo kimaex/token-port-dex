@@ -189,6 +189,14 @@ const Futures = () => {
     return () => clearInterval(t);
   }, []);
 
+  // Snap micro-drift back to zero whenever a fresh market price lands.
+  useEffect(() => {
+    if (live.updatedAt) {
+      driftRef.current = {};
+      setTick((x) => x + 1);
+    }
+  }, [live.updatedAt]);
+
   const priceOf = (p: Pair) => {
     const L = live.prices[p.base];
     // Live Naira price straight from the market feed; falls back to the
@@ -441,6 +449,15 @@ const Futures = () => {
               <Badge className="bg-primary/15 text-primary border-0 text-[10px]">
                 Perp
               </Badge>
+              {live.live && (
+                <span className="flex items-center gap-1 text-[10px] font-semibold text-success">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+                  </span>
+                  LIVE
+                </span>
+              )}
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </button>
             <div className="flex p-0.5 rounded-lg bg-muted">
