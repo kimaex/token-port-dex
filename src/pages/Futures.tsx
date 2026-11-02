@@ -1,4 +1,5 @@
 import { autoShareFutures } from "@/lib/kimaout";
+import { useLivePrices } from "@/lib/livePrices";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
@@ -127,7 +128,19 @@ const Futures = () => {
   const [uiMode, setUiMode] = useState<"simple" | "pro">(
     () => (localStorage.getItem(MODE_KEY) as "simple" | "pro") || "simple"
   );
-  const [pair, setPair] = useState<Pair>(PAIRS[0]);
+  const live = useLivePrices();
+
+  // Live market prices (refreshed every ~20s) override the base pair list.
+  const livePairs = useMemo<Pair[]>(
+    () =>
+      PAIRS.map((p) => {
+        const L = live.prices[p.base];
+        return L ? { ...p, usd: L.usd, change: L.change24h } : p;
+      }),
+    [live.prices]
+  );
+  const [pairState, setPairState] = useState<Pair>(PAIRS[0]);
+  const pair = livePairs.find((p) => p.symbol === pairState.symbol) ?? pairState;
   const [pickerOpen, setPickerOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [side, setSide] = useState<"long" | "short">("long");
@@ -176,8 +189,21 @@ const Futures = () => {
     return () => clearInterval(t);
   }, []);
 
-  const priceOf = (p: Pair) =>
-    p.usd * NGN_PER_USD * (1 + (driftRef.current[p.symbol] ?? 0));
+  // Snap micro-drift back to zero whenever a fresh market price lands.
+  useEffect(() => {
+    if (live.updatedAt) {
+      driftRef.current = {};
+      setTick((x) => x + 1);
+    }
+  }, [live.updatedAt]);
+
+  const priceOf = (p: Pair) => {
+    const L = live.prices[p.base];
+    // Live Naira price straight from the market feed; falls back to the
+    // configured USD rate when the feed has no data for this pair yet.
+    const base = L ? L.ngn : p.usd * NGN_PER_USD;
+    return base * (1 + (driftRef.current[p.symbol] ?? 0));
+  };
 
   const mark = priceOf(pair);
   const balanceNGN = futuresNGN;
@@ -398,7 +424,7 @@ const Futures = () => {
     toast.success("TP/SL updated");
   };
 
-  const filtered = PAIRS.filter(
+  const filtered = livePairs.filter(
     (p) =>
       p.symbol.toLowerCase().includes(query.toLowerCase()) ||
       p.base.toLowerCase().includes(query.toLowerCase())
@@ -423,6 +449,15 @@ const Futures = () => {
               <Badge className="bg-primary/15 text-primary border-0 text-[10px]">
                 Perp
               </Badge>
+              {live.live && (
+                <span className="flex items-center gap-1 text-[10px] font-semibold text-success">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+                  </span>
+                  LIVE
+                </span>
+              )}
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </button>
             <div className="flex p-0.5 rounded-lg bg-muted">
@@ -1055,7 +1090,7 @@ const Futures = () => {
               <button
                 key={p.symbol}
                 onClick={() => {
-                  setPair(p);
+                  setPairState(p);
                   setPickerOpen(false);
                   setQuery("");
                 }}
