@@ -83,3 +83,21 @@ export const autoShareFutures = (pair: string, side: "long" | "short", entryNGN:
   });
   return true;
 };
+
+/** Manual share of a closed futures trade (the PnL poster) to the KimaOut feed. */
+export const sharePosterToKimaOut = (
+  symbol: string,
+  side: "long" | "short",
+  leverage: number,
+  pnlNGN: number,
+  roi: number
+) => {
+  const long = side === "long";
+  pushCall({
+    id: `pnl${Date.now()}`, user: "you", type: long ? "LONG" : "SHORT", token: symbol, entry: 0,
+    target: 0, stop: 0, leverage,
+    note: `closed a ${long ? "LONG" : "SHORT"} · ${symbol} PERP · ${pnlNGN >= 0 ? "+" : "-"}₦${Math.abs(Math.round(pnlNGN)).toLocaleString()} (${roi >= 0 ? "+" : ""}${roi.toFixed(2)}% ROI)`,
+    createdAt: Date.now(), likes: [], comments: [], shares: 0, auto: "pnl", ngn: true, route: "/futures",
+  });
+  return true;
+};
