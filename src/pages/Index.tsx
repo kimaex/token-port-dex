@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { WalletHeader } from "@/components/WalletHeader";
 import { ActionButtons } from "@/components/ActionButtons";
+import { QuickSwap } from "@/components/QuickSwap";
 import { AssetList } from "@/components/AssetList";
 import { BottomNav } from "@/components/BottomNav";
 import { Onboarding } from "@/components/Onboarding";
@@ -70,6 +71,7 @@ const Index = () => {
       <div className="max-w-md mx-auto relative pb-20">
         <WalletHeader />
         <ActionButtons />
+        <QuickSwap />
         <AssetList />
 
         <BottomNav />

@@ -7,9 +7,10 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, Share2 } from "lucide-react";
+import { Download, Share2, Megaphone } from "lucide-react";
 import { toast } from "sonner";
 import { fmtNGN } from "@/lib/naira";
+import { sharePosterToKimaOut } from "@/lib/kimaout";
 
 export interface PosterData {
   symbol: string;
@@ -24,8 +25,16 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
-const W = 720;
-const H = 960;
+// Bybit-style PnL share card: 9:16 dark canvas, amber accent, big PnL block.
+const W = 750;
+const H = 1000;
+
+const AMBER = "#F7A600";
+const WIN = "#20BC76";
+const LOSS = "#EF454A";
+const INK = "#17181E";
+const CARD = "#1E2126";
+const GREY = "#7A7F87";
 
 export function WinningPoster({ data, onOpenChange }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -39,70 +48,113 @@ export function WinningPoster({ data, onOpenChange }: Props) {
     if (!ctx) return;
 
     const win = data.pnl >= 0;
-    const g = ctx.createLinearGradient(0, 0, W, H);
-    g.addColorStop(0, "#0B0B12");
-    g.addColorStop(0.55, "#17102E");
-    g.addColorStop(1, "#0B0B12");
-    ctx.fillStyle = g;
+    const accent = win ? WIN : LOSS;
+
+    // Background
+    ctx.fillStyle = INK;
     ctx.fillRect(0, 0, W, H);
 
-    // glow
-    const rg = ctx.createRadialGradient(W / 2, 430, 20, W / 2, 430, 420);
-    rg.addColorStop(0, win ? "rgba(34,197,94,0.30)" : "rgba(239,68,68,0.28)");
-    rg.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = rg;
-    ctx.fillRect(0, 0, W, H);
+    // Top amber brand bar
+    ctx.fillStyle = AMBER;
+    ctx.fillRect(0, 0, W, 8);
 
-    ctx.textAlign = "center";
+    // Header brand row
+    ctx.textAlign = "left";
+    ctx.fillStyle = AMBER;
+    ctx.font = "bold 34px system-ui, sans-serif";
+    ctx.fillText("KIMAEX", 48, 88);
+    ctx.fillStyle = GREY;
+    ctx.font = "500 22px system-ui, sans-serif";
+    ctx.fillText("FUTURES  ·  PNL SHARE", 48, 122);
 
-    // brand
-    ctx.fillStyle = "#A855F7";
-    ctx.font = "bold 44px system-ui, sans-serif";
-    ctx.fillText("KIMAEX", W / 2, 110);
-    ctx.fillStyle = "#A1A1AA";
-    ctx.font = "500 24px system-ui, sans-serif";
-    ctx.fillText("FUTURES", W / 2, 148);
-
-    // pair + side
+    // Pair + side chip row
     ctx.fillStyle = "#FFFFFF";
-    ctx.font = "bold 54px system-ui, sans-serif";
-    ctx.fillText(`${data.symbol}`, W / 2, 260);
-    ctx.fillStyle = data.side === "long" ? "#22C55E" : "#EF4444";
-    ctx.font = "600 30px system-ui, sans-serif";
+    ctx.font = "bold 46px system-ui, sans-serif";
+    ctx.fillText(data.symbol, 48, 208);
+
+    // side chip
+    const chipW = 168;
+    ctx.fillStyle = data.side === "long" ? WIN : LOSS;
+    ctx.beginPath();
+    ctx.roundRect(48, 238, chipW, 46, 10);
+    ctx.fill();
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "bold 24px system-ui, sans-serif";
+    ctx.fillText(data.side === "long" ? "LONG" : "SHORT", 48 + 24, 270);
+    // leverage chip
+    ctx.fillStyle = CARD;
+    ctx.beginPath();
+    ctx.roundRect(48 + chipW + 12, 238, 150, 46, 10);
+    ctx.fill();
+    ctx.fillStyle = "#EAECEF";
+    ctx.font = "600 24px system-ui, sans-serif";
+    ctx.fillText(`${data.leverage}x`, 48 + chipW + 12 + 24, 270);
+
+    // Profit tag
+    ctx.fillStyle = accent;
+    ctx.font = "600 24px system-ui, sans-serif";
+    ctx.fillText(win ? "PROFIT" : "LOSS", 48, 344);
+
+    // Big PnL number
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "bold 96px system-ui, sans-serif";
     ctx.fillText(
-      `${data.side === "long" ? "LONG" : "SHORT"} · ${data.leverage}x Leverage`,
-      W / 2,
-      308
+      `${data.pnl >= 0 ? "+" : "-"}${fmtNGN(Math.abs(data.pnl), 2)}`,
+      48,
+      448
     );
 
-    // ROI
-    ctx.fillStyle = win ? "#22C55E" : "#EF4444";
-    ctx.font = "bold 128px system-ui, sans-serif";
-    ctx.fillText(`${data.roi >= 0 ? "+" : ""}${data.roi.toFixed(2)}%`, W / 2, 470);
-
-    ctx.font = "bold 62px system-ui, sans-serif";
-    ctx.fillText(`${data.pnl >= 0 ? "+" : ""}${fmtNGN(data.pnl, 0)}`, W / 2, 560);
-
-    ctx.fillStyle = "#A1A1AA";
-    ctx.font = "500 26px system-ui, sans-serif";
-    ctx.fillText(win ? "Profit" : "Loss", W / 2, 604);
-
-    // card
-    ctx.strokeStyle = "#2A2A3D";
-    ctx.lineWidth = 2;
+    // ROI pill row
+    ctx.fillStyle = accent;
     ctx.beginPath();
-    ctx.roundRect(70, 660, W - 140, 150, 24);
-    ctx.stroke();
+    ctx.roundRect(48, 486, 210, 60, 14);
+    ctx.fill();
     ctx.fillStyle = "#FFFFFF";
-    ctx.font = "600 28px system-ui, sans-serif";
-    ctx.fillText("Trade Futures in Naira", W / 2, 715);
-    ctx.fillStyle = "#A1A1AA";
-    ctx.font = "500 24px system-ui, sans-serif";
-    ctx.fillText("kimaex.app", W / 2, 762);
+    ctx.font = "bold 30px system-ui, sans-serif";
+    ctx.fillText(
+      `ROI ${data.roi >= 0 ? "+" : ""}${data.roi.toFixed(2)}%`,
+      48 + 20,
+      526
+    );
 
-    ctx.fillStyle = "#52525B";
-    ctx.font = "400 20px system-ui, sans-serif";
-    ctx.fillText(new Date().toLocaleDateString("en-NG"), W / 2, 900);
+    // Stats card
+    const rows: [string, string][] = [
+      ["Direction", `${data.side === "long" ? "Long" : "Short"} · ${data.leverage}x`],
+      ["Pair", `${data.symbol} PERP`],
+      ["Settled in", "Naira (₦)"],
+      ["Platform", "Kimaex Futures · 0.09% fee"],
+    ];
+    const cardY = 600;
+    ctx.fillStyle = CARD;
+    ctx.beginPath();
+    ctx.roundRect(48, cardY, W - 96, 250, 20);
+    ctx.fill();
+    rows.forEach(([k, v], i) => {
+      const y = cardY + 58 + i * 56;
+      ctx.textAlign = "left";
+      ctx.fillStyle = GREY;
+      ctx.font = "500 24px system-ui, sans-serif";
+      ctx.fillText(k, 84, y);
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#EAECEF";
+      ctx.font = "600 24px system-ui, sans-serif";
+      ctx.fillText(v, W - 84, y);
+    });
+    ctx.textAlign = "left";
+
+    // Footer
+    ctx.fillStyle = AMBER;
+    ctx.beginPath();
+    ctx.roundRect(48, 896, W - 96, 2, 2);
+    ctx.fill();
+    ctx.fillStyle = GREY;
+    ctx.font = "500 22px system-ui, sans-serif";
+    ctx.fillText("Trade futures in Naira on Kimaex", 48, 948);
+    ctx.textAlign = "right";
+    ctx.fillStyle = GREY;
+    ctx.font = "500 22px system-ui, sans-serif";
+    ctx.fillText("kimaex.app", W - 48, 948);
+    ctx.textAlign = "left";
 
     setUrl(c.toDataURL("image/png"));
   }, [data]);
@@ -116,11 +168,14 @@ export function WinningPoster({ data, onOpenChange }: Props) {
   const share = async () => {
     if (!data) return;
     const blob = await toBlob();
-    const text = `Kimaex Futures · ${data.symbol} ${data.leverage}x — ${
-      data.pnl >= 0 ? "+" : ""
-    }${fmtNGN(data.pnl, 0)} (${data.roi >= 0 ? "+" : ""}${data.roi.toFixed(2)}% ROI)`;
+    const text = `Kimaex Futures · ${data.symbol} ${
+      data.side === "long" ? "LONG" : "SHORT"
+    } ${data.leverage}x — ${data.pnl >= 0 ? "+" : ""}${fmtNGN(
+      data.pnl,
+      0
+    )} (${data.roi >= 0 ? "+" : ""}${data.roi.toFixed(2)}% ROI)`;
     const file = blob
-      ? new File([blob], "kimaex-trade.png", { type: "image/png" })
+      ? new File([blob], "kimaex-pnl.png", { type: "image/png" })
       : null;
     const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
     if (file && nav.canShare?.({ files: [file] })) {
@@ -146,16 +201,22 @@ export function WinningPoster({ data, onOpenChange }: Props) {
     if (!url) return;
     const a = document.createElement("a");
     a.href = url;
-    a.download = "kimaex-trade.png";
+    a.download = "kimaex-pnl.png";
     a.click();
     toast.success("Poster saved");
+  };
+
+  const postToKimaOut = () => {
+    if (!data) return;
+    sharePosterToKimaOut(data.symbol, data.side, data.leverage, data.pnl, data.roi);
+    toast.success("📣 Shared to KimaOut");
   };
 
   return (
     <Dialog open={!!data} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>Share your trade</DialogTitle>
+          <DialogTitle>Share your winning trade</DialogTitle>
           <DialogDescription>
             No account numbers or personal details are included.
           </DialogDescription>
@@ -164,18 +225,19 @@ export function WinningPoster({ data, onOpenChange }: Props) {
         {url && (
           <img
             src={url}
-            alt="Kimaex trading result poster"
+            alt="Kimaex futures PnL share card"
             className="w-full rounded-xl border border-border"
           />
         )}
-        <div className="flex gap-2">
-          <Button variant="secondary" className="flex-1 h-11" onClick={download}>
-            <Download className="h-4 w-4 mr-2" />
-            Save
+        <div className="grid grid-cols-3 gap-2">
+          <Button variant="secondary" className="h-11" onClick={download}>
+            <Download className="h-4 w-4" />
           </Button>
-          <Button className="flex-1 h-11" onClick={share}>
-            <Share2 className="h-4 w-4 mr-2" />
-            Share
+          <Button variant="secondary" className="h-11" onClick={postToKimaOut}>
+            <Megaphone className="h-4 w-4" />
+          </Button>
+          <Button className="h-11" onClick={share}>
+            <Share2 className="h-4 w-4" />
           </Button>
         </div>
       </DialogContent>
