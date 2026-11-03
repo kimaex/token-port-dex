@@ -28,6 +28,7 @@ import BuyStock from "./pages/BuyStock";
 import SellStock from "./pages/SellStock";
 import Bills from "./pages/Bills";
 import KimaOut from "./pages/KimaOut";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -65,6 +66,7 @@ const App = () => (
             <Route path="/bills" element={<Bills />} />
             <Route path="/kimaout" element={<KimaOut />} />
             <Route path="/kimaout/u/:handle" element={<KimaOut />} />
+            <Route path="/admin" element={<Admin />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
