@@ -745,6 +745,16 @@ export const AssetList = () => {
                   ) : (
                     <TrendingDown className="h-3 w-3 text-destructive" />
                   )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/swap?token=${asset.symbol}`);
+                    }}
+                    aria-label={`Swap ${asset.symbol}`}
+                    className="ml-1 h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors"
+                  >
+                    <ArrowLeftRight className="h-3.5 w-3.5 text-primary" />
+                  </button>
                 </div>
               </div>
             </div>
