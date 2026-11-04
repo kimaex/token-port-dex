@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { usePortfolio } from "@/lib/portfolioStore";
 import { useLivePrices } from "@/lib/livePrices";
+import { TOKENS as SWAP_TOKENS } from "@/pages/Swap";
 
 interface Network {
   id: string;
@@ -116,6 +117,42 @@ const baseAssets: Asset[] = [
   },
 ];
 
+/** Qty string: up to 8 dp, commas, trims trailing zeros. */
+const qtyStr = (n: number) =>
+  n.toLocaleString("en-US", { maximumFractionDigits: 8 });
+
+// Every token listed on the Swap page also appears as an asset (mirrored),
+// so a coin bought on Swap shows up on the Assets page instantly.
+const swapOnlyAssets: Asset[] = SWAP_TOKENS.filter(
+  (t) => !baseAssets.some((a) => a.symbol === t.symbol)
+).map((t) => ({
+  id: `swap-${t.symbol}`,
+  name: t.name,
+  symbol: t.symbol,
+  balance: "0",
+  value: "₦0.00",
+  change: t.change,
+  icon: t.emoji,
+  price: "₦0.00",
+  networks: [
+    {
+      id: `${t.symbol.toLowerCase()}-main`,
+      name: `${t.name} Mainnet`,
+      symbol: t.symbol,
+      address: generateWalletAddress(),
+      fee: `0.0001 ${t.symbol}`,
+    },
+  ],
+}));
+
+const readHoldings = (): Record<string, number> => {
+  try {
+    return JSON.parse(localStorage.getItem("kimaex_token_holdings") || "{}");
+  } catch {
+    return {};
+  }
+};
+
 // Generate mock chart data
 const generateChartData = (isPositive: boolean) => {
   const data = [];
@@ -158,10 +195,18 @@ export const AssetList = () => {
     });
 
   const assets = useMemo<Asset[]>(
-    () =>
-      baseAssets.map((a) => {
+    () => {
+      const holdings = readHoldings();
+      const priced = (a: Asset, balNum: number, ngn: number, change: number): Asset => ({
+        ...a,
+        balance: qtyStr(balNum),
+        price: ngnStr(ngn),
+        value: `₦${(balNum * ngn).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        change,
+      });
+
+      const merged = baseAssets.map((a) => {
         const L = live.prices[a.symbol];
-        const balNum = parseFloat(a.balance.replace(/,/g, "")) || 0;
         if (a.symbol === "USDC") {
           const p = L ? L.ngn : 1580;
           return {
@@ -172,14 +217,23 @@ export const AssetList = () => {
             change: L ? L.change24h : a.change,
           };
         }
-        if (!L) return a;
-        return {
-          ...a,
-          price: ngnStr(L.ngn),
-          value: `₦${(balNum * L.ngn).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-          change: L.change24h,
-        };
-      }),
+        // Tokens bought on Swap live in kimaex_token_holdings; show the real
+        // holding when one exists, otherwise keep the wallet balance.
+        const held = holdings[a.symbol] || 0;
+        const balNum = held > 0 ? held : parseFloat(a.balance.replace(/,/g, "")) || 0;
+        if (!L) return held > 0 ? priced(a, balNum, 0, a.change) : a;
+        return priced(a, balNum, L.ngn, L.change24h);
+      });
+
+      return merged.concat(
+        swapOnlyAssets.map((a) => {
+          const L = live.prices[a.symbol];
+          const balNum = holdings[a.symbol] || 0;
+          const ngn = L ? L.ngn : 0;
+          return priced(a, balNum, ngn, L ? L.change24h : a.change);
+        })
+      );
+    },
     [usdc, live.prices]
   );
 
@@ -243,7 +297,7 @@ export const AssetList = () => {
     const chartColor = selectedAsset.change >= 0 ? "#22c55e" : "#ef4444";
 
     return (
-      <div className="fixed inset-0 bg-background z-50 flex flex-col">
+      <div className="fixed inset-0 bg-background z-50 flex flex-col pb-20 overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
           <Button 
@@ -269,7 +323,7 @@ export const AssetList = () => {
           <p className="text-4xl font-bold">{selectedAsset.price}</p>
           <div className="flex items-center justify-center gap-2 mt-2">
             <span className={`text-lg font-medium ${selectedAsset.change >= 0 ? "text-success" : "text-destructive"}`}>
-              {selectedAsset.change >= 0 ? "+" : ""}{selectedAsset.change}%
+              {selectedAsset.change >= 0 ? "+" : ""}{selectedAsset.change.toFixed(2)}%
             </span>
             {selectedAsset.change >= 0 ? (
               <TrendingUp className="h-5 w-5 text-success" />
@@ -359,8 +413,8 @@ export const AssetList = () => {
             className="flex-col h-auto py-4 gap-2"
             variant="outline"
             onClick={() => {
-              console.log("Swap", selectedAsset.name);
               setSelectedAsset(null);
+              navigate(`/swap?token=${selectedAsset.symbol}`);
             }}
           >
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -684,13 +738,23 @@ export const AssetList = () => {
                 <div className="flex items-center gap-1 text-sm">
                   <p className={asset.change >= 0 ? "text-success" : "text-destructive"}>
                     {asset.change >= 0 ? "+" : ""}
-                    {asset.change}%
+                    {asset.change.toFixed(2)}%
                   </p>
                   {asset.change >= 0 ? (
                     <TrendingUp className="h-3 w-3 text-success" />
                   ) : (
                     <TrendingDown className="h-3 w-3 text-destructive" />
                   )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/swap?token=${asset.symbol}`);
+                    }}
+                    aria-label={`Swap ${asset.symbol}`}
+                    className="ml-1 h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors"
+                  >
+                    <ArrowLeftRight className="h-3.5 w-3.5 text-primary" />
+                  </button>
                 </div>
               </div>
             </div>
