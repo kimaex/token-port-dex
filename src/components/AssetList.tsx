@@ -297,7 +297,7 @@ export const AssetList = () => {
     const chartColor = selectedAsset.change >= 0 ? "#22c55e" : "#ef4444";
 
     return (
-      <div className="fixed inset-0 bg-background z-50 flex flex-col">
+      <div className="fixed inset-0 bg-background z-50 flex flex-col pb-20 overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
           <Button 
