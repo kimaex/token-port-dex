@@ -1,7 +1,7 @@
 import { autoShareSwap } from "@/lib/kimaout";
 import { useLivePrices } from "@/lib/livePrices";
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowUpDown,
@@ -45,12 +45,14 @@ export const TOKENS: Token[] = [
   { symbol: "ETH", name: "Ethereum", emoji: "Ξ", priceNGN: 5_245_600, change: -1.1, marketCapNGN: 630_000_000_000_000 },
   { symbol: "SOL", name: "Solana", emoji: "◎", priceNGN: 313_472, change: 4.9, marketCapNGN: 150_000_000_000_000 },
   { symbol: "NEAR", name: "NEAR Protocol", emoji: "Ⓝ", priceNGN: 8_184, change: 3.2, marketCapNGN: 10_600_000_000_000 },
+  { symbol: "ADA", name: "Cardano", emoji: "₳", priceNGN: 1_216.6, change: 1.5, marketCapNGN: 43_000_000_000_000 },
 ];
 
 const FEE_PCT = 0.02;
 
 const Swap = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { balance, credit, debit } = useNaira();
   const live = useLivePrices();
 
@@ -72,7 +74,10 @@ const Swap = () => {
   );
 
   const [direction, setDirection] = useState<"buy" | "sell">("buy"); // buy = ₦ -> token
-  const [tokenState, setTokenState] = useState<Token>(TOKENS[0]);
+  // A token can be preselected from the Assets page via /swap?token=SYMBOL.
+  const [tokenState, setTokenState] = useState<Token>(
+    () => TOKENS.find((t) => t.symbol === searchParams.get("token")) ?? TOKENS[0]
+  );
   const token = liveTokens.find((t) => t.symbol === tokenState.symbol) ?? tokenState;
   const [amount, setAmount] = useState(""); // ₦ when buying, token qty when selling
   const [pickerOpen, setPickerOpen] = useState(false);
