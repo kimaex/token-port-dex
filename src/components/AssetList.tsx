@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { usePortfolio } from "@/lib/portfolioStore";
 import { useLivePrices } from "@/lib/livePrices";
+import { TOKENS as SWAP_TOKENS } from "@/pages/Swap";
 
 interface Network {
   id: string;
@@ -115,6 +116,42 @@ const baseAssets: Asset[] = [
     ]
   },
 ];
+
+/** Qty string: up to 8 dp, commas, trims trailing zeros. */
+const qtyStr = (n: number) =>
+  n.toLocaleString("en-US", { maximumFractionDigits: 8 });
+
+// Every token listed on the Swap page also appears as an asset (mirrored),
+// so a coin bought on Swap shows up on the Assets page instantly.
+const swapOnlyAssets: Asset[] = SWAP_TOKENS.filter(
+  (t) => !baseAssets.some((a) => a.symbol === t.symbol)
+).map((t, i) => ({
+  id: `swap-${t.symbol}`,
+  name: t.name,
+  symbol: t.symbol,
+  balance: "0",
+  value: "₦0.00",
+  change: t.change,
+  icon: t.emoji,
+  price: "₦0.00",
+  networks: [
+    {
+      id: `${t.symbol.toLowerCase()}-main`,
+      name: `${t.name} Mainnet`,
+      symbol: t.symbol,
+      address: generateWalletAddress(),
+      fee: `0.0001 ${t.symbol}`,
+    },
+  ],
+}));
+
+const readHoldings = (): Record<string, number> => {
+  try {
+    return JSON.parse(localStorage.getItem("kimaex_token_holdings") || "{}");
+  } catch {
+    return {};
+  }
+};
 
 // Generate mock chart data
 const generateChartData = (isPositive: boolean) => {
