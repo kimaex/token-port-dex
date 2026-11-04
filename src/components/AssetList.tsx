@@ -323,7 +323,7 @@ export const AssetList = () => {
           <p className="text-4xl font-bold">{selectedAsset.price}</p>
           <div className="flex items-center justify-center gap-2 mt-2">
             <span className={`text-lg font-medium ${selectedAsset.change >= 0 ? "text-success" : "text-destructive"}`}>
-              {selectedAsset.change >= 0 ? "+" : ""}{selectedAsset.change}%
+              {selectedAsset.change >= 0 ? "+" : ""}{selectedAsset.change.toFixed(2)}%
             </span>
             {selectedAsset.change >= 0 ? (
               <TrendingUp className="h-5 w-5 text-success" />
@@ -738,7 +738,7 @@ export const AssetList = () => {
                 <div className="flex items-center gap-1 text-sm">
                   <p className={asset.change >= 0 ? "text-success" : "text-destructive"}>
                     {asset.change >= 0 ? "+" : ""}
-                    {asset.change}%
+                    {asset.change.toFixed(2)}%
                   </p>
                   {asset.change >= 0 ? (
                     <TrendingUp className="h-3 w-3 text-success" />
