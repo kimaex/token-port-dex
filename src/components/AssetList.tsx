@@ -195,10 +195,18 @@ export const AssetList = () => {
     });
 
   const assets = useMemo<Asset[]>(
-    () =>
-      baseAssets.map((a) => {
+    () => {
+      const holdings = readHoldings();
+      const priced = (a: Asset, balNum: number, ngn: number, change: number): Asset => ({
+        ...a,
+        balance: qtyStr(balNum),
+        price: ngnStr(ngn),
+        value: `₦${(balNum * ngn).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        change,
+      });
+
+      const merged = baseAssets.map((a) => {
         const L = live.prices[a.symbol];
-        const balNum = parseFloat(a.balance.replace(/,/g, "")) || 0;
         if (a.symbol === "USDC") {
           const p = L ? L.ngn : 1580;
           return {
@@ -209,14 +217,23 @@ export const AssetList = () => {
             change: L ? L.change24h : a.change,
           };
         }
-        if (!L) return a;
-        return {
-          ...a,
-          price: ngnStr(L.ngn),
-          value: `₦${(balNum * L.ngn).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-          change: L.change24h,
-        };
-      }),
+        // Tokens bought on Swap live in kimaex_token_holdings; show the real
+        // holding when one exists, otherwise keep the wallet balance.
+        const held = holdings[a.symbol] || 0;
+        const balNum = held > 0 ? held : parseFloat(a.balance.replace(/,/g, "")) || 0;
+        if (!L) return held > 0 ? priced(a, balNum, 0, a.change) : a;
+        return priced(a, balNum, L.ngn, L.change24h);
+      });
+
+      return merged.concat(
+        swapOnlyAssets.map((a) => {
+          const L = live.prices[a.symbol];
+          const balNum = holdings[a.symbol] || 0;
+          const ngn = L ? L.ngn : 0;
+          return priced(a, balNum, ngn, L ? L.change24h : a.change);
+        })
+      );
+    },
     [usdc, live.prices]
   );
 
@@ -396,8 +413,8 @@ export const AssetList = () => {
             className="flex-col h-auto py-4 gap-2"
             variant="outline"
             onClick={() => {
-              console.log("Swap", selectedAsset.name);
               setSelectedAsset(null);
+              navigate(`/swap?token=${selectedAsset.symbol}`);
             }}
           >
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
