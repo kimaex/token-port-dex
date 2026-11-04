@@ -125,7 +125,7 @@ const qtyStr = (n: number) =>
 // so a coin bought on Swap shows up on the Assets page instantly.
 const swapOnlyAssets: Asset[] = SWAP_TOKENS.filter(
   (t) => !baseAssets.some((a) => a.symbol === t.symbol)
-).map((t, i) => ({
+).map((t) => ({
   id: `swap-${t.symbol}`,
   name: t.name,
   symbol: t.symbol,
