@@ -45,6 +45,10 @@ const assets: Asset[] = [
     networks: [{ id: "sol-main", name: "Solana", fee: "0.000005 SOL" }],
   },
   {
+    id: "near", name: "NEAR Protocol", symbol: "NEAR", balance: "0", value: "₦0.00", icon: "Ⓝ", price: "₦8,184.00",
+    networks: [{ id: "near-main", name: "NEAR Protocol", fee: "0.01 NEAR" }],
+  },
+  {
     id: "5", name: "USD Coin", symbol: "USDC", balance: "5,234.56", value: "₦8,270,604.80", icon: "◈", price: "₦1,580.00",
     networks: [
       { id: "usdc-eth", name: "Ethereum (ERC20)", fee: "₦7900.00" },
@@ -55,6 +59,14 @@ const assets: Asset[] = [
       { id: "usdc-avax", name: "Avalanche C-Chain", fee: "₦158.00" },
       { id: "usdc-tron", name: "Tron (TRC20)", fee: "₦1580.00" },
       { id: "usdc-base", name: "Base", fee: "₦15.80" },
+      { id: "usdc-near", name: "NEAR Protocol", fee: "0.1 USDC" },
+    ],
+  },
+  {
+    id: "usdt", name: "Tether", symbol: "USDT", balance: "0", value: "₦0.00", icon: "₮", price: "₦1,580.00",
+    networks: [
+      { id: "usdt-eth", name: "Ethereum (ERC20)", fee: "5 USDT" },
+      { id: "usdt-near", name: "NEAR Protocol", fee: "0.1 USDT" },
     ],
   },
 ];

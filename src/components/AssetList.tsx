@@ -39,6 +39,10 @@ const generateWalletAddress = () => {
   return address;
 };
 
+const nearWalletAddress = Array.from({ length: 64 }, () =>
+  Math.floor(Math.random() * 16).toString(16)
+).join("");
+
 const baseAssets: Asset[] = [
   {
     id: "1",
@@ -96,6 +100,33 @@ const baseAssets: Asset[] = [
     ]
   },
   {
+    id: "near",
+    name: "NEAR Protocol",
+    symbol: "NEAR",
+    balance: "0",
+    value: "₦0.00",
+    change: 3.2,
+    icon: "Ⓝ",
+    price: "₦8,184.00",
+    networks: [
+      { id: "near-main", name: "NEAR Protocol", symbol: "NEAR", address: nearWalletAddress, fee: "0.01 NEAR" },
+    ],
+  },
+  {
+    id: "usdt",
+    name: "Tether",
+    symbol: "USDT",
+    balance: "0",
+    value: "₦0.00",
+    change: 0,
+    icon: "₮",
+    price: "₦1,580.00",
+    networks: [
+      { id: "usdt-eth", name: "Ethereum (ERC20)", symbol: "USDT", address: generateWalletAddress(), fee: "5 USDT" },
+      { id: "usdt-near", name: "NEAR Protocol", symbol: "USDT", address: nearWalletAddress, fee: "0.1 USDT" },
+    ],
+  },
+  {
     id: "5",
     name: "USD Coin",
     symbol: "USDC",
@@ -113,6 +144,7 @@ const baseAssets: Asset[] = [
       { id: "usdc-avax", name: "Avalanche C-Chain", symbol: "USDC", address: generateWalletAddress(), fee: "0.1 USDC" },
       { id: "usdc-tron", name: "Tron (TRC20)", symbol: "USDC", address: "TKFLmRxv1xqxs5xsqvs5xsqvs5xsqvs5xs", fee: "1 USDC" },
       { id: "usdc-base", name: "Base", symbol: "USDC", address: generateWalletAddress(), fee: "0.01 USDC" },
+      { id: "usdc-near", name: "NEAR Protocol", symbol: "USDC", address: nearWalletAddress, fee: "0.1 USDC" },
     ]
   },
 ];
