@@ -20,6 +20,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
 import { fmtNGN, fmtNGNShort, useNaira } from "@/lib/naira";
@@ -49,6 +50,12 @@ export const TOKENS: Token[] = [
 ];
 
 const FEE_PCT = 0.02;
+const SWAP_ENVIRONMENTS = [
+  { value: "simulated", label: "Kimaex · Simulated" },
+  { value: "near-testnet", label: "NEAR Protocol Testnet" },
+  { value: "rhea-testnet", label: "RheaSwap Testnet" },
+  { value: "hyperliquid-testnet", label: "Hyperliquid Testnet" },
+];
 
 const Swap = () => {
   const navigate = useNavigate();
@@ -84,6 +91,7 @@ const Swap = () => {
   const [query, setQuery] = useState("");
   const [slippage, setSlippage] = useState(1);
   const [slipOpen, setSlipOpen] = useState(false);
+  const [swapEnvironment, setSwapEnvironment] = useState("simulated");
   const [holdings, setHoldings] = useState<Record<string, number>>(() => {
     try {
       return JSON.parse(localStorage.getItem("kimaex_token_holdings") || "{}");
@@ -174,6 +182,25 @@ const Swap = () => {
         </div>
 
         <div className="px-4 space-y-2">
+          <div className="space-y-1.5">
+            <label htmlFor="swap-environment" className="text-xs text-muted-foreground">Network / venue</label>
+            <Select value={swapEnvironment} onValueChange={setSwapEnvironment}>
+              <SelectTrigger id="swap-environment" aria-label="Select test environment">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SWAP_ENVIRONMENTS.map((environment) => (
+                  <SelectItem key={environment.value} value={environment.value}>{environment.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {swapEnvironment !== "simulated" && (
+              <p className="text-[11px] text-muted-foreground" role="status">
+                Testnet selection only — swaps on this screen are simulated and do not send on-chain transactions.
+              </p>
+            )}
+          </div>
+
           {/* Pay */}
           <div className="rounded-2xl border border-border bg-card p-4">
             <div className="flex items-center justify-between mb-2">
