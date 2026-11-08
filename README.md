@@ -6,14 +6,16 @@ Kimaex is a Naira-first decentralized trading platform built to make on-chain tr
 
 | | |
 |---|---|
-| Live app | https://token-port-dex.lovable.app |
+| Live app | https://kimaexap.vercel.app |
 | Source code | https://github.com/kimaex/token-port-dex |
 | Lovable project | https://lovable.dev/projects/aa5dc4de-b2f1-43ed-ac80-60de2dda2b2e |
-| Demo video | https://x.com/Jibkid_khakima1/status/2118766278978555959|
+| Demo video | https://x.com/Jibkid_khakima1/status/2118766278978555959 |
 
 ## The problem
 
 In Nigeria, getting into crypto usually means P2P dollar rates, unclear fees and several apps for trading, sending and cashing out. Naira volatility makes every step harder to price. Kimaex keeps the whole experience in ₦.
+
+## What the demo shows
 
 **Wallet home**
 - One total balance in ₦ with a 24h change.
@@ -51,17 +53,18 @@ In Nigeria, getting into crypto usually means P2P dollar rates, unclear fees and
 - **NEAR as a supported network:** USDT can be sent over the NEAR Protocol network from the Send flow.
 - **NEAR as a core asset:** NEAR can be bought with Naira in Swap and traded as a NEAR/NGN perpetual market.
 
+
 ## Status: what's live vs. simulated
 
 | Feature | Status |
 |---|---|
-| Mobile-first UI for all flows above | Working prototype (try the testnet app) |
-| Naira-priced swaps | [testnet] |
-| Send / receive crypto | [testnet] |
-| Naira bank withdrawal | [testnet] |
-| Futures trading engine | [testnet] |
-| Bills payments | Entry point in UI; [ Planned] |
-| Kimaex card | [Planned] |
+| Mobile-first UI for all flows above | Working prototype (live app) |
+| Naira-priced swaps | [Testnet|
+| Send / receive crypto | [Testnet] |
+| Naira bank withdrawal | [ Testnet] |
+| Futures trading engine | [ Testnet] |
+| Bills payments | Entry point in UI, planned |
+| Kimaex card | Planned |
 
 ## Run locally
 
@@ -76,12 +79,11 @@ npm run dev
 
 ## Built with Lovable
 
-This project was built with [Lovable](https://lovable.dev). Changes made in the Lovable editor are committed to this repository, and pushes to `main` sync back into Lovable.
+This project was built with [Lovable](https://lovable.dev). Changes made in the Lovable editor are committed to this repository, and pushes to `main` sync back into Lovable. The live app is deployed on Vercel.
 
 ## Risk and compliance
 
-Leveraged trading carries serious risk of loss. [ADD: leverage limits, risk warnings and compliance plans you have actually built or decided on, including how you will approach Nigerian SEC digital-asset rules.]
-
+Leveraged trading carries serious risk of loss. The trade screen shows margin, fees and estimated liquidation price before a position is opened.
 ## Roadmap
 
 1. Move swaps and transfers fully on-chain on NEAR
@@ -91,4 +93,5 @@ Leveraged trading carries serious risk of loss. [ADD: leverage limits, risk warn
 
 ## Team
 
-jibrin Ibrahim 
+Jibrin Ibrahim
+
