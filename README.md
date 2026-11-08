@@ -9,7 +9,7 @@ Kimaex is a Naira-first decentralized trading platform built to make on-chain tr
 | Live app | https://kimaexap.vercel.app |
 | Source code | https://github.com/kimaex/token-port-dex |
 | Lovable project | https://lovable.dev/projects/aa5dc4de-b2f1-43ed-ac80-60de2dda2b2e |
-| Demo video | https://x.com/Jibkid_khakima1/status/2118766278978555959 |
+| Demo video | https://x.com/Jibkid_khakima1/status/2119407439300718680 |
 
 ## The problem
 
