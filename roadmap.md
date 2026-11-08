@@ -4,6 +4,7 @@
 - Replaced Kimapre prediction module with MEXC-style Futures (Naira), nav + routes + history updated.
 
 ## Open
+- [ ] Real NEAR testnet wallet, balance, transfers, and honest status labels; document reproducible demo steps
 - [ ] Add NEAR to Assets, Send, and Receive; add NEAR network choices for USDT and USDC
 - [ ] Quick Swap widget on home page (Naira <-> token, live prices, 2% fee)
 - [ ] Redesign WinningPoster Bybit-style + share to KimaOut/social
